@@ -15,6 +15,7 @@ import javax.microedition.io.HttpsConnection;
 import javax.microedition.rms.InvalidRecordIDException;
 import javax.microedition.rms.RecordStoreException;
 import javax.microedition.rms.RecordStoreNotOpenException;
+import ui.Login;
 
 /**
  *
@@ -317,12 +318,15 @@ public class parseMsgs {
         try{
 
             HttpsConnection c = createConnection.open(getMsgsURL, "GET", reqProps, "");
+
+            //FIXME every 20 connections or so, a 400 HTTP response is returned. This is a temp workaround
             if(c.getResponseCode() != 200)
             {
                 createConnection.close(c);
-
-                System.out.println(html);
-                throw new Exception("request code bad"+gvME.countCons);
+                gvLogin login = Login.get_gvLogin();
+                login.logIn(gvME.userSettings);
+                //System.out.println(html);
+                //throw new Exception("request code bad"+gvME.countCons);
 
             }
             DataInputStream dis = c.openDataInputStream();
