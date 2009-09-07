@@ -107,13 +107,13 @@ public class Inbox extends List implements CommandListener {
                 }
                 else if(command == delItemCmd)
                 {
-                    delMsg.delete(this);
+                    gvInbox.delMsg(this);
                     InboxToItemMap.removeElement(original);
-                    try {
-                        updateInbox();
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
+//                    try {
+//                        updateInbox();
+//                    } catch (IOException ex) {
+//                        ex.printStackTrace();
+//                    }
                 }
                 else if(command == replyCmd)
                 {

@@ -29,7 +29,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
     public SendMsg(textConvo original, String msg)
     {
         super(gvME.dispMan.getDisplay());
-        this.rnr = rnr;
+        this.rnr = gvME.getRNR();
         this.reqProps = parseMsgs.getReqProps();
         this.msg = msg;
         this.original = original;        

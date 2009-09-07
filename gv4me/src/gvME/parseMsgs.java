@@ -13,9 +13,9 @@ import java.util.Hashtable;
 import java.util.Vector;
 import javax.microedition.io.HttpsConnection;
 import javax.microedition.rms.InvalidRecordIDException;
+import javax.microedition.rms.RecordStore;
 import javax.microedition.rms.RecordStoreException;
 import javax.microedition.rms.RecordStoreNotOpenException;
-import ui.Login;
 
 /**
  *
@@ -50,8 +50,6 @@ public class parseMsgs {
     private static Vector reqProps = new Vector(5);
     private static Vector convosVect = new Vector(10);
     private static Hashtable storedConvos = new Hashtable();
-
-    static int count = 0;
 
     public static void setReqProps()
     {
@@ -313,7 +311,6 @@ public class parseMsgs {
     
     synchronized public static String getHTML()
     {
-        count++;
         String html = "";
         try{
 
@@ -323,8 +320,10 @@ public class parseMsgs {
             if(c.getResponseCode() != 200)
             {
                 createConnection.close(c);
+                RecordStore.deleteRecordStore("cookieStore");
                 gvLogin.logIn();
-            }
+                c = createConnection.open(getMsgsURL, "GET", reqProps, "");
+            } 
 
             DataInputStream dis = c.openDataInputStream();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -33,9 +33,7 @@ public class MsgList extends List implements CommandListener {
     private int itemLength = 20;
     private static Vector MsgListToItemMap = new Vector(10);
     private Command viewMsgCmd;
-    private Command delItemCmd;
     private Command replyCmd;
-    private Command refreshCmd;
     private Command backCmd;
     private Command fwdCmd;
     private Form readMsg;
@@ -79,7 +77,7 @@ public class MsgList extends List implements CommandListener {
         MsgList.MsgListToItemMap = msgListToItemMap;
     }
 
-    public Form getReadMsg(String title)
+    private Form getReadMsg(String title)
     {
         if(readMsg == null)
         {
@@ -97,7 +95,7 @@ public class MsgList extends List implements CommandListener {
         return readMsg;
     }
 
-    public Form getMsgProps(textConvo msg)
+    private Form getMsgProps(textConvo msg)
     {
         msgProps = new Form("Properties");
         msgProps.addCommand(getBackCmd());
@@ -110,6 +108,7 @@ public class MsgList extends List implements CommandListener {
         msgProps.setCommandListener(this);
         return msgProps;
     }
+
     public void commandAction(Command command, Displayable displayable) {
         int selIndex = this.getSelectedIndex();
         System.out.println(String.valueOf(selIndex));
@@ -180,46 +179,32 @@ public class MsgList extends List implements CommandListener {
         }
     }
 
-    public Command getViewMsgCmd() {
+    private Command getViewMsgCmd() {
         if (viewMsgCmd == null) {
             viewMsgCmd = new Command("Read", Command.OK, 1);
         }
         return viewMsgCmd;
     }
 
-    public Command getBackCmd() {
+    private Command getBackCmd() {
         if (backCmd == null) {
             backCmd = new Command("Back", Command.BACK, 2);
         }
         return backCmd;
     }
 
-    public Command getMsgPropsCmd() {
+    private Command getMsgPropsCmd() {
         if (msgPropsCmd == null) {
             msgPropsCmd = new Command("Properties", Command.ITEM, 4);
         }
         return msgPropsCmd;
     }
 
-    public Command getReplyCmd() {
+    private Command getReplyCmd() {
         if (replyCmd == null) {
             replyCmd = new Command("Reply", Command.ITEM, 3);
         }
         return replyCmd;
-    }
-
-    public Command getRefreshCmd() {
-        if (refreshCmd == null) {
-            refreshCmd = new Command("Refresh", Command.ITEM, 4);
-        }
-        return refreshCmd;
-    }
-
-    public Command getDelItemCmd() {
-        if (delItemCmd == null) {
-            delItemCmd = new Command("Delete", Command.ITEM, 5);
-        }
-        return delItemCmd;
     }
 
     private Command getFwdCmd() {

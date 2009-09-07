@@ -89,17 +89,15 @@ public class gvLogin {
         }
         else
         {
+            System.out.println(username + " " + password);
             throw new Exception("Login Failed. Bad username or password");
         }
     }
 
     public static void saveLoginInfo() throws RecordStoreException, RecordStoreException
     {
-    
             gvME.userSettings.setUsername(gvLogin.username);
             gvME.userSettings.setPassword(gvLogin.password);
             gvME.userSettings.updateSettings();
-            System.out.println(username + " " + password);
-          //  gvME.createTimer();
     }
 }

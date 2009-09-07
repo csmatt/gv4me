@@ -32,12 +32,10 @@ public class gvME extends MIDlet implements CommandListener {
     private static long timerDelay = 30000;
     private static String rnr;
     public static settings userSettings;
-    public LoginScreen loginScreen;
     public static DisplayManager dispMan;
     private static Command exitCmd;
     private static Command minimize;
     private Command backFromInbox;
-    private Command delInboxItem;
     private Command backFromSettings;
     private Command okSaveSettings;
     private Command okMakeCall;
@@ -51,11 +49,9 @@ public class gvME extends MIDlet implements CommandListener {
     private TextField intervalTextField;
     private WaitScreen callWaitScreen;
     private Command backFromMakeCall;
-    private Login login;
-    private static int numNewMsgs;
     private static CommandListener cl;
+    private static int numNewMsgs;
     public static int countCons;
-
 
     /*
      * Initilizes the application.
@@ -65,7 +61,8 @@ public class gvME extends MIDlet implements CommandListener {
         userSettings = new settings();
         countCons = 0;
         dispMan = new DisplayManager(this);
-        cl = this;
+        cl = this; //reference to 'this' for CommandListener of static method getMenu()
+
         //sets locally stored conversations
         parseMsgs.initStoredConvos();
 
@@ -191,12 +188,12 @@ public class gvME extends MIDlet implements CommandListener {
             menu = new List("Menu", Choice.IMPLICIT);//GEN-BEGIN:|24-getter|1|24-postInit
             menu.append("Write New", null);
             menu.append("Inbox", null);
+            menu.append("Outbox", null);
             menu.append("Settings", null);
             menu.append("Make Call", null);
             menu.addCommand(getExitCmd());
             menu.addCommand(getMinimize());
             menu.setCommandListener(cl);
-            menu.setSelectedFlags(new boolean[] { false, false, false, false });//GEN-END:|24-getter|1|24-postInit
         }
         return menu;
     }
@@ -205,17 +202,19 @@ public class gvME extends MIDlet implements CommandListener {
     /**
      * Performs an action assigned to the selected list element in the menu component.
      */
-    public void menuAction() throws IOException, Exception {//GEN-END:|24-action|0|24-preAction
-        String __selectedString = getMenu().getString(getMenu().getSelectedIndex());//GEN-BEGIN:|24-action|1|28-preAction
+    public void menuAction() throws IOException, Exception {
+        String __selectedString = getMenu().getString(getMenu().getSelectedIndex());
         if (__selectedString != null) {
-            if (__selectedString.equals("Write New")) {//GEN-END:|24-action|1|28-preAction
+            if (__selectedString.equals("Write New")) {
                 
                 if(newSMS != null)
                     newSMS.setString("");
                 newSMS = new WriteMsg("Write New", null);
                 dispMan.switchDisplayable(null, newSMS);
             } else if (__selectedString.equals("Inbox")) {               
-                    dispMan.switchDisplayable(null, getInbox());               
+                    dispMan.switchDisplayable(null, getInbox());
+            } else if (__selectedString.equals("Outbox")) {
+//                    dispMan.switchDisplayable(null, getOutbox());
             } else if (__selectedString.equals("Settings")) {            
                 dispMan.switchDisplayable(null, getChangeSettingsMenu());                
             } else if (__selectedString.equals("Make Call")) {                
@@ -235,6 +234,11 @@ public class gvME extends MIDlet implements CommandListener {
         InboxList.updateInbox();
         return InboxList;
     }
+
+//    public static Outbox getOutbox()
+//    {
+//
+//    }
 
     //<editor-fold defaultstate="collapsed" desc=" Generated Getter: exitGVSMS ">//GEN-BEGIN:|62-getter|0|62-preInit
     /**
@@ -275,24 +279,6 @@ public class gvME extends MIDlet implements CommandListener {
         return minimize;
     }
     //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: delInboxItem ">//GEN-BEGIN:|161-getter|0|161-preInit
-    /**
-     * Returns an initiliazed instance of delInboxItem component.
-     * @return the initialized component instance
-     */
-    public Command getDelInboxItem() {
-        if (delInboxItem == null) {
-            delInboxItem = new Command("Delete", Command.ITEM, 1);            
-        }
-        return delInboxItem;
-    }
-
-    //<editor-fold defaultstate="collapsed" desc=" Generated Method: checkLoginInfo ">//GEN-BEGIN:|191-if|0|191-preIf
-    /**
-     * Performs an action assigned to the checkLoginInfo if-point.
-     */
-
 
     //<editor-fold defaultstate="collapsed" desc=" Generated Getter: okMakeCall ">//GEN-BEGIN:|226-getter|0|226-preInit
     /**

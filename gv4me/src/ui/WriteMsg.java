@@ -6,7 +6,6 @@
 package ui;
 
 import gvME.*;
-import java.util.Vector;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
@@ -19,7 +18,7 @@ import javax.microedition.lcdui.TextField;
  */
 public class WriteMsg extends TextBox implements CommandListener {
     private ChooseContact chooseContact;
-    private Command OKCmd;
+    private Command sendCmd;
     private Command backCmd;
     private textConvo original;
     private String title;
@@ -39,15 +38,15 @@ public class WriteMsg extends TextBox implements CommandListener {
             this.original = null; //because a forwarded message is nothing more than a new message with default text
         }
         addCommand(getBackCmd());
-        addCommand(getOKCmd());
+        addCommand(getSendCmd());
         setCommandListener(this);
     }
 
-    public Command getOKCmd() {
-        if (OKCmd == null) {
-            OKCmd = new Command("Send", Command.ITEM, 1);
+    public Command getSendCmd() {
+        if (sendCmd == null) {
+            sendCmd = new Command("Send", Command.ITEM, 1);
         }
-        return OKCmd;
+        return sendCmd;
     }
 
     public Command getBackCmd() {
@@ -67,10 +66,12 @@ public class WriteMsg extends TextBox implements CommandListener {
                 {
                     gvME.dispMan.switchToPreviousDisplayable();
                 }
-            } else if (command == OKCmd) {
+            } else if (command == sendCmd) {
                 if(!title.equals("Reply")) //if it's a new message or a forwarded message
                 {
-                    displayChooseContact();
+                    SendMsg sm = new SendMsg(original, this.getString());
+                    chooseContact = new ChooseContact(this, sm);
+                    gvME.dispMan.switchDisplayable(null, chooseContact);
                 }
                 else
                 {
@@ -79,13 +80,5 @@ public class WriteMsg extends TextBox implements CommandListener {
                 }
             }
         }
-    }
-
-    public void displayChooseContact()
-    {
-            SendMsg sm = new SendMsg(original, this.getString());
-            chooseContact = new ChooseContact(this, sm);
-
-            gvME.dispMan.switchDisplayable(null, chooseContact);
     }
 }

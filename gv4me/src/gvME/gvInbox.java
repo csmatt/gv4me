@@ -73,6 +73,15 @@ public class gvInbox {
         }
     }
 
+    public static void delMsg(Inbox Inbox)
+    {
+        InboxToItemMap = Inbox.getInboxToItemMap();
+        int selIndex = Inbox.getSelectedIndex();
+        textConvo crntConvo = (textConvo) InboxToItemMap.elementAt(selIndex);
+        Inbox.delete(selIndex);
+
+        parseMsgs.removeConvo(crntConvo);
+    }
 
     public static void parser()
     {
