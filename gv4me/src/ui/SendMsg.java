@@ -24,18 +24,15 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
     private String rnr = "";
     private textConvo original;
     private Vector reqProps;
-    private gvME midlet;
     private Image image;
 
-    public SendMsg(gvME midlet, textConvo original, String msg, String rnr, Vector reqProps)
+    public SendMsg(textConvo original, String msg)
     {
-        super(midlet.dispMan.getDisplay());
+        super(gvME.dispMan.getDisplay());
         this.rnr = rnr;
-        this.reqProps = reqProps;
+        this.reqProps = parseMsgs.getReqProps();
         this.msg = msg;
-        this.original = original;
-        this.midlet = midlet;
-        
+        this.original = original;        
         setTitle("Sending Message");
         setCommandListener(this);
         setImage(getImage());
@@ -55,14 +52,10 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
 
     public void commandAction(Command command, Displayable display) {
             if (command == WaitScreen.FAILURE_COMMAND) {
-                // write pre-action user code here
-          //      switchDisplayable(getAlert(), getCallWaitScreen());
+//TODO:         switchDisplayable(getAlert(), getCallWaitScreen());
                 System.out.println("Failed");
-                // write post-action user code here
             } else if (command == WaitScreen.SUCCESS_COMMAND) {
-                // write pre-action user code here
-                midlet.dispMan.showMenu();
-                // write post-action user code here
+                gvME.dispMan.showMenu();
             }
     }
     
@@ -72,10 +65,9 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
      */
     public Image getImage() {
         if (image == null) {
-            // write pre-init user code here
             try {
                 image = Image.createImage("/pics/sendSMSIcon.png");
-            } catch (java.io.IOException e) {//GEN-END:|219-getter|1|219-@java.io.IOException
+            } catch (java.io.IOException e) {
                 e.printStackTrace();
             }
         }

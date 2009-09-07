@@ -27,26 +27,23 @@ import ui.*;
  */
 public class gvME extends MIDlet implements CommandListener {
     private String cookieStoreName = "cookieStore";
-    private boolean midletPaused = false;
-    
-    private Timer timer;
-    private long timerDelay = 30000;
-    public String rnr = "";
-    public settings userSettings = new settings();
+    private boolean midletPaused = false;    
+    private static Timer timer;
+    private static long timerDelay = 30000;
+    private static String rnr;
+    public static settings userSettings;
     public LoginScreen loginScreen;
-    public DisplayManager dispMan;
-    
-    private Command exitCommand;
-    private Command exitGVSMS;
+    public static DisplayManager dispMan;
+    private static Command exitCmd;
+    private static Command minimize;
     private Command backFromInbox;
-    private Command minimize;
     private Command delInboxItem;
     private Command backFromSettings;
     private Command okSaveSettings;
     private Command okMakeCall;
-    private List menu;
+    private static List menu;
     private WriteMsg newSMS;
-    private Inbox InboxList;
+    private static Inbox InboxList;
     private Form changeSettingsMenu;
     private TextField passwordTextField;
     private TextField usernameTextField;
@@ -54,27 +51,23 @@ public class gvME extends MIDlet implements CommandListener {
     private TextField intervalTextField;
     private WaitScreen callWaitScreen;
     private Command backFromMakeCall;
-    private Login loginUI;
+    private Login login;
     private static int numNewMsgs;
+    private static CommandListener cl;
+    public static int countCons;
 
-    public static int countCons = 0;
-
-    public gvME()
-    {
-
-    }
 
     /*
      * Initilizes the application.
      * It is called only once when the MIDlet is started. The method is called before the <code>startMIDlet</code> method.
      */
     private void initialize() throws InvalidRecordIDException, IOException, RecordStoreNotOpenException, RecordStoreException {//GEN-END:|0-initialize|0|0-preInitialize
-
+        userSettings = new settings();
+        countCons = 0;
         dispMan = new DisplayManager(this);
+        cl = this;
         //sets locally stored conversations
         parseMsgs.initStoredConvos();
-
-        this.userSettings = new settings();
 
         try {
             RecordStore cookieRS = RecordStore.openRecordStore(cookieStoreName, true);
@@ -91,7 +84,8 @@ public class gvME extends MIDlet implements CommandListener {
     }
 
     public void startMIDlet() throws IOException, Exception {  
-        checkLoginInfo();
+        gvLogin waitForLogin = new gvLogin();
+        waitForLogin.checkLoginInfo();
         createTimer();
     }
 
@@ -105,18 +99,7 @@ public class gvME extends MIDlet implements CommandListener {
      * @param command the Command that was invoked
      * @param displayable the Displayable where the command was invoked
      */
-    public void commandAction(Command command, Displayable displayable) {//GEN-END:|7-commandAction|0|7-preCommandAction
-        
-        if (displayable == loginScreen)
-        {
-            if (command == LoginScreen.LOGIN_COMMAND)
-            {
-                userSettings.setUsername(loginScreen.getUsername());
-                userSettings.setPassword(loginScreen.getPassword());
-                loginUI = new Login(this);
-                dispMan.switchDisplayable(null, loginUI);
-            }
-        }
+    public void commandAction(Command command, Displayable displayable) {
          if (displayable == callWaitScreen) {
             if (command == WaitScreen.FAILURE_COMMAND) {
 //TODO
@@ -143,7 +126,7 @@ public class gvME extends MIDlet implements CommandListener {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }                
-            } else if (command == exitGVSMS) {               
+            } else if (command == exitCmd) {               
                 exitMIDlet();              
             } else if (command == minimize) {
                 this.pauseApp();
@@ -151,40 +134,21 @@ public class gvME extends MIDlet implements CommandListener {
         }
     }
 
-    public LoginScreen createLoginScreen()
+    public static void setRNR(String rnr)
     {
-        LoginScreen ls = new LoginScreen(dispMan.getDisplay());
-	    ls.setLabelTexts("Username", "Password");
-	    ls.setTitle("GV Login");
-	    ls.addCommand(LoginScreen.LOGIN_COMMAND);
-	    ls.setCommandListener(this);
-	    ls.setBGColor(-3355444);
-	    ls.setFGColor(0);
-	    ls.setUseLoginButton(false);
-	    ls.setLoginButtonText("Login");
-        return ls;
+        gvME.rnr = rnr;
     }
 
-    synchronized public void createTimer()
+    public static String getRNR()
+    {
+        return gvME.rnr;
+    }
+
+    synchronized public static void createTimer()
     {
         timer = new Timer();
         timer.schedule(new checkInbox(), timerDelay, Long.parseLong(userSettings.getCheckInterval())*1000);
     }
-
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: exitCommand ">//GEN-BEGIN:|18-getter|0|18-preInit
-    /**
-     * Returns an initiliazed instance of exitCommand component.
-     * @return the initialized component instance
-     */
-    public Command getExitCommand() {
-        if (exitCommand == null) {//GEN-END:|18-getter|0|18-preInit
-            // write pre-init user code here
-            exitCommand = new Command("Exit", Command.EXIT, 0);//GEN-LINE:|18-getter|1|18-postInit
-            
-        }//GEN-BEGIN:|18-getter|2|
-        return exitCommand;
-    }
-    //</editor-fold>
 
     public void changeSettings() throws RecordStoreException
     {
@@ -221,7 +185,7 @@ public class gvME extends MIDlet implements CommandListener {
      * Returns an initiliazed instance of menu component.
      * @return the initialized component instance
      */
-    public List getMenu() {
+    public static List getMenu() {
         if (menu == null) {//GEN-END:|24-getter|0|24-preInit
             // write pre-init user code here
             menu = new List("Menu", Choice.IMPLICIT);//GEN-BEGIN:|24-getter|1|24-postInit
@@ -229,9 +193,9 @@ public class gvME extends MIDlet implements CommandListener {
             menu.append("Inbox", null);
             menu.append("Settings", null);
             menu.append("Make Call", null);
-            menu.addCommand(getExitGVSMS());
+            menu.addCommand(getExitCmd());
             menu.addCommand(getMinimize());
-            menu.setCommandListener(this);
+            menu.setCommandListener(cl);
             menu.setSelectedFlags(new boolean[] { false, false, false, false });//GEN-END:|24-getter|1|24-postInit
         }
         return menu;
@@ -248,25 +212,25 @@ public class gvME extends MIDlet implements CommandListener {
                 
                 if(newSMS != null)
                     newSMS.setString("");
-                newSMS = new WriteMsg(this, "Write New", null);
+                newSMS = new WriteMsg("Write New", null);
                 dispMan.switchDisplayable(null, newSMS);
             } else if (__selectedString.equals("Inbox")) {               
                     dispMan.switchDisplayable(null, getInbox());               
             } else if (__selectedString.equals("Settings")) {            
                 dispMan.switchDisplayable(null, getChangeSettingsMenu());                
             } else if (__selectedString.equals("Make Call")) {                
-                MakeCall mc = new MakeCall(this);
-                ChooseContact cc = new ChooseContact(this, mc);
+                MakeCall mc = new MakeCall();
+                ChooseContact cc = new ChooseContact(getMenu(), mc);
                 dispMan.switchDisplayable(null, cc);                
             }
         }        
     }
 
-    public Inbox getInbox() throws IOException, Exception
+    public static Inbox getInbox() throws IOException, Exception
     {
         if(InboxList == null)
         {
-            InboxList = new Inbox(this);
+            InboxList = new Inbox();
         }
         InboxList.updateInbox();
         return InboxList;
@@ -277,13 +241,11 @@ public class gvME extends MIDlet implements CommandListener {
      * Returns an initiliazed instance of exitGVSMS component.
      * @return the initialized component instance
      */
-    public Command getExitGVSMS() {
-        if (exitGVSMS == null) {//GEN-END:|62-getter|0|62-preInit
-            
-            exitGVSMS = new Command("Exit", Command.EXIT, 0);//GEN-LINE:|62-getter|1|62-postInit
-            
+    public static Command getExitCmd() {
+        if (exitCmd == null) {
+            exitCmd = new Command("Exit", Command.EXIT, 0);
         }
-        return exitGVSMS;
+        return exitCmd;
     }
     //</editor-fold>
 
@@ -306,10 +268,9 @@ public class gvME extends MIDlet implements CommandListener {
      * Returns an initiliazed instance of minimize component.
      * @return the initialized component instance
      */
-    public Command getMinimize() {
+    public static Command getMinimize() {
         if (minimize == null) {
-            minimize = new Command("Minimize", Command.BACK, 0);
-            
+            minimize = new Command("Minimize", Command.BACK, 0);        
         }
         return minimize;
     }
@@ -322,8 +283,7 @@ public class gvME extends MIDlet implements CommandListener {
      */
     public Command getDelInboxItem() {
         if (delInboxItem == null) {
-            delInboxItem = new Command("Delete", Command.ITEM, 1);//GEN-LINE:|161-getter|1|161-postInit
-            
+            delInboxItem = new Command("Delete", Command.ITEM, 1);            
         }
         return delInboxItem;
     }
@@ -332,18 +292,7 @@ public class gvME extends MIDlet implements CommandListener {
     /**
      * Performs an action assigned to the checkLoginInfo if-point.
      */
-    public void checkLoginInfo() throws IOException, Exception {
-        if(loginUI == null)
-        {
-            loginUI = new Login(this);
-        }
-        if (!userSettings.getUsername().equals("") && !userSettings.getPassword().equals("")) {//GEN-LINE:|191-if|1|192-preAction
-            dispMan.switchDisplayable(null, loginUI);
-        } else {
-            this.loginScreen = createLoginScreen();
-            dispMan.switchDisplayable(null, this.loginScreen);
-        }
-    }
+
 
     //<editor-fold defaultstate="collapsed" desc=" Generated Getter: okMakeCall ">//GEN-BEGIN:|226-getter|0|226-preInit
     /**
@@ -366,8 +315,7 @@ public class gvME extends MIDlet implements CommandListener {
      */
     public Command getBackFromMakeCall() {
         if (backFromMakeCall == null) {
-            backFromMakeCall = new Command("Back", Command.BACK, 0);
-            
+            backFromMakeCall = new Command("Back", Command.BACK, 0);            
         }
         return backFromMakeCall;
     }
@@ -435,8 +383,7 @@ public class gvME extends MIDlet implements CommandListener {
      */
     public TextField getPasswordTextField() {
         if (passwordTextField == null) {
-            passwordTextField = new TextField("Password:", null, 32, TextField.PASSWORD);
-            
+            passwordTextField = new TextField("Password:", null, 32, TextField.PASSWORD);    
         }
         return passwordTextField;
     }
@@ -450,8 +397,7 @@ public class gvME extends MIDlet implements CommandListener {
     public TextField getIntervalTextField() {
         if (intervalTextField == null) {
             String interval = userSettings.getCheckInterval();
-            intervalTextField = new TextField("Check Inbox (secs)", interval, 32, TextField.NUMERIC);//GEN-LINE:|240-getter|1|240-postInit
-            
+            intervalTextField = new TextField("Check Inbox (secs)", interval, 32, TextField.NUMERIC);//GEN-LINE:|240-getter|1|240-postInit 
         }
         return intervalTextField;
     }
@@ -464,8 +410,7 @@ public class gvME extends MIDlet implements CommandListener {
     public TextField getCallFromTextField() {
         if (callFromTextField == null) {
             String callFrom = userSettings.getCallFrom();
-            callFromTextField = new TextField("Call From:", callFrom, 32, TextField.PHONENUMBER);//GEN-LINE:|246-getter|1|246-postInit
-            
+            callFromTextField = new TextField("Call From:", callFrom, 32, TextField.PHONENUMBER);//GEN-LINE:|246-getter|1|246-postInit  
         }
         return callFromTextField;
     }
@@ -525,7 +470,8 @@ public class gvME extends MIDlet implements CommandListener {
     {
         gvME.numNewMsgs = newMsgCnt;
     }
-    public class checkInbox extends TimerTask{
+
+    public static class checkInbox extends TimerTask{
         public final void run() {
             try {
                 parseMsgs.readMsgs();

@@ -8,10 +8,7 @@ package gvME;
 import java.io.IOException;
 import java.util.Vector;
 import javax.microedition.io.HttpsConnection;
-import javax.microedition.rms.InvalidRecordIDException;
 import javax.microedition.rms.RecordStoreException;
-import javax.microedition.rms.RecordStoreNotOpenException;
-import org.netbeans.microedition.lcdui.LoginScreen;
 import ui.Login;
 
 /**
@@ -19,39 +16,44 @@ import ui.Login;
  * @author matt
  */
 public class gvLogin {
-    private final String logInURL = "https://www.google.com/accounts/LoginAuth?btmpl=mobile&amp;continue=https%3A%2F%2Fwww.google.com%2Fvoice%2Fm&amp;service=grandcentral&amp;ltmpl=mobile";
-    private final String postData = "rememberme=true&ltmpl=mobile&continue=https%3A%2F%2Fwww.google.com%2Fvoice%2Fm&ltmpl=mobile&btmpl=mobile&ltmpl=mobile&rmShown=1&signIn=Sign+in";
-    private gvME midlet;
-    private Vector reqProps;
-    private String rnr;
+    private static final String logInURL = "https://www.google.com/accounts/LoginAuth?btmpl=mobile&amp;continue=https%3A%2F%2Fwww.google.com%2Fvoice%2Fm&amp;service=grandcentral&amp;ltmpl=mobile";
+    private static final String postData = "rememberme=true&ltmpl=mobile&continue=https%3A%2F%2Fwww.google.com%2Fvoice%2Fm&ltmpl=mobile&btmpl=mobile&ltmpl=mobile&rmShown=1&signIn=Sign+in";
+    private static Vector reqProps;
+    private static String username;
+    private static String password;
     private Login login;
-    private LoginScreen loginScreen;
 
-    public gvLogin(gvME midlet, Login login)
+    public gvLogin() throws IOException, Exception
     {
-        initialize(midlet);
-        this.login = login;
-        this.loginScreen = midlet.loginScreen;
+        gvLogin.username = gvME.userSettings.getUsername();
+        gvLogin.password = gvME.userSettings.getPassword();
+        gvLogin.reqProps = parseMsgs.getReqProps();
+        login = new Login(username, password);
     }
 
-    public gvLogin(gvME midlet) {
-        initialize(midlet);
+    public void checkLoginInfo() throws IOException, Exception {
+        if (!gvLogin.username.equals("") && !gvLogin.password.equals("")) {
+            gvME.dispMan.switchDisplayable(null, login);
+        }
+        else
+        {
+            gvME.dispMan.switchDisplayable(null, login.getLoginScreen());
+        }
     }
-
-    public void initialize(gvME midlet)
+    
+    public static void setLoginInfo(String username, String password)
     {
-        this.midlet = midlet;
-        this.reqProps = parseMsgs.getReqProps();
-        this.rnr = midlet.rnr;
+        gvLogin.username = username;
+        gvLogin.password = password;
     }
 
-    public void logIn(settings userSettings) throws IOException, Exception
+    public static void logIn() throws IOException, Exception
     {
         String[] reqBodyArray = {
                                 "accountType=GOOGLE&Email=",
-                                userSettings.getUsername(),
+                                gvLogin.username, //gvME.userSettings.getUsername(),
                                 "&Passwd=",
-                                userSettings.getPassword(),
+                                gvLogin.password,//gvME.userSettings.getPassword(),
                                 "&service=grandcentral&source=gvSMS",
                                 postData
                                 };
@@ -77,13 +79,13 @@ public class gvLogin {
             checkCookie = null;
 
             HttpsConnection rnrCon = createConnection.open(loc, "GET", reqProps, null);
-            rnr = createConnection.get_rnr_se(rnrCon);
+            String rnr = createConnection.get_rnr_se(rnrCon);
             System.out.println("rnr= "+rnr);
             createConnection.close(rnrCon);
             rnrCon = null;
 
-            //send rnr back to gvME so other classes have access
-            midlet.rnr = this.rnr;
+            //set rnr in gvME so other classes have access
+            gvME.setRNR(rnr);
         }
         else
         {
@@ -91,16 +93,13 @@ public class gvLogin {
         }
     }
 
-    synchronized public void saveLoginInfo(settings userSettings) throws RecordStoreException, RecordStoreException
+    public static void saveLoginInfo() throws RecordStoreException, RecordStoreException
     {
-        try {
-            String username = loginScreen.getUsername();
-            String password = loginScreen.getPassword();
-            userSettings.setUsername(username);
-            userSettings.setPassword(password);
-            userSettings.updateSettings();
-        } catch (RecordStoreNotOpenException ex) {
-            ex.printStackTrace();
-        }
+    
+            gvME.userSettings.setUsername(gvLogin.username);
+            gvME.userSettings.setPassword(gvLogin.password);
+            gvME.userSettings.updateSettings();
+            System.out.println(username + " " + password);
+          //  gvME.createTimer();
     }
 }

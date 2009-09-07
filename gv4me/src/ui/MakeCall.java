@@ -19,13 +19,11 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
  */
 public class MakeCall extends WaitScreen implements CommandListener, interCom {
     private String contacting = "";
-    private gvME midlet;
  //   private Image image;
 
-    public MakeCall(gvME midlet)
+    public MakeCall()
     {
-        super(midlet.dispMan.getDisplay());
-        this.midlet = midlet;
+        super(gvME.dispMan.getDisplay());
         setTitle("Making Call");
         setCommandListener(this);
      //   setImage(getImage());
@@ -34,12 +32,12 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
     }
 
     public SimpleCancellableTask getSimpleCancellableTask() {
-
         SimpleCancellableTask task = new SimpleCancellableTask();
         task.setExecutable(new org.netbeans.microedition.util.Executable() {
             public void execute() throws Exception {
-                gvMakeCall mc = new gvMakeCall(midlet);
+                gvMakeCall mc = new gvMakeCall();
                 mc.makeCall(contacting);
+                mc = null;
             }
         });
         return task;
@@ -51,14 +49,10 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
 
     public void commandAction(Command command, Displayable display) {
             if (command == WaitScreen.FAILURE_COMMAND) {
-                // write pre-action user code here
-          //      switchDisplayable(getAlert(), getCallWaitScreen());
+//TODO:         switchDisplayable(getAlert(), getCallWaitScreen());
                 System.out.println("Failed");
-                // write post-action user code here
             } else if (command == WaitScreen.SUCCESS_COMMAND) {
-                // write pre-action user code here
-                midlet.dispMan.showMenu();
-                // write post-action user code here
+                gvME.dispMan.showMenu();
             }
     }
 }

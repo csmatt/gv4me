@@ -27,13 +27,11 @@ public class Inbox extends List implements CommandListener {
     private Command replyCmd;
     private Command refreshCmd;
     private Command backCmd;
-    private gvME midlet;
     private MsgList msgList;
 
-    public Inbox(gvME midlet) throws IOException, Exception
+    public Inbox() throws IOException, Exception
     {
         super("Inbox", Choice.IMPLICIT);
-        this.midlet = midlet;
         addCommand(getViewMsgCmd());
         addCommand(getDelItemCmd());
         addCommand(getRefreshCmd());
@@ -80,7 +78,7 @@ public class Inbox extends List implements CommandListener {
 
             if(command == backCmd)
             {
-                midlet.dispMan.switchDisplayable(null, midlet.getMenu());
+                gvME.dispMan.showMenu();
             }
             else if(command == refreshCmd)
             {
@@ -101,13 +99,12 @@ public class Inbox extends List implements CommandListener {
                 {
                     textConvo crnt = (textConvo) InboxToItemMap.elementAt(selIndex);
                     try {
-                        msgList = new MsgList(midlet, crnt.getSender(), crnt.getMessages());
+                        msgList = new MsgList(crnt.getSender(), crnt.getMessages());
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-                    midlet.dispMan.switchDisplayable(null, msgList);
+                    gvME.dispMan.switchDisplayable(null, msgList);
                 }
-
                 else if(command == delItemCmd)
                 {
                     delMsg.delete(this);
@@ -120,8 +117,8 @@ public class Inbox extends List implements CommandListener {
                 }
                 else if(command == replyCmd)
                 {
-                    WriteMsg wm = new WriteMsg(midlet, "Reply", original);
-                    midlet.dispMan.switchDisplayable(null, wm);
+                    WriteMsg wm = new WriteMsg("Reply", original);
+                    gvME.dispMan.switchDisplayable(null, wm);
                 }
             }
         }

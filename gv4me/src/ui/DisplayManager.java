@@ -39,9 +39,9 @@ public class DisplayManager {
             display.setCurrent(nextDisplayable);
         } else {
             display.setCurrent(alert, nextDisplayable);
-        }//GEN-END:|5-switchDisplayable|1|5-postSwitch
-        // write post-switch user code here
-    }//GEN-BEGIN:|5-switchDisplayable|2|
+        }
+    }
+
     /**
      * Switches a display to previous displayable of the current displayable.
      * The <code>display</code> instance is obtain from the <code>getDisplay</code> method.
@@ -71,6 +71,6 @@ public class DisplayManager {
 
     public void showMenu()
     {
-        Display.getDisplay(midlet).setCurrent(midlet.getMenu());
+        Display.getDisplay(midlet).setCurrent(gvME.getMenu());
     }
 }

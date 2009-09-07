@@ -323,12 +323,9 @@ public class parseMsgs {
             if(c.getResponseCode() != 200)
             {
                 createConnection.close(c);
-                gvLogin login = Login.get_gvLogin();
-                login.logIn(gvME.userSettings);
-                //System.out.println(html);
-                //throw new Exception("request code bad"+gvME.countCons);
-
+                gvLogin.logIn();
             }
+
             DataInputStream dis = c.openDataInputStream();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buffer = new byte[4096];

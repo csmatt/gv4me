@@ -10,6 +10,7 @@ import gvME.gvMsgList;
 import gvME.parseMsgs;
 import gvME.textConvo;
 import gvME.textMsg;
+import gvME.tools;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -36,16 +37,14 @@ public class MsgList extends List implements CommandListener {
     private Command replyCmd;
     private Command refreshCmd;
     private Command backCmd;
-    private gvME midlet;
     private Command fwdCmd;
     private Form readMsg;
     private Form msgProps;
     private Command msgPropsCmd;
 
-    public MsgList(gvME midlet, String title, Vector msgs) throws IOException
+    public MsgList(String title, Vector msgs) throws IOException
     {
         super(title, List.IMPLICIT);
-        this.midlet = midlet;
         addCommand(getViewMsgCmd());
         addCommand(getReplyCmd());
         addCommand(getFwdCmd());
@@ -54,8 +53,7 @@ public class MsgList extends List implements CommandListener {
         setFitPolicy(Choice.TEXT_WRAP_OFF);
         setSelectCommand(getViewMsgCmd());
 
-        addItemsToMsgList(msgs);
-        
+        addItemsToMsgList(msgs);     
     }
     
     public void addItemsToMsgList(Vector msgs)
@@ -127,7 +125,7 @@ public class MsgList extends List implements CommandListener {
             if(command == backCmd)
             {
                 try {
-                    midlet.dispMan.switchDisplayable(null, midlet.getInbox());
+                    gvME.dispMan.switchDisplayable(null, gvME.getInbox());
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 } catch (Exception ex) {
@@ -136,48 +134,48 @@ public class MsgList extends List implements CommandListener {
             }
             else if(command == viewMsgCmd)
             {
-                midlet.dispMan.switchDisplayable(null, getReadMsg(origConvo.getSender()));
-                readMsg.append(original.getMessage());
+                gvME.dispMan.switchDisplayable(null, getReadMsg(origConvo.getSender()));
+                readMsg.append(tools.decodeString(original.getMessage())); //decodes string from utf8
             }
             else if(command == fwdCmd)
             {
-                WriteMsg wm = new WriteMsg(midlet, "Forward", origConvo);
-                midlet.dispMan.switchDisplayable(null, wm);
+                WriteMsg wm = new WriteMsg("Forward", origConvo);
+                gvME.dispMan.switchDisplayable(null, wm);
             }
             else if(command == replyCmd)
             {
-                WriteMsg wm = new WriteMsg(midlet, "Reply", origConvo);
-                midlet.dispMan.switchDisplayable(null, wm);
+                WriteMsg wm = new WriteMsg("Reply", origConvo);
+                gvME.dispMan.switchDisplayable(null, wm);
             }
         }
         else if(displayable == readMsg)
         {
             if(command == backCmd)
             {
-                midlet.dispMan.switchDisplayable(null, this);
+                gvME.dispMan.switchDisplayable(null, this);
             }
             else if(command == msgPropsCmd)
             {
                 textConvo propsConvo = origConvo;
                 propsConvo.setLastMsg(original);
-                midlet.dispMan.switchDisplayable(null, getMsgProps(propsConvo));
+                gvME.dispMan.switchDisplayable(null, getMsgProps(propsConvo));
             }
             else if(command == fwdCmd)
             {
-                WriteMsg wm = new WriteMsg(midlet, "Forward", origConvo);
-                midlet.dispMan.switchDisplayable(null, wm);
+                WriteMsg wm = new WriteMsg("Forward", origConvo);
+                gvME.dispMan.switchDisplayable(null, wm);
             }
             else if(command == replyCmd)
             {
-                WriteMsg wm = new WriteMsg(midlet, "Reply", origConvo);
-                midlet.dispMan.switchDisplayable(null, wm);
+                WriteMsg wm = new WriteMsg("Reply", origConvo);
+                gvME.dispMan.switchDisplayable(null, wm);
             }
         }
         else if(displayable == msgProps)
         {
             if(command == backCmd)
             {
-                midlet.dispMan.switchDisplayable(null, this);
+                gvME.dispMan.switchDisplayable(null, this);
             }
         }
     }

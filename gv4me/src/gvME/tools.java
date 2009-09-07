@@ -64,7 +64,30 @@ public class tools {
         return serializedMsgs;
     }
 
+    public static String decodeString(String source) {
+        if (source == null) {
+            return "";
+        }
 
+        String[] patterns = {"&amp;", "&gt;", "&lt;", "&quot;"};
+        String[] replacements = {"&", ">", "<", "\""};
+
+        StringBuffer sb = new StringBuffer();
+        int i = 0;
+        for(i = patterns.length - 1; i >= 0; i--)
+        {
+            int idx = -1;
+            int patIdx = 0;
+            sb = new StringBuffer();
+            while ((idx = source.indexOf(patterns[i], patIdx)) != -1) {
+                sb.append(source.substring(patIdx, idx));
+                sb.append(replacements[i]);
+                patIdx = idx + patterns[i].length();
+            }
+            source = (sb.append(source.substring(patIdx))).toString();
+        }
+        return sb.toString();
+    }
 }
 
 

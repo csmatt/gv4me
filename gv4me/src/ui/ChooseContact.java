@@ -23,10 +23,6 @@ import org.netbeans.microedition.lcdui.pda.PIMBrowser;
  * @author matt
  */
 public class ChooseContact extends List implements CommandListener{
-    private gvME midlet;
-    private Command backCmd;
-    private Command OKCmd;
-    private Command okRecContactsCmd;
     private Command backFromRecContactsCmd;
     private Command okEnterNumCmd;
     private Command backFromEnterNumCmd;
@@ -37,22 +33,26 @@ public class ChooseContact extends List implements CommandListener{
     private TextBox enterNumBox;
     private PIMBrowser pimBrowser;
     private String contact;
-
     private interCom next;
     private List recentContacts;
     private Displayable prev;
 
-    public ChooseContact(gvME midlet, WriteMsg writeMsg, SendMsg sendMsg)
+    public ChooseContact(Displayable prev, interCom com)
     {
         super("Choose Contact", Choice.IMPLICIT);
-        this.midlet = midlet;
-        this.prev = writeMsg;
-       // this.sendMsg = sendMsg;
-        this.next = sendMsg;
-        initialize();
+        this.next = com;
+        this.prev = prev;
+//      append("Recent", null);
+        append("Enter Number", null);
+        append("Phone Book", null);
+        addCommand(getContactTypeCmd());
+        addCommand(getBackContactTypeCmd());
+        setSelectCommand(contactTypeCmd);
+        setCommandListener(this);
+        //initialize();
     }
 
-    public ChooseContact(gvME midlet, MakeCall makeCall)
+ /*   public ChooseContact(gvME midlet, MakeCall makeCall)
     {
         super("Choose Contact", Choice.IMPLICIT);
         this.midlet = midlet;
@@ -70,51 +70,37 @@ public class ChooseContact extends List implements CommandListener{
         addCommand(getBackContactTypeCmd());
         setSelectCommand(contactTypeCmd);
         setCommandListener(this);
-    }
+    }*/
+
     public String getContact()
     {
         return this.contact;
     }
-    public Command getContactTypeCmd() {
-        if (contactTypeCmd == null) {
-            // write pre-init user code here
-            contactTypeCmd = new Command("Select", Command.ITEM, 1);
-            // write post-init user code here
-        }
-        return contactTypeCmd;
-    }
 
     public void chooseContactAction() {
-        // enter pre-action user code here
         String __selectedString = this.getString(this.getSelectedIndex());
         if (__selectedString != null) {
             if (__selectedString.equals("Recent")) {
-                // write pre-action user code here
-                midlet.dispMan.switchDisplayable(null, getRecentContactsList());
-                // write post-action user code here
+                gvME.dispMan.switchDisplayable(null, getRecentContactsList());
             }
             if (__selectedString.equals("Enter Number")) {
-                // write pre-action user code here
                 enterNumBox = getEnterNumBox();
-                midlet.dispMan.switchDisplayable(null, enterNumBox);
-                // write post-action user code here
+                gvME.dispMan.switchDisplayable(null, enterNumBox);
             } else if (__selectedString.equals("Phone Book")) {
-                // write pre-action user code here
                 pimBrowser = getPimBrowser();
-                midlet.dispMan.switchDisplayable(null, pimBrowser);
-                // write post-action user code here
+                gvME.dispMan.switchDisplayable(null, pimBrowser);
             }
         }
     }
 
-
     public TextBox getEnterNumBox() {
-
+        if(enterNumBox == null)
+        {
             enterNumBox = new TextBox("Enter Number", null, 15, TextField.PHONENUMBER);
             enterNumBox.addCommand(getOkEnterNum());
             enterNumBox.addCommand(getBackFromEnterNum());
             enterNumBox.setCommandListener(this);
-
+        }
         return enterNumBox;
     }
 
@@ -123,7 +109,7 @@ public class ChooseContact extends List implements CommandListener{
         List recContactList = new List("Recent Contacts", List.IMPLICIT);
         recContactList.addCommand(List.SELECT_COMMAND);
         recContactList.addCommand(getBackFromRecContactsCmd());
-        Vector contVect = midlet.userSettings.getRecentContacts();
+        Vector contVect = gvME.userSettings.getRecentContacts();
         int vectSize = contVect.size();
         for(int i = 0; i < vectSize; i++)
         {
@@ -135,13 +121,11 @@ public class ChooseContact extends List implements CommandListener{
 
     public PIMBrowser getPimBrowser() {
         if (pimBrowser == null) {
-            // write pre-init user code here
-            pimBrowser = new PIMBrowser(midlet.dispMan.getDisplay(), PIM.CONTACT_LIST);
+            pimBrowser = new PIMBrowser(gvME.dispMan.getDisplay(), PIM.CONTACT_LIST);
             pimBrowser.setTitle("Contacts List");
             pimBrowser.addCommand(getOkPimBrowserCmd());
             pimBrowser.addCommand(getBackFromPimBrowserCmd());
             pimBrowser.setCommandListener(this);
-            // write post-init user code here
         }
         return pimBrowser;
     }
@@ -150,9 +134,7 @@ public class ChooseContact extends List implements CommandListener{
         if(display == this)
         {
             if (command == backContactTypeCmd) {
-                // write pre-action user code here
-                midlet.dispMan.switchDisplayable(null, prev);
-                // write post-action user code here
+                gvME.dispMan.switchDisplayable(null, prev);
             } else if (command == contactTypeCmd) {
                 chooseContactAction();
             }
@@ -161,51 +143,52 @@ public class ChooseContact extends List implements CommandListener{
         {
             if(command == backFromRecContactsCmd)
             {
-                midlet.dispMan.switchToPreviousDisplayable();
+                gvME.dispMan.switchToPreviousDisplayable();
             }
             else if (command == List.SELECT_COMMAND)
             {
                 int selIndex = recentContacts.getSelectedIndex();
-                contact = (String) ((KeyValuePair)(midlet.userSettings.getRecentContacts().elementAt(selIndex))).getKey();
+                contact = (String) ((KeyValuePair)(gvME.userSettings.getRecentContacts().elementAt(selIndex))).getKey();
                 next.setContacting(contact);
             }
         }
         else if (display == enterNumBox)
         {
             if (command == backFromEnterNumCmd) {
-                // write pre-action user code here
-                midlet.dispMan.switchToPreviousDisplayable();
-                // write post-action user code here
+                gvME.dispMan.switchToPreviousDisplayable();
             } else if (command == okEnterNumCmd) {
                 contact = enterNumBox.getString();
                 next.setContacting(contact);
-                midlet.userSettings.addContact(new KeyValuePair(contact, ""));
-                midlet.dispMan.switchDisplayable(null,(Displayable) next);
+                gvME.userSettings.addContact(new KeyValuePair(contact, ""));
+                gvME.dispMan.switchDisplayable(null,(Displayable) next);
             }
         }
-        else if(display == pimBrowser)
+        else if(display == pimBrowser) //TODO: get PIMBrowser working
         {
             if (command == backFromPimBrowserCmd) {
-                // write pre-action user code here
-                midlet.dispMan.switchToPreviousDisplayable();
-                // write post-action user code here
+                gvME.dispMan.switchToPreviousDisplayable();
             } else if (command == okPimBrowserCmd) {
                 Contact pimContact = (Contact) pimBrowser.getSelectedItem();
                 String pimName = pimContact.getString(Contact.NAME, Contact.NAME_GIVEN);
                 String pimNumber = pimContact.getString(Contact.ATTR_PREFERRED, Contact.TEL);
                 next.setContacting(pimNumber);
-                midlet.userSettings.addContact(new KeyValuePair(pimNumber, pimName));
-                midlet.dispMan.switchDisplayable(null,(Displayable) next);
+                gvME.userSettings.addContact(new KeyValuePair(pimNumber, pimName));
+                gvME.dispMan.switchDisplayable(null,(Displayable) next);
             }
         }
+    }
+
+    private Command getContactTypeCmd() {
+        if (contactTypeCmd == null) {
+            contactTypeCmd = new Command("Select", Command.ITEM, 1);
+        }
+        return contactTypeCmd;
     }
 
     private Command getBackFromRecContactsCmd()
     {
         if (backFromRecContactsCmd == null) {
-            // write pre-init user code here
             backFromRecContactsCmd = new Command("Back", Command.BACK, 0);
-            // write post-init user code here
         }
         return backFromRecContactsCmd;
     }
@@ -213,47 +196,35 @@ public class ChooseContact extends List implements CommandListener{
     private Command getBackFromPimBrowserCmd()
     {
         if (backFromPimBrowserCmd == null) {
-            // write pre-init user code here
             backFromPimBrowserCmd = new Command("Back", Command.BACK, 0);
-            // write post-init user code here
         }
         return backFromPimBrowserCmd;
     }
 
-
-
     private Command getBackContactTypeCmd() {
         if (backContactTypeCmd == null) {
-            // write pre-init user code here
             backContactTypeCmd = new Command("Back", Command.BACK, 0);
-            // write post-init user code here
         }
         return backContactTypeCmd;
     }
 
     private Command getBackFromEnterNum() {
         if (backFromEnterNumCmd == null) {
-            // write pre-init user code here
             backFromEnterNumCmd = new Command("Back", Command.BACK, 0);
-            // write post-init user code here
         }
         return backFromEnterNumCmd;
     }
 
-    public Command getOkPimBrowserCmd() {
+    private Command getOkPimBrowserCmd() {
         if (okPimBrowserCmd == null) {
-            // write pre-init user code here
             okPimBrowserCmd = new Command("Select", Command.OK, 1);
-            // write post-init user code here
         }
         return okPimBrowserCmd;
     }
 
-    public Command getOkEnterNum() {
+    private Command getOkEnterNum() {
         if (okEnterNumCmd == null) {
-            // write pre-init user code here
             okEnterNumCmd = new Command("Ok", Command.OK, 1);
-            // write post-init user code here
         }
         return okEnterNumCmd;
     }
