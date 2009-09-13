@@ -12,10 +12,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 import javax.microedition.io.HttpsConnection;
-import javax.microedition.rms.InvalidRecordIDException;
 import javax.microedition.rms.RecordStore;
-import javax.microedition.rms.RecordStoreException;
-import javax.microedition.rms.RecordStoreNotOpenException;
 
 /**
  *
@@ -57,123 +54,51 @@ public class parseMsgs {
         reqProps.insertElementAt(connection, 1);
     }
 
-    public static void setConvosVect(Vector convos)
-    {
-        parseMsgs.convosVect = convos;
-    }
-
     public static Vector getReqProps()
     {
         return parseMsgs.reqProps;
     }
 
-    public static Vector getConvosVect()
+    public static Vector readMsgs() throws IOException, Exception
     {
-        return parseMsgs.convosVect;
-    }
-    
-    public static void removeConvo(textConvo convo)
-    {
-        parseMsgs.convosVect.removeElement(convo);
-        try {
-            setStoredConvos();
-        } catch (InvalidRecordIDException ex) {
-            ex.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (RecordStoreNotOpenException ex) {
-            ex.printStackTrace();
-        } catch (RecordStoreException ex) {
-            ex.printStackTrace();
-        }
-    }
-    public static Vector initStoredConvos() throws InvalidRecordIDException, IOException, RecordStoreNotOpenException, RecordStoreException
-    {
-        setReqProps();
-        convosVect = updateRS.vectFromRS(storedMsgName);
-        setStoredConvos(convosVect);
-        return convosVect;
-    }
-    public static void setStoredConvos(Vector convos) throws InvalidRecordIDException, IOException, RecordStoreNotOpenException, RecordStoreException
-    {     
-        Enumeration convosEnum = convos.elements();
-        textConvo crnt;
-        parseMsgs.storedConvos = new Hashtable();
-        while(convosEnum.hasMoreElements())
-        {
-             crnt = (textConvo) convosEnum.nextElement();
-             parseMsgs.storedConvos.put(crnt.getMsgID(), crnt);
-        }    
-    }
+                Vector newConvos = new Vector(5);
+                String html = getHTML();
 
-    public static void setStoredConvos() throws IOException, RecordStoreException
-    {
-        Enumeration convosEnum = convosVect.elements();
-        textConvo crnt;
-            parseMsgs.storedConvos = new Hashtable();
-        while(convosEnum.hasMoreElements())
-        {
-             crnt = (textConvo) convosEnum.nextElement();
-             parseMsgs.storedConvos.put(crnt.getMsgID(), crnt);
-        }
-        updateRS.fromVect(convosVect, storedMsgName);
-    }
+                //checks to see if new messages have arrived and returns if none have
+                if(html.indexOf(noMsgsString) > 0)
+                    return null;
+                //gets message's ID & replyNums from json
+                Hashtable convos = getJSONdata(html);
 
-    public static Hashtable getStoredConvosHash()
-    {
-        return parseMsgs.storedConvos;
-    }
+                //goes through xml for each msgID found in json (now existing as a hash enumeration)
+                Enumeration convosEnum = convos.keys();
+                Vector msgVect = null;
+                String Key = "";
+                int newMsgCnt = 0;
+                textConvo messages = null;
+                while(convosEnum.hasMoreElements())
+                {
+                   Key = (String) convosEnum.nextElement();
+                    try {
+                        messages = getMsgs(Key, html);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                   if(messages == null)
+                       break;
+                   msgVect = (Vector) messages.getMessages();
 
-    public static Vector getStoredConvos()
-    {
-        return convosVect;
-    }
+                   textConvo crnt = (textConvo) convos.get(Key);
+                   crnt.setConvo(messages);
+                   newConvos.addElement(crnt);
+                   newMsgCnt++;
+               }
 
-    public static int readMsgs() throws IOException, Exception
-    {
-        String html = getHTML();
+                gvME.setNumNewMsgs(newMsgCnt);
+                return newConvos;
 
-        //checks to see if new messages have arrived and returns if none have
-        if(html.indexOf(noMsgsString) > 0)
-            return 0;
-        //gets message's ID & replyNums from json
-        Hashtable convos = getJSONdata(html);
-
-        //goes through xml for each msgID found in json (now existing as a hash enumeration)
-        Enumeration convosEnum = convos.keys();
-        Vector msgVect = null, oldMsgs;
-        String Key = "";
-        int newMsgCnt = 0;
-        textConvo messages;
-        while(convosEnum.hasMoreElements())
-        {
-           Key = (String) convosEnum.nextElement();
-
-           messages = getMsgs(Key, html);
-           if(messages == null)
-               break;
-           msgVect = (Vector) messages.getMessages();
-
-           if(storedConvos.containsKey(Key))
-           {
-                oldMsgs = (Vector) ((textConvo) storedConvos.get(Key)).getMessages();
-                msgVect = tools.combineVectors(oldMsgs, msgVect);
-           }
-
-           textConvo crnt = (textConvo) ((Vector)convos.get(Key)).firstElement();
-           crnt.setConvo(messages);
-           storedConvos.put(Key, crnt);
-           convosVect.addElement(crnt);
-           newMsgCnt++;
-       }
-
-        if(convosVect.size() > 0)
-        {
-            updateRS.fromVect(convosVect, storedMsgName);
-        }
-
-        gvME.setNumNewMsgs(newMsgCnt);
-        return newMsgCnt;
     }
 
     public static textConvo getMsgs(String msgID, String html) throws IOException, Exception
@@ -200,7 +125,7 @@ public class parseMsgs {
 
         //run until no more senders are found for the current conversation
         while(i > -1 && (checkSender((String) (kvp = regexreplace(i, stop, html, msgFromToken, endSpan)).getKey())) && i < stop && i < html.length())
-        {            
+        {
             i =  castInt(kvp.getValue());
             String hold_Sender = (String) kvp.getKey();
 
@@ -210,7 +135,7 @@ public class parseMsgs {
                 kvp = regexreplace(i, html, msgTextToken, endSpan);
                 message = (String) kvp.getKey();
                 i = castInt(kvp.getValue());
-                
+
                 if(lastMessage.equals(message))
                 {
                     markMsgRead(msgID);
@@ -218,11 +143,11 @@ public class parseMsgs {
                 }
                 kvp = regexreplace(i, html, msgTimeToken, endSpan);
                 time = ((String) kvp.getKey()).trim();
-                
+
                 crnt = new textMsg(msgID, message, time);
                 numMsgs++;
                 msgVect.addElement(crnt);
-            }            
+            }
             i = castInt(kvp.getValue());
         }
         markMsgRead(msgID);
@@ -239,7 +164,7 @@ public class parseMsgs {
 
     //mark message as read
     public static void markMsgRead(String msgID) throws IOException, IOException, Exception
-    {           
+    {
         String[] strings = {
                             markReadURL,
                             msgID,
@@ -248,7 +173,7 @@ public class parseMsgs {
         HttpsConnection markRead = createConnection.open(tools.combineStrings(strings), "GET", reqProps, "");
         createConnection.close(markRead);
     }
-    
+
     public static Hashtable getJSONdata(String html)
     {
         int i = 0;
@@ -258,7 +183,6 @@ public class parseMsgs {
 
         String msgID = "";
         String replyNum = "";
-        Vector convo = new Vector(1);
         Hashtable convoHash = new Hashtable();
         String isRead = "";
         String date = "";
@@ -267,15 +191,15 @@ public class parseMsgs {
             kvp = regexreplace(i, json, idToken, separateToken);
             msgID = (String) kvp.getKey();
             i = castInt(kvp.getValue());
-            
+
             kvp = regexreplace(i, json, phoneNumToken, separateToken);
             replyNum = (String) kvp.getKey();
             i = castInt(kvp.getValue());
-            
+
             kvp = regexreplace(i, json, dateToken, separateToken);
             date = parseDate((String) kvp.getKey());
-            i = castInt(kvp.getValue());          
-            
+            i = castInt(kvp.getValue());
+
             kvp = regexreplace(i, json, isReadToken, isSpamToken);
             isRead = (String) kvp.getKey();
             i = castInt(kvp.getValue());
@@ -284,8 +208,7 @@ public class parseMsgs {
                     break;
 
             textConvo newConvo = new textConvo(0, msgID, replyNum, date);
-            convo.addElement(newConvo);
-            convoHash.put(msgID, convo);
+            convoHash.put(msgID, newConvo);
         }
         return convoHash;
     }
@@ -302,14 +225,14 @@ public class parseMsgs {
     {
         i = html.indexOf(beginToken, i)+beginToken.length();
         int end = html.indexOf(endToken, i);
-        
+
         if(stop == 0 || (i >= 0 && end >= 0 && end < stop))
             return new KeyValuePair(html.substring(i, end), new Integer(end));
         else
             return new KeyValuePair("", null);
     }
-    
-    synchronized public static String getHTML()
+
+    public static String getHTML()
     {
         String html = "";
         try{
@@ -323,7 +246,7 @@ public class parseMsgs {
                 RecordStore.deleteRecordStore("cookieStore");
                 gvLogin.logIn();
                 c = createConnection.open(getMsgsURL, "GET", reqProps, "");
-            } 
+            }
 
             DataInputStream dis = c.openDataInputStream();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -337,9 +260,8 @@ public class parseMsgs {
             }
             dis.close();
             html = new String(baos.toByteArray());
-
+            baos.close();
             createConnection.close(c);
-            
         }
         catch(Exception e)
         {
@@ -364,11 +286,9 @@ public class parseMsgs {
         int slashIndex = date.indexOf("/", date.indexOf("/")+1);
         return date.substring(0, slashIndex+3);
     }
-    
+
     public static int castInt(Object i)
     {
         return ((Integer) i).intValue();
     }
 }
-
-

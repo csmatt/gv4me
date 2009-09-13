@@ -18,7 +18,7 @@ import java.util.Vector;
  */
 public class textConvo {
     private int numMsgs = 0;
-    private Vector messages;
+    private Vector messages = new Vector(10);
     private String sender = "";
     private String replyNum = "";
     private String msgID = "";
@@ -38,6 +38,16 @@ public class textConvo {
         this.date = date;
     }
 
+    public textConvo(String sender, String replyNum, textMsg msg)
+    {
+        this.numMsgs = 0;
+        this.msgID = "";
+        this.date = "";
+        this.messages.addElement(msg);
+        this.sender = sender;
+        this.replyNum = replyNum;
+        this.lastMsg = new textMsg("");
+    }
     public textConvo(int numMsgs, String msgID, String replyNum, String date)
     {
         this.numMsgs = numMsgs;
@@ -55,7 +65,7 @@ public class textConvo {
         this.lastMsg = msg;
     }
 
-    public void setConvo(textConvo convo)//int numToAdd, String sender, Vector messages, textMsg lastMsg)
+    public void setConvo(textConvo convo)
     {
         this.numMsgs += convo.getNumMsgs();
         this.sender = convo.getSender();
@@ -165,7 +175,6 @@ public class textConvo {
 
             dataInStream.close();
             byteInStream.close();
-           // String msgID, String sender, String replyNum, Vector messages, textMsg lastMsg
             return new textConvo(numMsgs, fields[0], fields[1], fields[2], fields[3], msgsVect, lastMessage);
             
         }
@@ -177,6 +186,9 @@ public class textConvo {
 
     public byte[] serializeMsgs(Vector messages) throws IOException
     {
+        if(messages == null)
+            return "".getBytes();
+        
         Enumeration msgsVect = messages.elements();
         textMsg crnt;
         ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
@@ -191,6 +203,8 @@ public class textConvo {
 
     public static byte[] serializeMsg(textMsg crnt)
     {
+        if(crnt == null)
+            return "".getBytes();
         String[] fields = {crnt.getMsgID(), crnt.getMessage(), crnt.getTimeReceived()};
         return serial.serialize(fields);
     }

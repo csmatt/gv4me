@@ -24,6 +24,13 @@ public class textMsg {
         this.timeReceived = timeReceived;
     }
 
+    public textMsg(String msg)
+    {
+        this.msgID = "";
+        this.message = msg;
+        this.timeReceived = "";
+    }
+
     public String getMsgID()
     {
         return this.msgID;

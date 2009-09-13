@@ -38,11 +38,13 @@ public class MsgList extends List implements CommandListener {
     private Command fwdCmd;
     private Form readMsg;
     private Form msgProps;
+    private textConvo convo;
     private Command msgPropsCmd;
 
-    public MsgList(String title, Vector msgs) throws IOException
+    //public MsgList(String title, Vector msgs) throws IOException
+    public MsgList(textConvo crnt)
     {
-        super(title, List.IMPLICIT);
+        super(crnt.getSender(), List.IMPLICIT);
         addCommand(getViewMsgCmd());
         addCommand(getReplyCmd());
         addCommand(getFwdCmd());
@@ -51,7 +53,8 @@ public class MsgList extends List implements CommandListener {
         setFitPolicy(Choice.TEXT_WRAP_OFF);
         setSelectCommand(getViewMsgCmd());
 
-        addItemsToMsgList(msgs);     
+        this.convo = crnt;
+        addItemsToMsgList(this.convo.getMessages());
     }
     
     public void addItemsToMsgList(Vector msgs)
@@ -113,11 +116,9 @@ public class MsgList extends List implements CommandListener {
         int selIndex = this.getSelectedIndex();
         System.out.println(String.valueOf(selIndex));
         textMsg original = null;
-        textConvo origConvo = null;
         if(!MsgListToItemMap.isEmpty())
         {
             original = (textMsg) MsgListToItemMap.elementAt(selIndex);
-            origConvo = (textConvo) parseMsgs.getStoredConvosHash().get(original.getMsgID());
         }
         if(displayable == this)
         {
@@ -133,17 +134,17 @@ public class MsgList extends List implements CommandListener {
             }
             else if(command == viewMsgCmd)
             {
-                gvME.dispMan.switchDisplayable(null, getReadMsg(origConvo.getSender()));
+                gvME.dispMan.switchDisplayable(null, getReadMsg(convo.getSender()));
                 readMsg.append(tools.decodeString(original.getMessage())); //decodes string from utf8
             }
             else if(command == fwdCmd)
             {
-                WriteMsg wm = new WriteMsg("Forward", origConvo);
+                WriteMsg wm = new WriteMsg("Forward", convo);
                 gvME.dispMan.switchDisplayable(null, wm);
             }
             else if(command == replyCmd)
             {
-                WriteMsg wm = new WriteMsg("Reply", origConvo);
+                WriteMsg wm = new WriteMsg("Reply", convo);
                 gvME.dispMan.switchDisplayable(null, wm);
             }
         }
@@ -155,18 +156,18 @@ public class MsgList extends List implements CommandListener {
             }
             else if(command == msgPropsCmd)
             {
-                textConvo propsConvo = origConvo;
+                textConvo propsConvo = convo;
                 propsConvo.setLastMsg(original);
                 gvME.dispMan.switchDisplayable(null, getMsgProps(propsConvo));
             }
             else if(command == fwdCmd)
             {
-                WriteMsg wm = new WriteMsg("Forward", origConvo);
+                WriteMsg wm = new WriteMsg("Forward", convo);
                 gvME.dispMan.switchDisplayable(null, wm);
             }
             else if(command == replyCmd)
             {
-                WriteMsg wm = new WriteMsg("Reply", origConvo);
+                WriteMsg wm = new WriteMsg("Reply", convo);
                 gvME.dispMan.switchDisplayable(null, wm);
             }
         }

@@ -12,13 +12,13 @@ import java.io.IOException;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Vector;
 import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;
 import javax.microedition.rms.InvalidRecordIDException;
 import javax.microedition.rms.RecordStore;
 import javax.microedition.rms.RecordStoreException;
 import javax.microedition.rms.RecordStoreNotOpenException;
-import org.netbeans.microedition.lcdui.LoginScreen;
 import org.netbeans.microedition.lcdui.WaitScreen;
 import ui.*;
 
@@ -27,6 +27,8 @@ import ui.*;
  */
 public class gvME extends MIDlet implements CommandListener {
     private String cookieStoreName = "cookieStore";
+    private static final String sentBoxStore = "sentBoxStore";
+    private static final String outboxStore = "outboxStore";
     private boolean midletPaused = false;    
     private static Timer timer;
     private static long timerDelay = 30000;
@@ -48,6 +50,8 @@ public class gvME extends MIDlet implements CommandListener {
     private TextField callFromTextField;
     private TextField intervalTextField;
     private WaitScreen callWaitScreen;
+    public static MailBox SentBox;
+    public static Outbox outbox;
     private Command backFromMakeCall;
     private static CommandListener cl;
     private static int numNewMsgs;
@@ -62,10 +66,9 @@ public class gvME extends MIDlet implements CommandListener {
         countCons = 0;
         dispMan = new DisplayManager(this);
         cl = this; //reference to 'this' for CommandListener of static method getMenu()
+        SentBox = getSentBox();
 
-        //sets locally stored conversations
-        parseMsgs.initStoredConvos();
-
+        parseMsgs.setReqProps();
         try {
             RecordStore cookieRS = RecordStore.openRecordStore(cookieStoreName, true);
             if(cookieRS.getNumRecords() != 0)
@@ -183,14 +186,14 @@ public class gvME extends MIDlet implements CommandListener {
      * @return the initialized component instance
      */
     public static List getMenu() {
-        if (menu == null) {//GEN-END:|24-getter|0|24-preInit
-            // write pre-init user code here
-            menu = new List("Menu", Choice.IMPLICIT);//GEN-BEGIN:|24-getter|1|24-postInit
+        if (menu == null) {
+            menu = new List("Menu", Choice.IMPLICIT);
             menu.append("Write New", null);
             menu.append("Inbox", null);
+            menu.append("Make Call", null);
+            menu.append("Sent Box", null);
             menu.append("Outbox", null);
             menu.append("Settings", null);
-            menu.append("Make Call", null);
             menu.addCommand(getExitCmd());
             menu.addCommand(getMinimize());
             menu.setCommandListener(cl);
@@ -215,6 +218,8 @@ public class gvME extends MIDlet implements CommandListener {
                     dispMan.switchDisplayable(null, getInbox());
             } else if (__selectedString.equals("Outbox")) {
 //                    dispMan.switchDisplayable(null, getOutbox());
+            } else if (__selectedString.equals("Sent Box")) {
+                    dispMan.switchDisplayable(null, getSentBox());
             } else if (__selectedString.equals("Settings")) {            
                 dispMan.switchDisplayable(null, getChangeSettingsMenu());                
             } else if (__selectedString.equals("Make Call")) {                
@@ -225,20 +230,33 @@ public class gvME extends MIDlet implements CommandListener {
         }        
     }
 
+    public MailBox getSentBox() throws RecordStoreException, IOException
+    {
+        if(SentBox == null)
+        {
+            SentBox = new MailBox("Sent Box", sentBoxStore);
+        }
+        return SentBox;
+    }
+
     public static Inbox getInbox() throws IOException, Exception
     {
         if(InboxList == null)
         {
             InboxList = new Inbox();
         }
-        InboxList.updateInbox();
+//        InboxList.updateInbox();
         return InboxList;
     }
 
-//    public static Outbox getOutbox()
-//    {
-//
-//    }
+    public static Outbox getOutbox() throws RecordStoreException, IOException
+    {
+        if(outbox == null)
+        {
+            outbox = new Outbox();
+        }
+        return outbox;
+    }
 
     //<editor-fold defaultstate="collapsed" desc=" Generated Getter: exitGVSMS ">//GEN-BEGIN:|62-getter|0|62-preInit
     /**
@@ -459,8 +477,9 @@ public class gvME extends MIDlet implements CommandListener {
 
     public static class checkInbox extends TimerTask{
         public final void run() {
+            Vector newMsgs = null;
             try {
-                parseMsgs.readMsgs();
+                newMsgs = parseMsgs.readMsgs();
             } catch (IOException ex) {
                 ex.printStackTrace();
             } catch (Exception ex) {
@@ -472,6 +491,7 @@ public class gvME extends MIDlet implements CommandListener {
                 newMsgAlert.setString(numNewMsgs+" new messages");
                 try {
                     numNewMsgs = 0;
+                    getInbox().updateInbox(newMsgs);
                     dispMan.switchDisplayable(newMsgAlert, getInbox());
                     dispMan.vibrate(400);
                 } catch (IOException ex) {
