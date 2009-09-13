@@ -86,7 +86,7 @@ public class gvME extends MIDlet implements CommandListener {
     public void startMIDlet() throws IOException, Exception {  
         gvLogin waitForLogin = new gvLogin();
         waitForLogin.checkLoginInfo();
-        createTimer();
+        //createTimer();
     }
 
     public void resumeMIDlet() {

@@ -67,9 +67,17 @@ public class textConvo {
 
     public void setConvo(textConvo convo)
     {
-        this.numMsgs += convo.getNumMsgs();
+        //this.numMsgs += convo.getNumMsgs();
         this.sender = convo.getSender();
-        this.messages = convo.getMessages();
+
+        for(int i = convo.getMessages().size()-1; i >= 0; i--)
+        {
+            textMsg crnt = (textMsg) convo.getMessages().elementAt(i);
+            if(lastMsg != null && crnt.getMessage().equals(lastMsg.getMessage()))
+                break;
+            messages.addElement(crnt);
+            numMsgs++;
+        }
         this.lastMsg = convo.getLastMsg();
     }
 
@@ -131,6 +139,12 @@ public class textConvo {
     {
         this.lastMsg = lastMsg;
     }
+
+//    public void updateConvo(Vector newMsgs)
+//    {
+//        messages = tools.combineVectors(messages, newMsgs);
+//        lastMsg = (textMsg) newMsgs.lastElement();
+//    }
 
     /**
      * Deserializes textMsg properties from data buffer and returns a new textMsg.

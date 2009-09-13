@@ -9,6 +9,8 @@ import gvME.gvME;
 import gvME.parseMsgs;
 import gvME.textConvo;
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Vector;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.Displayable;
@@ -20,6 +22,7 @@ import javax.microedition.rms.RecordStoreException;
  */
 public class Inbox extends MailBox {
     private static final String inboxStore = "inboxStore";
+    private static Hashtable inboxHash = new Hashtable();
     private Command replyCmd;
     private Command refreshCmd;
 
@@ -28,6 +31,48 @@ public class Inbox extends MailBox {
         super("Inbox", inboxStore);
         addCommand(getReplyCmd());
         addCommand(getRefreshCmd());
+        initInboxHash();
+    }
+
+    private void initInboxHash()
+    {
+        Enumeration listEnum = list.elements();
+        while(listEnum.hasMoreElements())
+        {
+            textConvo crnt = (textConvo) listEnum.nextElement();
+            inboxHash.put(crnt.getMsgID(), crnt);
+        }
+    }
+
+    public void updateInbox(Vector newMsgs) throws IOException, RecordStoreException
+    {
+        if(newMsgs.size() > 0)
+        {
+            for(int i = newMsgs.size()-1; i >= 0; i--)
+            {
+                textConvo newConvo = (textConvo) newMsgs.elementAt(i);
+                int index = -1;
+                if(inboxHash.containsKey(newConvo.getMsgID()))
+                {
+                    textConvo crnt = (textConvo) inboxHash.get(newConvo.getMsgID());
+                    index = list.indexOf(crnt);
+//                    crnt.setConvo(newConvo);
+                    inboxHash.put(crnt.getMsgID(), crnt);
+                    list.setElementAt(crnt, index);
+                    addItem(crnt, index);
+                }
+                else
+                {
+                    inboxHash.put(newConvo.getMsgID(), newConvo);
+                    addItem(newConvo);
+                }
+            }
+        }
+    }
+
+    public static Hashtable getInboxHash()
+    {
+        return inboxHash;
     }
 
     public Command getReplyCmd() {
@@ -43,18 +88,7 @@ public class Inbox extends MailBox {
         }
         return refreshCmd;
     }
-
-    public void updateInbox(Vector newMsgs) throws IOException, RecordStoreException
-    {
-        if(newMsgs.size() > 0)
-        {
-            for(int i = newMsgs.size()-1; i >= 0; i--)
-            {
-                addItem((textConvo) newMsgs.elementAt(i));
-            }
-        }
-    }
-
+    
     public void commandAction(Command command, Displayable displayable) {
 
         if(command == backCmd || command == delItemCmd)

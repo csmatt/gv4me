@@ -13,14 +13,13 @@ import java.util.Hashtable;
 import java.util.Vector;
 import javax.microedition.io.HttpsConnection;
 import javax.microedition.rms.RecordStore;
+import ui.Inbox;
 
 /**
  *
  * @author matt
  */
 public class parseMsgs {
-
-    private static final String storedMsgName = "storedMsgs";
     private static final String markReadURL = "https://www.google.com/voice/m/mark?p=1&label=unread&id=";
     private static final String getMsgsURL = "https://www.google.com/voice/inbox/recent/unread";//"https://www.google.com/voice/m/i/unread/";
 
@@ -45,8 +44,6 @@ public class parseMsgs {
     private final static String[] connection = {"Connection", "keep-alive"};
 
     private static Vector reqProps = new Vector(5);
-    private static Vector convosVect = new Vector(10);
-    private static Hashtable storedConvos = new Hashtable();
 
     public static void setReqProps()
     {
@@ -61,44 +58,53 @@ public class parseMsgs {
 
     public static Vector readMsgs() throws IOException, Exception
     {
-                Vector newConvos = new Vector(5);
-                String html = getHTML();
+        Vector newConvos = new Vector(5);
+        String html = getHTML();
 
-                //checks to see if new messages have arrived and returns if none have
-                if(html.indexOf(noMsgsString) > 0)
-                    return null;
-                //gets message's ID & replyNums from json
-                Hashtable convos = getJSONdata(html);
+        //checks to see if new messages have arrived and returns if none have
+        if(html.indexOf(noMsgsString) > 0)
+            return null;
+        //gets message's ID & replyNums from json
+        Hashtable convos = getJSONdata(html);
 
-                //goes through xml for each msgID found in json (now existing as a hash enumeration)
-                Enumeration convosEnum = convos.keys();
-                Vector msgVect = null;
-                String Key = "";
-                int newMsgCnt = 0;
-                textConvo messages = null;
-                while(convosEnum.hasMoreElements())
-                {
-                   Key = (String) convosEnum.nextElement();
-                    try {
-                        messages = getMsgs(Key, html);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                   if(messages == null)
-                       break;
-                   msgVect = (Vector) messages.getMessages();
+        //goes through xml for each msgID found in json (now existing as a hash enumeration)
+        Enumeration convosEnum = convos.keys();
+        Vector msgVect = null;
+        String Key = "";
+        int newMsgCnt = 0;
+        textConvo messages = null;
+        while(convosEnum.hasMoreElements())
+        {
+           Key = (String) convosEnum.nextElement();
+            try {
+                messages = getMsgs(Key, html);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+           if(messages == null)
+               break;
 
-                   textConvo crnt = (textConvo) convos.get(Key);
-                   crnt.setConvo(messages);
-                   newConvos.addElement(crnt);
-                   newMsgCnt++;
-               }
+          //
+           textConvo crnt;
+           if(Inbox.getInboxHash().containsKey(Key))
+           {
+                crnt = (textConvo) Inbox.getInboxHash().get(Key);
+               crnt.setConvo(messages);
+           }
+           else
+           {
+               crnt = (textConvo) convos.get(Key);
+               crnt.setConvo(messages);
+           }
+           
+           newConvos.addElement(crnt);
+           newMsgCnt++;
+       }
 
-                gvME.setNumNewMsgs(newMsgCnt);
-                return newConvos;
-
+        gvME.setNumNewMsgs(newMsgCnt);
+        return newConvos;
     }
 
     public static textConvo getMsgs(String msgID, String html) throws IOException, Exception
@@ -118,10 +124,11 @@ public class parseMsgs {
 
 
         int numMsgs = 0;
-        if(storedConvos.containsKey(msgID))
-        {
-            lastMessage = ((textConvo)storedConvos.get(msgID)).getLastMsg().getMessage();
-        }
+//        Hashtable inboxHash = Inbox.getInboxHash();
+//        if(inboxHash.containsKey(msgID))
+//        {
+//            lastMessage = ((textConvo)inboxHash.get(msgID)).getLastMsg().getMessage();
+//        }
 
         //run until no more senders are found for the current conversation
         while(i > -1 && (checkSender((String) (kvp = regexreplace(i, stop, html, msgFromToken, endSpan)).getKey())) && i < stop && i < html.length())
