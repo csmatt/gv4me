@@ -67,7 +67,6 @@ public class textConvo {
 
     public void setConvo(textConvo convo)
     {
-        //this.numMsgs += convo.getNumMsgs();
         this.sender = convo.getSender();
 
         for(int i = convo.getMessages().size()-1; i >= 0; i--)
@@ -243,5 +242,4 @@ public class textConvo {
         byteOutStream.write(lastMsg_bytes);
         return byteOutStream.toByteArray();
     }
-
 }

@@ -7,7 +7,10 @@ package gvME;
 
 import java.io.IOException;
 import java.util.Vector;
+import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.io.HttpsConnection;
+import javax.microedition.lcdui.Alert;
+import javax.microedition.lcdui.Command;
 import javax.microedition.rms.RecordStoreException;
 import ui.Login;
 
@@ -21,6 +24,8 @@ public class gvLogin {
     private static Vector reqProps;
     private static String username;
     private static String password;
+    private static Command loginAgainCmd;
+    private static Command cancelLoginCmd;
     private Login login;
 
     public gvLogin() throws IOException, Exception
@@ -61,13 +66,15 @@ public class gvLogin {
 
         String[] props = {"Content-Length", String.valueOf(requestBody.length())};
         reqProps.insertElementAt(props, 2);
-
-        HttpsConnection c = createConnection.open(logInURL, "POST", reqProps , requestBody);
-
-        reqProps.removeElementAt(2);
-        String loc = c.getHeaderField("Location");
-        createConnection.close(c);
-        c = null;
+        String loc = null;
+        
+        try{
+            loc = submitInfo(requestBody);
+        }
+        catch(ConnectionNotFoundException cnf)
+        {
+            cnf.printStackTrace();
+        }
 
         if(loc != null)
         {
@@ -92,6 +99,15 @@ public class gvLogin {
             System.out.println(username + " " + password);
             throw new Exception("Login Failed. Bad username or password");
         }
+    }
+
+    private static String submitInfo(String requestBody) throws ConnectionNotFoundException, IOException, Exception
+    {
+            HttpsConnection c = createConnection.open(logInURL, "POST", reqProps , requestBody);
+            reqProps.removeElementAt(2);
+            String loc = c.getHeaderField("Location");
+            createConnection.close(c);
+            return loc;
     }
 
     public static void saveLoginInfo() throws RecordStoreException, RecordStoreException

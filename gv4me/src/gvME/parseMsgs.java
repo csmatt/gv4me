@@ -86,11 +86,10 @@ public class parseMsgs {
            if(messages == null)
                break;
 
-          //
            textConvo crnt;
            if(Inbox.getInboxHash().containsKey(Key))
            {
-                crnt = (textConvo) Inbox.getInboxHash().get(Key);
+               crnt = (textConvo) Inbox.getInboxHash().get(Key);
                crnt.setConvo(messages);
            }
            else
@@ -107,7 +106,7 @@ public class parseMsgs {
         return newConvos;
     }
 
-    public static textConvo getMsgs(String msgID, String html) throws IOException, Exception
+    private static textConvo getMsgs(String msgID, String html) throws IOException, Exception
     {
         Vector msgVect = new Vector(10);
         int i = 0;
@@ -122,13 +121,7 @@ public class parseMsgs {
         String lastMessage = "";
         KeyValuePair kvp = null;
 
-
         int numMsgs = 0;
-//        Hashtable inboxHash = Inbox.getInboxHash();
-//        if(inboxHash.containsKey(msgID))
-//        {
-//            lastMessage = ((textConvo)inboxHash.get(msgID)).getLastMsg().getMessage();
-//        }
 
         //run until no more senders are found for the current conversation
         while(i > -1 && (checkSender((String) (kvp = regexreplace(i, stop, html, msgFromToken, endSpan)).getKey())) && i < stop && i < html.length())
@@ -161,7 +154,7 @@ public class parseMsgs {
         return new textConvo(numMsgs, msgID, sender, msgVect, crnt);
     }
 
-    public static boolean checkSender(String sender)
+    private static boolean checkSender(String sender)
     {
         if(sender.equals("") || sender.length() > 25)
             return false;
@@ -170,7 +163,7 @@ public class parseMsgs {
     }
 
     //mark message as read
-    public static void markMsgRead(String msgID) throws IOException, IOException, Exception
+    private static void markMsgRead(String msgID) throws IOException, IOException, Exception
     {
         String[] strings = {
                             markReadURL,
@@ -181,18 +174,18 @@ public class parseMsgs {
         createConnection.close(markRead);
     }
 
-    public static Hashtable getJSONdata(String html)
+    private static Hashtable getJSONdata(String html)
     {
         int i = 0;
-        KeyValuePair kvp;
-        kvp = regexreplace(i, html, jsonBegin, jsonEnd);
+        KeyValuePair kvp = regexreplace(i, html, jsonBegin, jsonEnd);
         String json = (String) kvp.getKey();
 
         String msgID = "";
         String replyNum = "";
-        Hashtable convoHash = new Hashtable();
         String isRead = "";
         String date = "";
+        Hashtable convoHash = new Hashtable();
+
         while(json.indexOf(idToken, i) != -1)
         {
             kvp = regexreplace(i, json, idToken, separateToken);
@@ -224,11 +217,11 @@ public class parseMsgs {
      *  Finds the next occurrence of the regular expression: beginToken(.*)endToken
      *  It returns the index of the last character in the endToken
     */
-    public static KeyValuePair regexreplace(int i, String html, String beginToken, String endToken)
+    private static KeyValuePair regexreplace(int i, String html, String beginToken, String endToken)
     {
         return regexreplace(i, 0, html, beginToken, endToken);
     }
-    public static KeyValuePair regexreplace(int i, int stop, String html, String beginToken, String endToken)
+    private static KeyValuePair regexreplace(int i, int stop, String html, String beginToken, String endToken)
     {
         i = html.indexOf(beginToken, i)+beginToken.length();
         int end = html.indexOf(endToken, i);
@@ -239,24 +232,31 @@ public class parseMsgs {
             return new KeyValuePair("", null);
     }
 
-    public static String getHTML()
+    private static String getHTML() throws IOException
     {
         String html = "";
+        DataInputStream dis = null;
+        ByteArrayOutputStream baos = null;
+        HttpsConnection c = null;
         try{
-
-            HttpsConnection c = createConnection.open(getMsgsURL, "GET", reqProps, "");
+            c = createConnection.open(getMsgsURL, "GET", reqProps, "");
 
             //FIXME every 20 connections or so, a 400 HTTP response is returned. This is a temp workaround
             if(c.getResponseCode() != 200)
             {
                 createConnection.close(c);
+//                String[] rsList = RecordStore.listRecordStores();
+//                for(int i = 0; i < rsList.length; i++)
+//                {
+//                    System.out.println(rsList[i]);
+//                }
                 RecordStore.deleteRecordStore("cookieStore");
                 gvLogin.logIn();
                 c = createConnection.open(getMsgsURL, "GET", reqProps, "");
             }
 
-            DataInputStream dis = c.openDataInputStream();
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            dis = c.openDataInputStream();
+            baos = new ByteArrayOutputStream();
             byte[] buffer = new byte[4096];
             int read = dis.read(buffer);
 
@@ -267,18 +267,20 @@ public class parseMsgs {
             }
             dis.close();
             html = new String(baos.toByteArray());
-            baos.close();
-            createConnection.close(c);
         }
         catch(Exception e)
         {
             e.printStackTrace();
         }
         finally{
+            dis.close();
+            baos.close();
+            createConnection.close(c);
             return html;
         }
     }
-    public static String parseSender(String sender)
+
+    private static String parseSender(String sender)
     {
         while(sender.indexOf('\n') >= 0)
         {
@@ -288,13 +290,13 @@ public class parseMsgs {
         return sender.trim();
     }
 
-    public static String parseDate(String date)
+    private static String parseDate(String date)
     {
         int slashIndex = date.indexOf("/", date.indexOf("/")+1);
         return date.substring(0, slashIndex+3);
     }
 
-    public static int castInt(Object i)
+    private static int castInt(Object i)
     {
         return ((Integer) i).intValue();
     }

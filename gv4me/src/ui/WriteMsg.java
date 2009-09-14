@@ -42,14 +42,14 @@ public class WriteMsg extends TextBox implements CommandListener {
         setCommandListener(this);
     }
 
-    public Command getSendCmd() {
+    private Command getSendCmd() {
         if (sendCmd == null) {
             sendCmd = new Command("Send", Command.ITEM, 1);
         }
         return sendCmd;
     }
 
-    public Command getBackCmd() {
+    private Command getBackCmd() {
         if (backCmd == null) {
             backCmd = new Command("Back", Command.BACK, 0);
         }

@@ -23,8 +23,11 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
  * @author matt
  */
 public class Login extends WaitScreen implements CommandListener {
+    private static Command loginAgainCmd;
+    private static Command cancelLoginCmd;
     private LoginScreen loginScreen;
     private Alert loginFailedAlert;
+    public static Alert noConAlert;
  //   private settings userSettings;
     private String username, password;
     private Image image;
@@ -87,6 +90,22 @@ public class Login extends WaitScreen implements CommandListener {
         }
         return loginFailedAlert;
     }
+
+
+    private static Command getLoginAgainCmd() {
+        if (loginAgainCmd == null) {
+            loginAgainCmd = new Command("Try Again", Command.OK, 1);
+        }
+        return loginAgainCmd;
+    }
+
+    private static Command getCancelLoginCmd() {
+        if (cancelLoginCmd == null) {
+            cancelLoginCmd = new Command("Cancel", Command.CANCEL, 0);
+        }
+        return cancelLoginCmd;
+    }
+
     public void commandAction(Command command, Displayable displayable) {
         if (displayable == loginScreen) {
             if (command == LoginScreen.LOGIN_COMMAND) {

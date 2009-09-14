@@ -37,12 +37,12 @@ public class gvME extends MIDlet implements CommandListener {
     public static DisplayManager dispMan;
     private static Command exitCmd;
     private static Command minimize;
-    private Command backFromInbox;
-    private Command backFromSettings;
-    private Command okSaveSettings;
-    private Command okMakeCall;
+    private static Command backFromInbox;
+    private static Command backFromSettings;
+    private static Command okSaveSettings;
+    private static Command okMakeCall;
     private static List menu;
-    private WriteMsg newSMS;
+    private static WriteMsg newSMS;
     private static Inbox InboxList;
     private Form changeSettingsMenu;
     private TextField passwordTextField;
@@ -50,12 +50,12 @@ public class gvME extends MIDlet implements CommandListener {
     private TextField callFromTextField;
     private TextField intervalTextField;
     private WaitScreen callWaitScreen;
-    public static MailBox SentBox;
-    public static Outbox outbox;
     private Command backFromMakeCall;
     private static CommandListener cl;
     private static int numNewMsgs;
     public static int countCons;
+    public static MailBox SentBox;
+    public static Outbox outbox;
 
     /*
      * Initilizes the application.
@@ -67,7 +67,7 @@ public class gvME extends MIDlet implements CommandListener {
         dispMan = new DisplayManager(this);
         cl = this; //reference to 'this' for CommandListener of static method getMenu()
         SentBox = getSentBox();
-
+        outbox = getOutbox();
         parseMsgs.setReqProps();
         try {
             RecordStore cookieRS = RecordStore.openRecordStore(cookieStoreName, true);
@@ -86,7 +86,7 @@ public class gvME extends MIDlet implements CommandListener {
     public void startMIDlet() throws IOException, Exception {  
         gvLogin waitForLogin = new gvLogin();
         waitForLogin.checkLoginInfo();
-        //createTimer();
+        createTimer();
     }
 
     public void resumeMIDlet() {
@@ -209,17 +209,16 @@ public class gvME extends MIDlet implements CommandListener {
         String __selectedString = getMenu().getString(getMenu().getSelectedIndex());
         if (__selectedString != null) {
             if (__selectedString.equals("Write New")) {
-                
                 if(newSMS != null)
                     newSMS.setString("");
-                newSMS = new WriteMsg("Write New", null);
-                dispMan.switchDisplayable(null, newSMS);
+                    newSMS = new WriteMsg("Write New", null);
+                    dispMan.switchDisplayable(null, newSMS);
             } else if (__selectedString.equals("Inbox")) {               
-                    dispMan.switchDisplayable(null, getInbox());
+                dispMan.switchDisplayable(null, getInbox());
             } else if (__selectedString.equals("Outbox")) {
-//                    dispMan.switchDisplayable(null, getOutbox());
+                dispMan.switchDisplayable(null, getOutbox());
             } else if (__selectedString.equals("Sent Box")) {
-                    dispMan.switchDisplayable(null, getSentBox());
+                dispMan.switchDisplayable(null, getSentBox());
             } else if (__selectedString.equals("Settings")) {            
                 dispMan.switchDisplayable(null, getChangeSettingsMenu());                
             } else if (__selectedString.equals("Make Call")) {                
@@ -245,7 +244,6 @@ public class gvME extends MIDlet implements CommandListener {
         {
             InboxList = new Inbox();
         }
-//        InboxList.updateInbox();
         return InboxList;
     }
 
@@ -435,8 +433,7 @@ public class gvME extends MIDlet implements CommandListener {
     public void startApp() {
         if (midletPaused) {
             resumeMIDlet ();
-        } else {
-            
+        } else { 
             try {
                 initialize ();
                 startMIDlet();

@@ -11,6 +11,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Vector;
+import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.io.HttpsConnection;
 
 /**
@@ -18,7 +19,7 @@ import javax.microedition.io.HttpsConnection;
  * @author Matt Defenthaler
  */
 public class createConnection{
-    public static HttpsConnection open(String url, String reqMethod, Vector reqProps, String postData) throws IOException, Exception
+    public static synchronized HttpsConnection open(String url, String reqMethod, Vector reqProps, String postData) throws IOException, Exception
     {
         int respCode = 0;
         String loc = "";
@@ -44,12 +45,20 @@ public class createConnection{
             RMSCookieConnector.getCookie(c);
             loc = c.getHeaderField("Location");
             respCode = c.getResponseCode();
-            System.out.println(respCode);
+            
+//            while(respCode != 200 && respCode == 302 && loc != null)
+//            {
+//                c = RMSCookieConnector.open(loc);
+//                respCode = c.getResponseCode();
+//                loc = c.getHeaderField("Location");
+//                System.out.println(String.valueOf(respCode));
+//                System.out.println(loc);
+//            }
+
         }
-        catch(Exception e)
+        catch(ConnectionNotFoundException cnf)
         {
-            System.out.println("error: "+e.toString());
-            e.printStackTrace();
+            throw cnf;
         }
         finally
         {

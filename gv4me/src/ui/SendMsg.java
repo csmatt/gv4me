@@ -64,8 +64,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
         }
         textConvo sentMsg = new textConvo(sender, contacting, new textMsg(msg));
             if (command == WaitScreen.FAILURE_COMMAND) {
-            try {
-//TODO:         switchDisplayable(getAlert(), getCallWaitScreen());
+            try {//TODO:
                 gvME.outbox.addItem(sentMsg);
             } catch (IOException ex) {
                 ex.printStackTrace();

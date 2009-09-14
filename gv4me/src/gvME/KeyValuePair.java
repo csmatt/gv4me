@@ -29,5 +29,17 @@ public class KeyValuePair {
     {
         return this.value;
     }
+
+    public byte[] serialize()
+    {
+        String[] fields = {this.key.toString(), this.value.toString()};
+        return serial.serialize(fields);
+    }
+
+    public static KeyValuePair deserialize(byte[] data)
+    {
+        String[] fields = serial.deserialize(2, data);
+        return new KeyValuePair(fields[0], fields[1]);
+    }
 }
 

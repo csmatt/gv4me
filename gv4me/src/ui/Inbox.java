@@ -75,14 +75,14 @@ public class Inbox extends MailBox {
         return inboxHash;
     }
 
-    public Command getReplyCmd() {
+    private Command getReplyCmd() {
         if (replyCmd == null) {
             replyCmd = new Command("Reply", Command.ITEM, 3);
         }
         return replyCmd;
     }
 
-    public Command getRefreshCmd() {
+    private Command getRefreshCmd() {
         if (refreshCmd == null) {
             refreshCmd = new Command("Refresh", Command.ITEM, 4);
         }
@@ -99,7 +99,8 @@ public class Inbox extends MailBox {
         {
             try {
                 Vector newMsgs = parseMsgs.readMsgs();
-                updateInbox(newMsgs);
+                if(newMsgs != null)
+                    updateInbox(newMsgs);
             } catch (IOException ex) {
                 ex.printStackTrace();
             } catch (Exception ex) {
