@@ -26,6 +26,7 @@ public class gvLogin {
     private static String password;
     private static Command loginAgainCmd;
     private static Command cancelLoginCmd;
+    private static String requestBody;
     private Login login;
 
     public gvLogin() throws IOException, Exception
@@ -52,29 +53,34 @@ public class gvLogin {
         gvLogin.password = password;
     }
 
-    public static void logIn() throws IOException, Exception
+    public static void initLogin() throws IOException, Exception
     {
         String[] reqBodyArray = {
-                                "accountType=GOOGLE&Email=",
-                                gvLogin.username, //gvME.userSettings.getUsername(),
-                                "&Passwd=",
-                                gvLogin.password,//gvME.userSettings.getPassword(),
-                                "&service=grandcentral&source=gvSMS",
-                                postData
-                                };
-        String requestBody =  tools.combineStrings(reqBodyArray);
+                        "accountType=GOOGLE&Email=",
+                        gvLogin.username, //gvME.userSettings.getUsername(),
+                        "&Passwd=",
+                        gvLogin.password,//gvME.userSettings.getPassword(),
+                        "&service=grandcentral&source=gvSMS",
+                        postData
+                        };
+        requestBody =  tools.combineStrings(reqBodyArray);
 
+        logIn();
+    }
+    
+    public static void logIn() throws IOException, Exception
+    {
+        String loc = null;
         String[] props = {"Content-Length", String.valueOf(requestBody.length())};
         reqProps.insertElementAt(props, 2);
-        String loc = null;
-        
         try{
             loc = submitInfo(requestBody);
         }
         catch(ConnectionNotFoundException cnf)
         {
-            cnf.printStackTrace();
+            throw new ConnectionNotFoundException();
         }
+        reqProps.removeElementAt(2);
 
         if(loc != null)
         {
@@ -104,9 +110,11 @@ public class gvLogin {
     private static String submitInfo(String requestBody) throws ConnectionNotFoundException, IOException, Exception
     {
             HttpsConnection c = createConnection.open(logInURL, "POST", reqProps , requestBody);
-            reqProps.removeElementAt(2);
             String loc = c.getHeaderField("Location");
-            createConnection.close(c);
+//            String auth = createConnection.getAuth(c);
+//            createConnection.close(c);
+//            System.out.println(auth);
+            c = null;
             return loc;
     }
 

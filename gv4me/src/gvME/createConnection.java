@@ -1,4 +1,3 @@
-
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
@@ -24,8 +23,9 @@ public class createConnection{
         int respCode = 0;
         String loc = "";
         String[] props = null;
-        HttpsConnection c = (HttpsConnection) RMSCookieConnector.open(url);
+        HttpsConnection c = null;
         try{
+            c = (HttpsConnection) RMSCookieConnector.open(url);
             c.setRequestMethod(reqMethod);
 
             for(int i = 0; reqProps.elementAt(i).equals(null) && i < reqProps.size(); i++)
@@ -65,21 +65,30 @@ public class createConnection{
             return c;
         }
     }
-    
+
+    public static String getAuth(HttpsConnection c) throws IOException
+    {
+        String respMsg = c.getResponseMessage();
+        int index = respMsg.indexOf("Auth");
+        return respMsg.substring(index+5, respMsg.indexOf("\n", index));
+    }
+
     public static String getPageData(HttpsConnection c) throws IOException
     {
         DataInputStream dis = c.openDataInputStream();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buffer = new byte[4096];
         int read = dis.read(buffer);
-        System.out.println(c.getURL());
+        //System.out.println(c.getURL());
         while(read != -1)
         {
             baos.write(buffer,0,read);
             read = dis.read(buffer);
         }
-
-        return (new String(baos.toByteArray()));
+        String dataString = new String(baos.toByteArray());
+        dis.close();
+        baos.close();
+        return dataString;
     }
 
     public static String get_rnr_se(HttpsConnection c) throws IOException

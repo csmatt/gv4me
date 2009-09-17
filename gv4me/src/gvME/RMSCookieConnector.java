@@ -79,8 +79,7 @@ public class RMSCookieConnector {
         addCookie(c, url);
         c.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-        c.setRequestProperty("Content-Language",
-                             "en-US");
+        c.setRequestProperty("Content-Language", "en-US");
         // Cookie aware wrapper to the connection object.
         HttpsConnection sc = new HttpsRMSCookieConnection(c);
         return sc;
@@ -122,11 +121,12 @@ public class RMSCookieConnector {
     //
     // The record store format is:
     // cookie1, domain1, cookie2, domain2 ...
-    static void getCookie(HttpsConnection c) throws IOException {
+    static void getCookie(HttpsConnection c) throws IOException, RecordStoreNotOpenException, RecordStoreException {
       int k = 0;
+      RecordStore rs = null;
       try {
         // Open the record store.
-        RecordStore rs = RecordStore.openRecordStore(cookieStoreName, true);
+        rs = RecordStore.openRecordStore(cookieStoreName, true);
         // Iterate through connection headers and find "set-cookie" fields.
         while (c.getHeaderFieldKey(k) != null) {
           String key = c.getHeaderFieldKey(k);
@@ -135,7 +135,7 @@ public class RMSCookieConnector {
             // Parse the header and get the cookie.
             int j = value.indexOf(";");
             String cValue = value.substring(0, j);
-            System.out.println(cValue);
+            //System.out.println(cValue);
             // Write the cookie into the cookie store.
             int newID = rs.addRecord(cValue.getBytes(), 0, cValue.length());
 
@@ -154,19 +154,24 @@ public class RMSCookieConnector {
           }
           k++;
         }
-        // Close store.
-        rs.closeRecordStore();
+
       } catch ( Exception e ) {
         throw new IOException( e.getMessage() );
       }
-      return;
+      finally{
+        // Close store.
+        rs.closeRecordStore();
+        return;
+      }
     }
 
     // This method matches cookies in the store with the domain
     // of the connection. The matched cookies are set into the
     // headers of the connection.
     static void addCookie(HttpsConnection c, String url) throws Exception {
-
+        RecordStore rs = null;
+        RecordEnumeration re = null;
+        try{
       // String variable domain stores the domain of of the current url.
      /* String domain;
       // Find the "/" or ":" after "Https://"
@@ -196,8 +201,8 @@ public class RMSCookieConnector {
 
       StringBuffer buff = new StringBuffer();
       try{
-      RecordStore rs = RecordStore.openRecordStore(cookieStoreName, true);
-      RecordEnumeration re = rs.enumerateRecords(null, null, false);
+      rs = RecordStore.openRecordStore(cookieStoreName, true);
+      re = rs.enumerateRecords(null, null, false);
 
       String cookie = "", cookieDomain = "";
       // Iterate through the cookie record store and find cookies
@@ -221,8 +226,7 @@ public class RMSCookieConnector {
         }
         isCookie = !isCookie;*/
       }
-      // Close the store.
-      rs.closeRecordStore();
+
       }
       catch(Exception e)
       {
@@ -234,11 +238,17 @@ public class RMSCookieConnector {
       if ( cookieStr == null || cookieStr.equals("") ) {
         // Ignore
       } else {
-        System.out.println("cookie: " + cookieStr);
+      //  System.out.println("cookie: " + cookieStr);
         c.setRequestProperty( "cookie", cookieStr );
       }
-    //  System.out.println("cookies: "+cookieStr);
-      return;
+        }
+        finally{
+            // Close the store.
+            rs.closeRecordStore();
+            re.destroy();
+            //  System.out.println("cookies: "+cookieStr);
+            return;
+        }
     }
 
     // Remove all cookies.
@@ -363,14 +373,26 @@ class HttpsRMSCookieConnection implements HttpsConnection {
     // The cookies have to be retrieved when we open the input stream.
     public InputStream openInputStream() throws IOException {
         checkResponseCode();
-        RMSCookieConnector.getCookie(c);
+        try {
+            RMSCookieConnector.getCookie(c);
+        } catch (RecordStoreNotOpenException ex) {
+            ex.printStackTrace();
+        } catch (RecordStoreException ex) {
+            ex.printStackTrace();
+        }
         return c.openInputStream();
     }
 
     // The cookies have to be retrieved when we open the input stream.
     public DataInputStream openDataInputStream() throws IOException {
         checkResponseCode();
-        RMSCookieConnector.getCookie(c);
+        try {
+            RMSCookieConnector.getCookie(c);
+        } catch (RecordStoreNotOpenException ex) {
+            ex.printStackTrace();
+        } catch (RecordStoreException ex) {
+            ex.printStackTrace();
+        }
         return c.openDataInputStream();
     }
 

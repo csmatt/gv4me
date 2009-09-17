@@ -91,7 +91,6 @@ public class Login extends WaitScreen implements CommandListener {
         return loginFailedAlert;
     }
 
-
     private static Command getLoginAgainCmd() {
         if (loginAgainCmd == null) {
             loginAgainCmd = new Command("Try Again", Command.OK, 1);
@@ -138,7 +137,7 @@ public class Login extends WaitScreen implements CommandListener {
         task.setExecutable(new org.netbeans.microedition.util.Executable() {
             public void execute() throws Exception {
                 try{
-                    gvLogin.logIn();         
+                    gvLogin.initLogin();
                     gvME.dispMan.switchDisplayable(null, gvME.getMenu());
                 }
                 catch(Exception e)

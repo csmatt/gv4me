@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;
 import javax.microedition.rms.InvalidRecordIDException;
@@ -26,7 +27,6 @@ import ui.*;
  * @author matt
  */
 public class gvME extends MIDlet implements CommandListener {
-    private String cookieStoreName = "cookieStore";
     private static final String sentBoxStore = "sentBoxStore";
     private static final String outboxStore = "outboxStore";
     private boolean midletPaused = false;    
@@ -70,22 +70,16 @@ public class gvME extends MIDlet implements CommandListener {
         outbox = getOutbox();
         parseMsgs.setReqProps();
         try {
-            RecordStore cookieRS = RecordStore.openRecordStore(cookieStoreName, true);
-            if(cookieRS.getNumRecords() != 0)
-            {
-                cookieRS.closeRecordStore();
-                RecordStore.deleteRecordStore(cookieStoreName);
-            }
-        }
-        catch(Exception e)
-        {
-          //ignore. just here to catch RS not found exception
+            RMSCookieConnector.removeCookies();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
     public void startMIDlet() throws IOException, Exception {  
         gvLogin waitForLogin = new gvLogin();
         waitForLogin.checkLoginInfo();
+        waitForLogin = null;
         createTimer();
     }
 
@@ -95,7 +89,7 @@ public class gvME extends MIDlet implements CommandListener {
 
 //<editor-fold defaultstate="collapsed" desc=" Generated Method: commandAction for Displayables ">//GEN-BEGIN:|7-commandAction|0|7-preCommandAction
     /**
-     * Called by a system to indicated that a command has been invoked on a particular displayable.
+     * Called by a system to indicate that a command has been invoked on a particular displayable.
      * @param command the Command that was invoked
      * @param displayable the Displayable where the command was invoked
      */
@@ -477,7 +471,11 @@ public class gvME extends MIDlet implements CommandListener {
             Vector newMsgs = null;
             try {
                 newMsgs = parseMsgs.readMsgs();
-            } catch (IOException ex) {
+            } catch (ConnectionNotFoundException cnf) {
+                System.out.println("Connection Not Found.");
+                createTimer();
+                return;
+            }catch (IOException ex) {
                 ex.printStackTrace();
             } catch (Exception ex) {
                 ex.printStackTrace();

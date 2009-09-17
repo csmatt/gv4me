@@ -6,6 +6,7 @@
 package ui;
 
 import gvME.*;
+import java.util.Enumeration;
 import java.util.Vector;
 import javax.microedition.lcdui.Choice;
 import javax.microedition.lcdui.Command;
@@ -16,6 +17,7 @@ import javax.microedition.lcdui.TextBox;
 import javax.microedition.lcdui.TextField;
 import javax.microedition.pim.Contact;
 import javax.microedition.pim.PIM;
+import javax.microedition.rms.RecordStoreException;
 import org.netbeans.microedition.lcdui.pda.PIMBrowser;
 
 /**
@@ -36,41 +38,22 @@ public class ChooseContact extends List implements CommandListener{
     private interCom next;
     private List recentContacts;
     private Displayable prev;
+    private Vector contacts = gvME.userSettings.getRecentContacts();;
 
     public ChooseContact(Displayable prev, interCom com)
     {
         super("Choose Contact", Choice.IMPLICIT);
         this.next = com;
         this.prev = prev;
-//      append("Recent", null);
+//        append("Recent", null);
         append("Enter Number", null);
-        append("Phone Book", null);
+//        append("Phone Book", null);
         addCommand(getContactTypeCmd());
         addCommand(getBackContactTypeCmd());
         setSelectCommand(contactTypeCmd);
         setCommandListener(this);
-        //initialize();
+       // initialize();
     }
-
- /*   public ChooseContact(gvME midlet, MakeCall makeCall)
-    {
-        super("Choose Contact", Choice.IMPLICIT);
-        this.midlet = midlet;
-        this.prev = midlet.getMenu();
-        this.next = makeCall;
-        initialize();
-    }
-
-    public void initialize()
-    {
-     //   append("Recent", null);
-        append("Enter Number", null);
-        append("Phone Book", null);
-        addCommand(getContactTypeCmd());
-        addCommand(getBackContactTypeCmd());
-        setSelectCommand(contactTypeCmd);
-        setCommandListener(this);
-    }*/
 
     public String getContact()
     {
@@ -106,17 +89,23 @@ public class ChooseContact extends List implements CommandListener{
 
     public List getRecentContactsList()
     {
-        List recContactList = new List("Recent Contacts", List.IMPLICIT);
-        recContactList.addCommand(List.SELECT_COMMAND);
-        recContactList.addCommand(getBackFromRecContactsCmd());
-        Vector contVect = gvME.userSettings.getRecentContacts();
-        int vectSize = contVect.size();
-        for(int i = 0; i < vectSize; i++)
+        if(recentContacts == null)
         {
-            String contactName = (String) ((KeyValuePair)contVect.elementAt(i)).getValue();
-            recContactList.append(contactName, null);
+            recentContacts = new List("Recent Contacts", List.IMPLICIT);
+            recentContacts.addCommand(List.SELECT_COMMAND);
+            recentContacts.addCommand(getBackFromRecContactsCmd());
         }
-        return recContactList;
+            recentContacts.deleteAll();
+            contacts = gvME.userSettings.getRecentContacts();
+            //int vectSize = contacts.size();
+            //for(int i = 0; i < vectSize; i++)
+            Enumeration contactsEnum = contacts.elements();
+            {
+                String contactName = (String) ((KeyValuePair)contactsEnum.nextElement()).getKey();
+                recentContacts.append(contactName, null);
+            }
+        
+        return recentContacts;
     }
 
     public PIMBrowser getPimBrowser() {
@@ -159,7 +148,11 @@ public class ChooseContact extends List implements CommandListener{
             } else if (command == okEnterNumCmd) {
                 contact = enterNumBox.getString();
                 next.setContacting(contact);
-                gvME.userSettings.addContact(new KeyValuePair(contact, ""));
+//                try {
+//                    gvME.userSettings.addContact(new KeyValuePair(contact, ""));
+//                } catch (RecordStoreException ex) {
+//                    ex.printStackTrace();
+//                }
                 gvME.dispMan.switchDisplayable(null,(Displayable) next);
             }
         }
@@ -172,7 +165,11 @@ public class ChooseContact extends List implements CommandListener{
                 String pimName = pimContact.getString(Contact.NAME, Contact.NAME_GIVEN);
                 String pimNumber = pimContact.getString(Contact.ATTR_PREFERRED, Contact.TEL);
                 next.setContacting(pimNumber);
-                gvME.userSettings.addContact(new KeyValuePair(pimNumber, pimName));
+//                try {
+//                    gvME.userSettings.addContact(new KeyValuePair(pimNumber, pimName));
+//                } catch (RecordStoreException ex) {
+//                    ex.printStackTrace();
+//                }
                 gvME.dispMan.switchDisplayable(null,(Displayable) next);
             }
         }

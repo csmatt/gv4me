@@ -23,7 +23,7 @@ public class settings {
     private String rnrValue = "";
     private final int numFields = 4;
     private final int MAX_CONTACTS = 10;
-    private Vector recentContacts = new Vector(MAX_CONTACTS);
+    private Vector recentContacts = new Vector();// = new Vector(MAX_CONTACTS);
     private RecordStore rs;
 
     public settings()
@@ -38,9 +38,14 @@ public class settings {
                     recentContacts = serial.deserializeKVPVector(MAX_CONTACTS, data);
                 }
             }
-            rs.closeRecordStore();
         } catch (RecordStoreException ex) {
             ex.printStackTrace();
+        }
+        finally{
+            try{
+                rs.closeRecordStore();
+            }
+            catch(Exception e){}
         }
     }
     
@@ -105,42 +110,54 @@ public class settings {
         return this.recentContacts;
     }
 
-    public void addContact(KeyValuePair contact)
+    public void addContact(KeyValuePair contact) throws RecordStoreException
     {
         if(!recentContacts.contains(contact))
         {
             recentContacts.insertElementAt(contact, 0);
-            recentContacts.setSize(MAX_CONTACTS);
+            if(recentContacts.size() > MAX_CONTACTS)
+                recentContacts.setSize(MAX_CONTACTS);
+            updateContacts();
         }
     }
 
     public void updateContacts() throws RecordStoreException
     {
+        try{
         byte[] data = serial.serializeKVPVector(recentContacts);
         rs = RecordStore.openRecordStore(userSettingsStore, true);
-        rs.setRecord(2, data, 0, data.length);
+        if(rs.getRecord(2) == null)
+            rs.addRecord(data, 0, data.length);
+        else
+            rs.setRecord(2, data, 0, data.length);
+        }
+        finally{
+            rs.closeRecordStore();
+        }
     }
 
     public void updateSettings() throws RecordStoreException
     {
         try{
-        String[] fields = {username, password, interval, callFrom};
-        byte[] data = null;
-        data = serial.serialize(fields);
-        rs = RecordStore.openRecordStore(userSettingsStore, true);
-        if(rs.getNumRecords() != 0)
-        {
-            rs.setRecord(1, data, 0, data.length); 
-        }
-        else
-        {
-            rs.addRecord(data, 0, data.length);
-        }
-        rs.closeRecordStore();
+            String[] fields = {username, password, interval, callFrom};
+            byte[] data = null;
+            data = serial.serialize(fields);
+            rs = RecordStore.openRecordStore(userSettingsStore, true);
+            if(rs.getNumRecords() != 0)
+            {
+                rs.setRecord(1, data, 0, data.length);
+            }
+            else
+            {
+                rs.addRecord(data, 0, data.length);
+            }
         }
         catch(Exception e)
         {
             e.printStackTrace();
+        }
+        finally{
+            rs.closeRecordStore();
         }
     }
 }

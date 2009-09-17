@@ -25,6 +25,8 @@ public class Inbox extends MailBox {
     private static Hashtable inboxHash = new Hashtable();
     private Command replyCmd;
     private Command refreshCmd;
+    private static MsgList msgList;
+    private static WriteMsg wm;
 
     public Inbox() throws IOException, RecordStoreException
     {
@@ -56,7 +58,6 @@ public class Inbox extends MailBox {
                 {
                     textConvo crnt = (textConvo) inboxHash.get(newConvo.getMsgID());
                     index = list.indexOf(crnt);
-//                    crnt.setConvo(newConvo);
                     inboxHash.put(crnt.getMsgID(), crnt);
                     list.setElementAt(crnt, index);
                     addItem(crnt, index);
@@ -91,7 +92,7 @@ public class Inbox extends MailBox {
     
     public void commandAction(Command command, Displayable displayable) {
 
-        if(command == backCmd || command == delItemCmd)
+        if(command == backCmd || command == delItemCmd || command == delAllCmd)
         {
             super.commandAction(command, displayable);
         }
@@ -114,14 +115,13 @@ public class Inbox extends MailBox {
 
             if(command == okCmd)
             {
-                MsgList msgList = null;
                 textConvo crnt = (textConvo) list.elementAt(selIndex);
                 msgList = new MsgList(crnt);
                 gvME.dispMan.switchDisplayable(null, msgList);
             }
             else if(command == replyCmd)
             {
-                WriteMsg wm = new WriteMsg("Reply", original);
+                wm = new WriteMsg("Reply", original);
                 gvME.dispMan.switchDisplayable(null, wm);
             }
         }

@@ -5,6 +5,7 @@
 
 package ui;
 
+import gvME.gvME;
 import java.io.IOException;
 import javax.microedition.lcdui.Choice;
 import javax.microedition.lcdui.Command;
@@ -24,6 +25,9 @@ public class Outbox extends MailBox {
         super("Outbox", outboxStore);
     }
     public void commandAction(Command command, Displayable displayable) {
+        if(command == backCmd)
+        {
+            gvME.dispMan.showMenu();
+        }
     }
-
 }

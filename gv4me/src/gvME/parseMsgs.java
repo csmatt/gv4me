@@ -62,7 +62,7 @@ public class parseMsgs {
         String html = getHTML();
 
         //checks to see if new messages have arrived and returns if none have
-        if(html.indexOf(noMsgsString) > 0)
+        if(html.equals("") || html.indexOf(noMsgsString) > 0)
             return null;
         //gets message's ID & replyNums from json
         Hashtable convos = getJSONdata(html);
@@ -245,12 +245,7 @@ public class parseMsgs {
             if(c.getResponseCode() != 200)
             {
                 createConnection.close(c);
-//                String[] rsList = RecordStore.listRecordStores();
-//                for(int i = 0; i < rsList.length; i++)
-//                {
-//                    System.out.println(rsList[i]);
-//                }
-                RecordStore.deleteRecordStore("cookieStore");
+                RMSCookieConnector.removeCookies();
                 gvLogin.logIn();
                 c = createConnection.open(getMsgsURL, "GET", reqProps, "");
             }
@@ -265,12 +260,7 @@ public class parseMsgs {
                 baos.write(buffer,0,read);
                 read = dis.read(buffer);
             }
-            dis.close();
             html = new String(baos.toByteArray());
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
         }
         finally{
             dis.close();

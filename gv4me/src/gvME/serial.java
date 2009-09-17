@@ -40,14 +40,13 @@ public class serial {
     {
         KeyValuePair kvp;
         int i = vect.size() - 1;
-        int j = 0;
         String[] strArray = new String[2*(i+1)];
-        while(i >= 0)
+        while(i < vect.size())
         {
             kvp = (KeyValuePair) vect.elementAt(i);
             strArray[i] = (String) kvp.getValue();
-            strArray[i-1] = (String) kvp.getKey();
-            i-=2;
+            strArray[i+1] = (String) kvp.getKey();
+            i+=2;
         }
         return serialize(strArray);
     }

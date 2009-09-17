@@ -29,6 +29,7 @@ public class MailBox extends List implements CommandListener {
     public Command okCmd;
     public Command delItemCmd;
     public Command backCmd;
+    public Command delAllCmd;
     public Vector list;
     public String rsName;
     public Vector rsMap = new Vector(10);
@@ -41,6 +42,7 @@ public class MailBox extends List implements CommandListener {
         addCommand(getOkCmd());
         addCommand(getDelItemCmd());
         addCommand(getBackCmd());
+        addCommand(getDelAllCmd());
         setSelectCommand(okCmd);
         setCommandListener(this);
         setFitPolicy(Choice.TEXT_WRAP_OFF);
@@ -88,7 +90,14 @@ public class MailBox extends List implements CommandListener {
         else
             list.insertElementAt(crnt, 0);//adds item to list vector
     }
-    
+
+    public void delAll() throws RecordStoreException
+    {
+        this.deleteAll();
+        list.removeAllElements();
+        RecordStore.deleteRecordStore(rsName);
+    }
+
     public void delItem(int selIndex) throws RecordStoreException
     {
         if(!list.isEmpty())
@@ -103,48 +112,70 @@ public class MailBox extends List implements CommandListener {
     public void removeRecord(int index) throws RecordStoreException
     {
         int delIndex = ((Integer)(rsMap.elementAt(index))).intValue();
-        RecordStore rs = RecordStore.openRecordStore(rsName, true);
-        rs.deleteRecord(delIndex);
-        rs.closeRecordStore();
-        rsMap.removeElementAt(index);
+        RecordStore rs = null;
+        try{
+            rs = RecordStore.openRecordStore(rsName, true);
+            rs.deleteRecord(delIndex);
+        }
+        finally{
+            try{
+                rs.closeRecordStore();
+                rsMap.removeElementAt(index);
+            }
+            catch(Exception e)
+            {}
+        }
+
     }
 
     //adds a textConvo to the recordstore
     public void updateRS(textConvo crnt, int setAt) throws IOException, RecordStoreException
     {
         byte[] record = crnt.serialize();
-        RecordStore rs = RecordStore.openRecordStore(rsName, true);
-        if(setAt >= 0)
-        {
-            setAt = ((Integer)rsMap.elementAt(setAt)).intValue();
-            rs.setRecord(setAt, record, 0, record.length);
+        RecordStore rs = null;
+        try{
+            rs = RecordStore.openRecordStore(rsName, true);
+            if(setAt >= 0)
+            {
+                setAt = ((Integer)rsMap.elementAt(setAt)).intValue();
+                rs.setRecord(setAt, record, 0, record.length);
+            }
+            else
+            {
+                int index = rs.addRecord(record, 0, record.length);
+                rsMap.addElement(new Integer(index));//rsMap maps recordIDs to items in the list vector
+            }
         }
-        else
-        {
-            int index = rs.addRecord(record, 0, record.length);
-            rsMap.addElement(new Integer(index));//rsMap maps recordIDs to items in the list vector
+        finally{
+            rs.closeRecordStore();
         }
-        rs.closeRecordStore();
     }
 
     //creates a vector from the recordstore's contents. it then returns this vector
     public Vector vectFromRS() throws InvalidRecordIDException, IOException, RecordStoreException
     {
         Vector vectOfRS = new Vector(10);
-        RecordStore rs = RecordStore.openRecordStore(rsName, true);
-        RecordEnumeration re = rs.enumerateRecords(null, null, false);
+        RecordStore rs = null;
+        RecordEnumeration re = null;
+        try{
+            rs = RecordStore.openRecordStore(rsName, true);
+            re = rs.enumerateRecords(null, null, false);
 
-        while(re.hasNextElement())
-        {
-            int recID = re.nextRecordId();
-            rsMap.addElement(new Integer(recID));
-            textConvo crnt = textConvo.deserialize(rs.getRecord(recID));
-            vectOfRS.addElement(crnt);
+            while(re.hasNextElement())
+            {
+                int recID = re.nextRecordId();
+                rsMap.addElement(new Integer(recID));
+                textConvo crnt = textConvo.deserialize(rs.getRecord(recID));
+                vectOfRS.addElement(crnt);
+            }
         }
-        rs.closeRecordStore();
-        re.destroy();
-        return vectOfRS;
+        finally{
+            rs.closeRecordStore();
+            re.destroy();
+            return vectOfRS;
+        }
     }
+
     private Form getReadMsg(String title, String msg)
     {
         readMsg = new Form("To: "+title);
@@ -154,6 +185,14 @@ public class MailBox extends List implements CommandListener {
         return readMsg;
     }
 
+    public Command getDelAllCmd()
+    {
+        if (delAllCmd == null)
+        {
+            delAllCmd = new Command("Delete All", Command.ITEM, 0);
+        }
+        return delAllCmd;
+    }
     public Command getOkCmd() {
         if (okCmd == null) {
             okCmd = new Command("Read", Command.OK, 1);
@@ -170,7 +209,7 @@ public class MailBox extends List implements CommandListener {
 
     public Command getDelItemCmd() {
         if (delItemCmd == null) {
-            delItemCmd = new Command("Delete", Command.ITEM, 3);
+            delItemCmd = new Command("Delete", Command.ITEM, 0);
         }
         return delItemCmd;
     }
@@ -195,6 +234,16 @@ public class MailBox extends List implements CommandListener {
                     ex.printStackTrace();
                 }
             }
+            else if(command == delAllCmd)
+            {
+                try{
+                    delAll();
+                }
+                catch(RecordStoreException ex)
+                {
+                    ex.printStackTrace();
+                }
+            }
             else if(command == okCmd)
             {//if not overridden in a subclass, okCmd shows a form with the contents of the selected message
                 textConvo crnt = (textConvo)list.elementAt(selIndex);
@@ -202,6 +251,5 @@ public class MailBox extends List implements CommandListener {
                 gvME.dispMan.switchDisplayable(null, getReadMsg(crnt.getSender(), msg));
             }
         }
-
     }
 }
