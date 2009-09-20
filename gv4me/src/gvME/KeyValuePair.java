@@ -5,6 +5,8 @@
 
 package gvME;
 
+import java.io.IOException;
+
 /**
  *
  * @author matt
@@ -30,13 +32,13 @@ public class KeyValuePair {
         return this.value;
     }
 
-    public byte[] serialize()
+    public byte[] serialize() throws IOException
     {
         String[] fields = {this.key.toString(), this.value.toString()};
         return serial.serialize(fields);
     }
 
-    public static KeyValuePair deserialize(byte[] data)
+    public static KeyValuePair deserialize(byte[] data) throws IOException
     {
         String[] fields = serial.deserialize(2, data);
         return new KeyValuePair(fields[0], fields[1]);

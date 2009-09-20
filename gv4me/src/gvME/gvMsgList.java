@@ -15,9 +15,9 @@ import ui.MsgList;
  */
 public class gvMsgList {
 
-    private static Vector MsgListToItemMap = new Vector(10);
+    private static Vector MsgListToItemMap = new Vector();
     private static int itemLength = 20;
-    private static Vector msgList = new Vector(10);
+    private static Vector msgList = new Vector();
 
     public static Vector getMsgList(Vector msgs)
     {
@@ -40,8 +40,8 @@ public class gvMsgList {
             msgList.addElement(new String(itemBuff));
             //msgList.insert(MsgListToItemMap.size()-1, itemBuff.toString(), null);
         }
+        itemBuff = null;
         MsgList.setMsgListToItemMap(MsgListToItemMap);
         return msgList;
     }
-
 }

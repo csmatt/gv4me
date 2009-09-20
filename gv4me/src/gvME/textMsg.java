@@ -61,7 +61,7 @@ public class textMsg {
      * Serializes textMsg properties to an array of bytes.
      * @return array of bytes representing serialized setting.
      */
-    public byte[] serialize()
+    public byte[] serialize() throws IOException
     {
         String[] fields = {this.msgID, this.message, this.timeReceived};
         return serial.serialize(fields);

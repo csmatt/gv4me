@@ -72,7 +72,7 @@ public class gvME extends MIDlet implements CommandListener {
         try {
             RMSCookieConnector.removeCookies();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            //ex.printStackTrace();
         }
     }
 

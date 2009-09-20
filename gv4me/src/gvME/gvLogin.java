@@ -27,7 +27,7 @@ public class gvLogin {
     private static Command loginAgainCmd;
     private static Command cancelLoginCmd;
     private static String requestBody;
-    private Login login;
+    private static Login login;
 
     public gvLogin() throws IOException, Exception
     {
@@ -66,15 +66,16 @@ public class gvLogin {
         requestBody =  tools.combineStrings(reqBodyArray);
 
         logIn();
+        login = null;
     }
     
     public static void logIn() throws IOException, Exception
     {
-        String loc = null;
+        HttpsConnection c = null;
         String[] props = {"Content-Length", String.valueOf(requestBody.length())};
         reqProps.insertElementAt(props, 2);
         try{
-            loc = submitInfo(requestBody);
+            c = submitInfo(requestBody);
         }
         catch(ConnectionNotFoundException cnf)
         {
@@ -82,40 +83,20 @@ public class gvLogin {
         }
         reqProps.removeElementAt(2);
 
-        if(loc != null)
-        {
-            HttpsConnection checkCookie = createConnection.open(loc, "GET", reqProps, null);
+        String rnr = createConnection.get_rnr_se(c);
+        System.out.println("rnr= "+rnr);
 
-            loc = checkCookie.getHeaderField("Location");
-
-            createConnection.close(checkCookie);
-            checkCookie = null;
-
-            HttpsConnection rnrCon = createConnection.open(loc, "GET", reqProps, null);
-            String rnr = createConnection.get_rnr_se(rnrCon);
-            System.out.println("rnr= "+rnr);
-            createConnection.close(rnrCon);
-            rnrCon = null;
-
-            //set rnr in gvME so other classes have access
-            gvME.setRNR(rnr);
-        }
-        else
-        {
-            System.out.println(username + " " + password);
-            throw new Exception("Login Failed. Bad username or password");
-        }
+        //set rnr in gvME so other classes have access
+        gvME.setRNR(rnr);
     }
 
-    private static String submitInfo(String requestBody) throws ConnectionNotFoundException, IOException, Exception
+    private static HttpsConnection submitInfo(String requestBody) throws ConnectionNotFoundException, IOException, Exception
     {
             HttpsConnection c = createConnection.open(logInURL, "POST", reqProps , requestBody);
-            String loc = c.getHeaderField("Location");
 //            String auth = createConnection.getAuth(c);
 //            createConnection.close(c);
 //            System.out.println(auth);
-            c = null;
-            return loc;
+            return c;
     }
 
     public static void saveLoginInfo() throws RecordStoreException, RecordStoreException

@@ -5,6 +5,7 @@
 
 package gvME;
 
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -49,7 +50,7 @@ public class tools {
         return new String(strBuf);
     }
 
-    public static Vector serializeVector(Vector vect)
+    public static Vector serializeVector(Vector vect) throws IOException
     {
         Vector serializedMsgs = new Vector(20);
         Enumeration vectEnum = vect.elements();

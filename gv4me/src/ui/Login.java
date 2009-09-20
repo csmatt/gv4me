@@ -12,7 +12,9 @@ import javax.microedition.lcdui.AlertType;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
+import javax.microedition.lcdui.Form;
 import javax.microedition.lcdui.Image;
+import javax.microedition.lcdui.TextField;
 import javax.microedition.rms.RecordStoreException;
 import org.netbeans.microedition.lcdui.LoginScreen;
 import org.netbeans.microedition.lcdui.WaitScreen;
@@ -25,10 +27,11 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
 public class Login extends WaitScreen implements CommandListener {
     private static Command loginAgainCmd;
     private static Command cancelLoginCmd;
-    private LoginScreen loginScreen;
+    private TextField usernameTF, passwordTF;
+    private Form loginScreen;
     private Alert loginFailedAlert;
     public static Alert noConAlert;
- //   private settings userSettings;
+    private static Command loginCmd;
     private String username, password;
     private Image image;
     
@@ -59,24 +62,53 @@ public class Login extends WaitScreen implements CommandListener {
         }
         return image;
     }
-
-    public LoginScreen getLoginScreen()
+    public Form getLoginScreen()
     {
         if(loginScreen == null)
         {
-            loginScreen = new LoginScreen(gvME.dispMan.getDisplay());
-	    loginScreen.setLabelTexts("Username", "Password");
-	    loginScreen.setTitle("GV Login");
-	    loginScreen.addCommand(LoginScreen.LOGIN_COMMAND);
-	    loginScreen.setCommandListener(this);
-	    loginScreen.setBGColor(-3355444);
-	    loginScreen.setFGColor(0);
-	    loginScreen.setUseLoginButton(false);
-	    loginScreen.setLoginButtonText("Login");
+            loginScreen = new Form("Login");
+            loginScreen.append(getUsernameTF());
+            loginScreen.append(getPasswordTF());
+            loginScreen.addCommand(getLoginCmd());
+            loginScreen.setCommandListener(this);
         }
-        loginScreen.setPassword("");
-        return this.loginScreen;
+        return loginScreen;
     }
+
+    private TextField getUsernameTF()
+    {
+        if(usernameTF == null)
+        {
+            usernameTF = new TextField("Username", "", 25, TextField.ANY);
+        }
+        return usernameTF;
+    }
+
+    private TextField getPasswordTF()
+    {
+        if(passwordTF == null)
+        {
+            passwordTF = new TextField("Password", "", 25, TextField.PASSWORD);
+        }
+        return passwordTF;
+    }
+//    public LoginScreen getLoginScreen()
+//    {
+//        if(loginScreen == null)
+//        {
+//            loginScreen = new LoginScreen(gvME.dispMan.getDisplay());
+//	    loginScreen.setLabelTexts("Username", "Password");
+//	    loginScreen.setTitle("GV Login");
+//	    loginScreen.addCommand(LoginScreen.LOGIN_COMMAND);
+//	    loginScreen.setCommandListener(this);
+//	    loginScreen.setBGColor(-3355444);
+//	    loginScreen.setFGColor(0);
+//	    loginScreen.setUseLoginButton(false);
+//	    loginScreen.setLoginButtonText("Login");
+//        }
+//        loginScreen.setPassword("");
+//        return this.loginScreen;
+//    }
 
     /**
      * Returns an initiliazed instance of loginFailedAlert component.
@@ -91,9 +123,16 @@ public class Login extends WaitScreen implements CommandListener {
         return loginFailedAlert;
     }
 
+    private static Command getLoginCmd() {
+        if (loginCmd == null) {
+            loginCmd = new Command("Login", Command.OK, 1);
+        }
+        return loginCmd;
+    }
+
     private static Command getLoginAgainCmd() {
         if (loginAgainCmd == null) {
-            loginAgainCmd = new Command("Try Again", Command.OK, 1);
+            loginAgainCmd = new Command("Try Again", Command.OK, 0);
         }
         return loginAgainCmd;
     }
@@ -107,10 +146,10 @@ public class Login extends WaitScreen implements CommandListener {
 
     public void commandAction(Command command, Displayable displayable) {
         if (displayable == loginScreen) {
-            if (command == LoginScreen.LOGIN_COMMAND) {
+            if (command == loginCmd) {
                 try {
-                    this.username = loginScreen.getUsername();
-                    this.password = loginScreen.getPassword();
+                    this.username = usernameTF.getString();//loginScreen.getUsername();
+                    this.password = passwordTF.getString();//loginScreen.getPassword();
                     gvLogin.setLoginInfo(username, password);
                     gvME.dispMan.switchDisplayable(null, this);
                 }catch (Exception ex) {

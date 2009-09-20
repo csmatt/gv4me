@@ -214,7 +214,7 @@ public class textConvo {
         return byteOutStream.toByteArray();
     }
 
-    public static byte[] serializeMsg(textMsg crnt)
+    public static byte[] serializeMsg(textMsg crnt) throws IOException
     {
         if(crnt == null)
             return "".getBytes();

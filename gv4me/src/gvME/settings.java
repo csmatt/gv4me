@@ -5,6 +5,7 @@
 
 package gvME;
 
+import java.io.IOException;
 import java.util.Vector;
 import javax.microedition.rms.RecordStore;
 import javax.microedition.rms.RecordStoreException;
@@ -20,13 +21,12 @@ public class settings {
     private String password = "";
     private String interval = "60";
     private String callFrom = "";
-    private String rnrValue = "";
     private final int numFields = 4;
     private final int MAX_CONTACTS = 10;
-    private Vector recentContacts = new Vector();// = new Vector(MAX_CONTACTS);
+    private Vector recentContacts = new Vector();
     private RecordStore rs;
 
-    public settings()
+    public settings() throws IOException
     {
         try {
             rs = RecordStore.openRecordStore(userSettingsStore, true);
@@ -110,7 +110,7 @@ public class settings {
         return this.recentContacts;
     }
 
-    public void addContact(KeyValuePair contact) throws RecordStoreException
+    public void addContact(KeyValuePair contact) throws RecordStoreException, IOException
     {
         if(!recentContacts.contains(contact))
         {
@@ -121,7 +121,7 @@ public class settings {
         }
     }
 
-    public void updateContacts() throws RecordStoreException
+    public void updateContacts() throws RecordStoreException, IOException
     {
         try{
         byte[] data = serial.serializeKVPVector(recentContacts);

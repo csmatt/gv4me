@@ -36,7 +36,7 @@ public class serial {
         return vect;
     }
 
-    public static byte[] serializeKVPVector(Vector vect)
+    public static byte[] serializeKVPVector(Vector vect) throws IOException
     {
         KeyValuePair kvp;
         int i = vect.size() - 1;
@@ -51,25 +51,28 @@ public class serial {
         return serialize(strArray);
     }
 
-    public synchronized static String[] deserialize(int numFields, byte[] data)
+    public synchronized static String[] deserialize(int numFields, byte[] data) throws IOException
     {
         String[] fields = new String[numFields];
+        ByteArrayInputStream byteInStream = null;
+        DataInputStream dataInStream = null;
         try {
-            ByteArrayInputStream byteInStream = new ByteArrayInputStream(data);
-            DataInputStream dataInStream = new DataInputStream(byteInStream);
+            byteInStream = new ByteArrayInputStream(data);
+            dataInStream = new DataInputStream(byteInStream);
 
             for(int i=0; i < numFields; i++)
             {
                 fields[i] = dataInStream.readUTF();
             }
-
-            dataInStream.close();
-            byteInStream.close();
-            return fields;
         }
         catch(IOException exc) {
             exc.printStackTrace();
             return null;
+        }
+        finally{
+            dataInStream.close();
+            byteInStream.close();
+            return fields;
         }
     }
 
@@ -77,27 +80,29 @@ public class serial {
      * Serializes textMsg properties to an array of bytes.
      * @return array of bytes representing serialized setting.
      */
-    public synchronized static byte[] serialize(String[] fields) {
+    public synchronized static byte[] serialize(String[] fields) throws IOException {
         byte[] data = null;
-
+        ByteArrayOutputStream byteOutStream = null;
+        DataOutputStream dataOutStream = null;
         try {
-            ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
-            DataOutputStream dataOutStream = new DataOutputStream(byteOutStream);
+            byteOutStream = new ByteArrayOutputStream();
+            dataOutStream = new DataOutputStream(byteOutStream);
 
             for(int i=0; i < fields.length; i++)
             {
                 dataOutStream.writeUTF(fields[i]);
             }
-
-            dataOutStream.flush();
             data = byteOutStream.toByteArray();
 
-            dataOutStream.close();
-            byteOutStream.close();
 
         } catch(IOException exc) {
             return null;
         }
-        return data;
+        finally{
+            dataOutStream.flush();
+            dataOutStream.close();
+            byteOutStream.close();
+            return data;
+        }
     }
 }

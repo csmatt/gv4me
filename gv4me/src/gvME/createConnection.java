@@ -46,14 +46,14 @@ public class createConnection{
             loc = c.getHeaderField("Location");
             respCode = c.getResponseCode();
             
-//            while(respCode != 200 && respCode == 302 && loc != null)
-//            {
-//                c = RMSCookieConnector.open(loc);
-//                respCode = c.getResponseCode();
-//                loc = c.getHeaderField("Location");
-//                System.out.println(String.valueOf(respCode));
-//                System.out.println(loc);
-//            }
+            while(respCode != 200 && respCode == 302 && loc != null && !loc.equals(""))
+            {
+                c = RMSCookieConnector.open(loc);
+                respCode = c.getResponseCode();
+                loc = c.getHeaderField("Location");
+                System.out.println(String.valueOf(respCode));
+                System.out.println(loc);
+            }
 
         }
         catch(ConnectionNotFoundException cnf)

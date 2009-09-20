@@ -12,7 +12,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 import javax.microedition.io.HttpsConnection;
-import javax.microedition.rms.RecordStore;
 import ui.Inbox;
 
 /**
@@ -21,7 +20,7 @@ import ui.Inbox;
  */
 public class parseMsgs {
     private static final String markReadURL = "https://www.google.com/voice/m/mark?p=1&label=unread&id=";
-    private static final String getMsgsURL = "https://www.google.com/voice/inbox/recent/unread";//"https://www.google.com/voice/m/i/unread/";
+    private static final String getMsgsURL = "https://www.google.com/voice/inbox/recent/unread";
 
     private static final String jsonBegin = "<json><![CDATA[{\"messages\":{\"";
     private static final String idToken = "{\"id\":\"";
@@ -40,13 +39,12 @@ public class parseMsgs {
     private static final String noMsgsString = "No unread items in your inbox.";
     private static final String msgBottomToken = "<td class=\"gc-sline-bottom\">";
 
-    private final static String[] contentType = {"Content-Type", "application/x-www-form-urlencoded"};
-    private final static String[] connection = {"Connection", "keep-alive"};
-
     private static Vector reqProps = new Vector(5);
 
     public static void setReqProps()
     {
+        String[] contentType = {"Content-Type", "application/x-www-form-urlencoded"};
+        String[] connection = {"Connection", "keep-alive"};
         reqProps.insertElementAt(contentType, 0);
         reqProps.insertElementAt(connection, 1);
     }
@@ -101,7 +99,7 @@ public class parseMsgs {
            newConvos.addElement(crnt);
            newMsgCnt++;
        }
-
+        html = null;
         gvME.setNumNewMsgs(newMsgCnt);
         return newConvos;
     }
@@ -172,6 +170,7 @@ public class parseMsgs {
                             };
         HttpsConnection markRead = createConnection.open(tools.combineStrings(strings), "GET", reqProps, "");
         createConnection.close(markRead);
+        markRead = null;
     }
 
     private static Hashtable getJSONdata(String html)

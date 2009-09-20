@@ -17,17 +17,18 @@ import javax.microedition.lcdui.TextField;
  * @author matt
  */
 public class WriteMsg extends TextBox implements CommandListener {
-    private ChooseContact chooseContact;
+    private static ChooseContact chooseContact;
     private Command sendCmd;
     private Command backCmd;
-    private textConvo original;
-    private String title;
+    private static textConvo original;
+    private static String title;
+    private static SendMsg sm;
 
     public WriteMsg(String title, textConvo original)
     {
         super(title, "", 160, TextField.ANY);
-        this.title = title;
-        this.original = original;
+        WriteMsg.title = title;
+        WriteMsg.original = original;
         String text = "";
         if(title.equals("Forward"))
         {
@@ -35,7 +36,7 @@ public class WriteMsg extends TextBox implements CommandListener {
             textBuff.append(original.getMsg().getMessage());
             text = new String(textBuff);
             setString(text);
-            this.original = null; //because a forwarded message is nothing more than a new message with default text
+            WriteMsg.original = null; //because a forwarded message is nothing more than a new message with default text
         }
         addCommand(getBackCmd());
         addCommand(getSendCmd());
@@ -58,7 +59,7 @@ public class WriteMsg extends TextBox implements CommandListener {
     public void commandAction(Command command, Displayable displayable) {
         if(displayable == this){
             if (command == backCmd) {
-                if(this.title.equals("Write New"))
+                if(WriteMsg.title.equals("Write New"))
                 {
                     gvME.dispMan.switchDisplayable(null, gvME.getMenu());
                 }
@@ -71,13 +72,13 @@ public class WriteMsg extends TextBox implements CommandListener {
 
                 if(!title.equals("Reply")) //if it's a new message or a forwarded message
                 {
-                    SendMsg sm = new SendMsg(original, this.getString());
+                    sm = new SendMsg(original, this.getString());
                     chooseContact = new ChooseContact(this, sm);
                     gvME.dispMan.switchDisplayable(null, chooseContact);
                 }
                 else
                 {
-                    SendMsg sm = new SendMsg(original, this.getString());
+                    sm = new SendMsg(original, this.getString());
                     gvME.dispMan.switchDisplayable(null, sm);
                 }
             }

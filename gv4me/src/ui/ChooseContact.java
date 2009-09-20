@@ -63,16 +63,17 @@ public class ChooseContact extends List implements CommandListener{
     public void chooseContactAction() {
         String __selectedString = this.getString(this.getSelectedIndex());
         if (__selectedString != null) {
-            if (__selectedString.equals("Recent")) {
-                gvME.dispMan.switchDisplayable(null, getRecentContactsList());
-            }
+//            if (__selectedString.equals("Recent")) {
+//                gvME.dispMan.switchDisplayable(null, getRecentContactsList());
+//            }
             if (__selectedString.equals("Enter Number")) {
                 enterNumBox = getEnterNumBox();
                 gvME.dispMan.switchDisplayable(null, enterNumBox);
-            } else if (__selectedString.equals("Phone Book")) {
-                pimBrowser = getPimBrowser();
-                gvME.dispMan.switchDisplayable(null, pimBrowser);
             }
+//            else if (__selectedString.equals("Phone Book")) {
+//                pimBrowser = getPimBrowser();
+//                gvME.dispMan.switchDisplayable(null, pimBrowser);
+//            }
         }
     }
 
@@ -87,37 +88,37 @@ public class ChooseContact extends List implements CommandListener{
         return enterNumBox;
     }
 
-    public List getRecentContactsList()
-    {
-        if(recentContacts == null)
-        {
-            recentContacts = new List("Recent Contacts", List.IMPLICIT);
-            recentContacts.addCommand(List.SELECT_COMMAND);
-            recentContacts.addCommand(getBackFromRecContactsCmd());
-        }
-            recentContacts.deleteAll();
-            contacts = gvME.userSettings.getRecentContacts();
-            //int vectSize = contacts.size();
-            //for(int i = 0; i < vectSize; i++)
-            Enumeration contactsEnum = contacts.elements();
-            {
-                String contactName = (String) ((KeyValuePair)contactsEnum.nextElement()).getKey();
-                recentContacts.append(contactName, null);
-            }
-        
-        return recentContacts;
-    }
+//    public List getRecentContactsList()
+//    {
+//        if(recentContacts == null)
+//        {
+//            recentContacts = new List("Recent Contacts", List.IMPLICIT);
+//            recentContacts.addCommand(List.SELECT_COMMAND);
+//            recentContacts.addCommand(getBackFromRecContactsCmd());
+//        }
+//            recentContacts.deleteAll();
+//            contacts = gvME.userSettings.getRecentContacts();
+//            //int vectSize = contacts.size();
+//            //for(int i = 0; i < vectSize; i++)
+//            Enumeration contactsEnum = contacts.elements();
+//            {
+//                String contactName = (String) ((KeyValuePair)contactsEnum.nextElement()).getKey();
+//                recentContacts.append(contactName, null);
+//            }
+//
+//        return recentContacts;
+//    }
 
-    public PIMBrowser getPimBrowser() {
-        if (pimBrowser == null) {
-            pimBrowser = new PIMBrowser(gvME.dispMan.getDisplay(), PIM.CONTACT_LIST);
-            pimBrowser.setTitle("Contacts List");
-            pimBrowser.addCommand(getOkPimBrowserCmd());
-            pimBrowser.addCommand(getBackFromPimBrowserCmd());
-            pimBrowser.setCommandListener(this);
-        }
-        return pimBrowser;
-    }
+//    public PIMBrowser getPimBrowser() {
+//        if (pimBrowser == null) {
+//            pimBrowser = new PIMBrowser(gvME.dispMan.getDisplay(), PIM.CONTACT_LIST);
+//            pimBrowser.setTitle("Contacts List");
+//            pimBrowser.addCommand(getOkPimBrowserCmd());
+//            pimBrowser.addCommand(getBackFromPimBrowserCmd());
+//            pimBrowser.setCommandListener(this);
+//        }
+//        return pimBrowser;
+//    }
 
     public void commandAction(Command command, Displayable display) {
         if(display == this)
@@ -128,19 +129,19 @@ public class ChooseContact extends List implements CommandListener{
                 chooseContactAction();
             }
         }
-        else if (display == recentContacts)
-        {
-            if(command == backFromRecContactsCmd)
-            {
-                gvME.dispMan.switchToPreviousDisplayable();
-            }
-            else if (command == List.SELECT_COMMAND)
-            {
-                int selIndex = recentContacts.getSelectedIndex();
-                contact = (String) ((KeyValuePair)(gvME.userSettings.getRecentContacts().elementAt(selIndex))).getKey();
-                next.setContacting(contact);
-            }
-        }
+//        else if (display == recentContacts)
+//        {
+//            if(command == backFromRecContactsCmd)
+//            {
+//                gvME.dispMan.switchToPreviousDisplayable();
+//            }
+//            else if (command == List.SELECT_COMMAND)
+//            {
+//                int selIndex = recentContacts.getSelectedIndex();
+//                contact = (String) ((KeyValuePair)(gvME.userSettings.getRecentContacts().elementAt(selIndex))).getKey();
+//                next.setContacting(contact);
+//            }
+//        }
         else if (display == enterNumBox)
         {
             if (command == backFromEnterNumCmd) {
@@ -156,23 +157,23 @@ public class ChooseContact extends List implements CommandListener{
                 gvME.dispMan.switchDisplayable(null,(Displayable) next);
             }
         }
-        else if(display == pimBrowser) //TODO: get PIMBrowser working
-        {
-            if (command == backFromPimBrowserCmd) {
-                gvME.dispMan.switchToPreviousDisplayable();
-            } else if (command == okPimBrowserCmd) {
-                Contact pimContact = (Contact) pimBrowser.getSelectedItem();
-                String pimName = pimContact.getString(Contact.NAME, Contact.NAME_GIVEN);
-                String pimNumber = pimContact.getString(Contact.ATTR_PREFERRED, Contact.TEL);
-                next.setContacting(pimNumber);
-//                try {
-//                    gvME.userSettings.addContact(new KeyValuePair(pimNumber, pimName));
-//                } catch (RecordStoreException ex) {
-//                    ex.printStackTrace();
-//                }
-                gvME.dispMan.switchDisplayable(null,(Displayable) next);
-            }
-        }
+//        else if(display == pimBrowser) //TODO: get PIMBrowser working
+//        {
+//            if (command == backFromPimBrowserCmd) {
+//                gvME.dispMan.switchToPreviousDisplayable();
+//            } else if (command == okPimBrowserCmd) {
+//                Contact pimContact = (Contact) pimBrowser.getSelectedItem();
+//                String pimName = pimContact.getString(Contact.NAME, Contact.NAME_GIVEN);
+//                String pimNumber = pimContact.getString(Contact.ATTR_PREFERRED, Contact.TEL);
+//                next.setContacting(pimNumber);
+////                try {
+////                    gvME.userSettings.addContact(new KeyValuePair(pimNumber, pimName));
+////                } catch (RecordStoreException ex) {
+////                    ex.printStackTrace();
+////                }
+//                gvME.dispMan.switchDisplayable(null,(Displayable) next);
+//            }
+//        }
     }
 
     private Command getContactTypeCmd() {
@@ -182,21 +183,21 @@ public class ChooseContact extends List implements CommandListener{
         return contactTypeCmd;
     }
 
-    private Command getBackFromRecContactsCmd()
-    {
-        if (backFromRecContactsCmd == null) {
-            backFromRecContactsCmd = new Command("Back", Command.BACK, 0);
-        }
-        return backFromRecContactsCmd;
-    }
-
-    private Command getBackFromPimBrowserCmd()
-    {
-        if (backFromPimBrowserCmd == null) {
-            backFromPimBrowserCmd = new Command("Back", Command.BACK, 0);
-        }
-        return backFromPimBrowserCmd;
-    }
+//    private Command getBackFromRecContactsCmd()
+//    {
+//        if (backFromRecContactsCmd == null) {
+//            backFromRecContactsCmd = new Command("Back", Command.BACK, 0);
+//        }
+//        return backFromRecContactsCmd;
+//    }
+//
+//    private Command getBackFromPimBrowserCmd()
+//    {
+//        if (backFromPimBrowserCmd == null) {
+//            backFromPimBrowserCmd = new Command("Back", Command.BACK, 0);
+//        }
+//        return backFromPimBrowserCmd;
+//    }
 
     private Command getBackContactTypeCmd() {
         if (backContactTypeCmd == null) {
@@ -212,12 +213,12 @@ public class ChooseContact extends List implements CommandListener{
         return backFromEnterNumCmd;
     }
 
-    private Command getOkPimBrowserCmd() {
-        if (okPimBrowserCmd == null) {
-            okPimBrowserCmd = new Command("Select", Command.OK, 1);
-        }
-        return okPimBrowserCmd;
-    }
+//    private Command getOkPimBrowserCmd() {
+//        if (okPimBrowserCmd == null) {
+//            okPimBrowserCmd = new Command("Select", Command.OK, 1);
+//        }
+//        return okPimBrowserCmd;
+//    }
 
     private Command getOkEnterNum() {
         if (okEnterNumCmd == null) {

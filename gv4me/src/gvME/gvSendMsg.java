@@ -26,17 +26,20 @@ public class gvSendMsg {
         if(original != null) //if this is a reply
         {
             String replyNum = original.getReplyNum();
-            sendingTo = replyNum;//.substring(replyNum.indexOf("+1")+2, replyNum.indexOf("&c=1"));
+            sendingTo = replyNum;
             url = replyURL;
             String[] stringBuff = {"_rnr_se=", rnr, "&number=1", sendingTo, "&id=", original.getMsgID(), "&c=1&smstext=", text};
             strings = stringBuff;
+            stringBuff = null;
         }
         else
         { //if this is a forward or new message
             url = textURL;
             String[] stringBuff = {"id=&phoneNumber=+1", sendingTo, "&text=", text, "&_rnr_se=", rnr};
             strings = stringBuff;
+            stringBuff = null;
         }
+
         postData = tools.combineStrings(strings);
         String[] contentLen = {"Content-Length", String.valueOf(postData.length())};
         reqProps.insertElementAt(contentLen, 2);
