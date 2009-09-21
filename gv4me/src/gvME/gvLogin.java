@@ -29,12 +29,12 @@ public class gvLogin {
     private static String requestBody;
     private static Login login;
 
-    public gvLogin() throws IOException, Exception
+    public gvLogin(gvME midlet) throws IOException, Exception
     {
         gvLogin.username = gvME.userSettings.getUsername();
         gvLogin.password = gvME.userSettings.getPassword();
         gvLogin.reqProps = parseMsgs.getReqProps();
-        login = new Login(username, password);
+        login = new Login(username, password, midlet);
     }
 
     public void checkLoginInfo() throws IOException, Exception {
@@ -57,9 +57,9 @@ public class gvLogin {
     {
         String[] reqBodyArray = {
                         "accountType=GOOGLE&Email=",
-                        gvLogin.username, //gvME.userSettings.getUsername(),
+                        gvLogin.username,
                         "&Passwd=",
-                        gvLogin.password,//gvME.userSettings.getPassword(),
+                        gvLogin.password,
                         "&service=grandcentral&source=gvSMS",
                         postData
                         };

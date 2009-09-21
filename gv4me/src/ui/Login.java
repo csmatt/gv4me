@@ -7,6 +7,7 @@ package ui;
 
 import gvME.gvLogin;
 import gvME.gvME;
+import java.io.IOException;
 import javax.microedition.lcdui.Alert;
 import javax.microedition.lcdui.AlertType;
 import javax.microedition.lcdui.Command;
@@ -16,7 +17,7 @@ import javax.microedition.lcdui.Form;
 import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.TextField;
 import javax.microedition.rms.RecordStoreException;
-import org.netbeans.microedition.lcdui.LoginScreen;
+import javax.microedition.io.ConnectionNotFoundException;
 import org.netbeans.microedition.lcdui.WaitScreen;
 import org.netbeans.microedition.util.SimpleCancellableTask;
 
@@ -25,22 +26,22 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
  * @author matt
  */
 public class Login extends WaitScreen implements CommandListener {
-    private static Command loginAgainCmd;
-    private static Command cancelLoginCmd;
+    private Command loginCmd, loginAgainCmd, cancelLoginCmd;
     private TextField usernameTF, passwordTF;
     private Form loginScreen;
-    private Alert loginFailedAlert;
-    public static Alert noConAlert;
-    private static Command loginCmd;
+    private Alert loginFailedAlert, noConAlert;
     private String username, password;
+    private String exceptionType = "";
     private Image image;
+    private gvME midlet;
     
-    public Login(String username, String password)
+    public Login(String username, String password, gvME midlet)
     {
         super(gvME.dispMan.getDisplay());
    //     this.userSettings = gvME.userSettings;
         this.username = username;
         this.password = password;
+        this.midlet = midlet;
         setTitle("Logging In...");
         setCommandListener(this);
         setImage(getImage());
@@ -48,20 +49,18 @@ public class Login extends WaitScreen implements CommandListener {
         setTask(getSimpleCancellableTask());
     }
 
-    /**
-     * Returns an initiliazed instance of image component.
-     * @return the initialized component instance
-     */
     public Image getImage() {
         if (image == null) {
             try {
                 image = Image.createImage("/pics/gvIcon.png");
+                //image from Matthew Rex Downham
             } catch (java.io.IOException e) {
                 e.printStackTrace();
             }
         }
         return image;
     }
+
     public Form getLoginScreen()
     {
         if(loginScreen == null)
@@ -79,7 +78,7 @@ public class Login extends WaitScreen implements CommandListener {
     {
         if(usernameTF == null)
         {
-            usernameTF = new TextField("Username", "", 25, TextField.ANY);
+            usernameTF = new TextField("Username", "", 40, TextField.ANY);
         }
         return usernameTF;
     }
@@ -88,58 +87,49 @@ public class Login extends WaitScreen implements CommandListener {
     {
         if(passwordTF == null)
         {
-            passwordTF = new TextField("Password", "", 25, TextField.PASSWORD);
+            passwordTF = new TextField("Password", "", 40, TextField.PASSWORD);
         }
         return passwordTF;
     }
-//    public LoginScreen getLoginScreen()
-//    {
-//        if(loginScreen == null)
-//        {
-//            loginScreen = new LoginScreen(gvME.dispMan.getDisplay());
-//	    loginScreen.setLabelTexts("Username", "Password");
-//	    loginScreen.setTitle("GV Login");
-//	    loginScreen.addCommand(LoginScreen.LOGIN_COMMAND);
-//	    loginScreen.setCommandListener(this);
-//	    loginScreen.setBGColor(-3355444);
-//	    loginScreen.setFGColor(0);
-//	    loginScreen.setUseLoginButton(false);
-//	    loginScreen.setLoginButtonText("Login");
-//        }
-//        loginScreen.setPassword("");
-//        return this.loginScreen;
-//    }
 
-    /**
-     * Returns an initiliazed instance of loginFailedAlert component.
-     * @return the initialized component instance
-     */
     public Alert getLoginFailedAlert() {
         if(loginFailedAlert == null)
         {
-            loginFailedAlert = new Alert("Login Error", "Invalid username or password!", null, AlertType.WARNING);//GEN-BEGIN:|207-getter|1|207-postInit
+            loginFailedAlert = new Alert("Login Error", "Invalid username or password!", null, AlertType.WARNING);
             loginFailedAlert.setTimeout(2000);
         }
         return loginFailedAlert;
     }
 
-    private static Command getLoginCmd() {
+    public Alert getNoConAlert()
+    {
+        if(noConAlert == null)
+        {
+            noConAlert = new Alert("Couldn't Connect", "No network found.", null, AlertType.WARNING);
+            noConAlert.addCommand(getLoginAgainCmd());
+            noConAlert.addCommand(getCancelLoginCmd());
+            noConAlert.setCommandListener(this);
+        }
+        return noConAlert;
+    }
+
+    private Command getLoginCmd() {
         if (loginCmd == null) {
             loginCmd = new Command("Login", Command.OK, 1);
         }
         return loginCmd;
     }
 
-    private static Command getLoginAgainCmd() {
+    private Command getLoginAgainCmd() {
         if (loginAgainCmd == null) {
             loginAgainCmd = new Command("Try Again", Command.OK, 0);
         }
         return loginAgainCmd;
     }
 
-    private static Command getCancelLoginCmd() {
+    private Command getCancelLoginCmd() {
         if (cancelLoginCmd == null) {
-            cancelLoginCmd = new Command("Cancel", Command.CANCEL, 0);
+            cancelLoginCmd = new Command("Quit", Command.CANCEL, 0);
         }
         return cancelLoginCmd;
     }
@@ -148,8 +138,8 @@ public class Login extends WaitScreen implements CommandListener {
         if (displayable == loginScreen) {
             if (command == loginCmd) {
                 try {
-                    this.username = usernameTF.getString();//loginScreen.getUsername();
-                    this.password = passwordTF.getString();//loginScreen.getPassword();
+                    this.username = usernameTF.getString();
+                    this.password = passwordTF.getString();
                     gvLogin.setLoginInfo(username, password);
                     gvME.dispMan.switchDisplayable(null, this);
                 }catch (Exception ex) {
@@ -157,9 +147,27 @@ public class Login extends WaitScreen implements CommandListener {
                 }
             }
         }
+        else if (displayable == noConAlert)
+        {
+            if(command == loginAgainCmd)
+            {
+                gvME.dispMan.switchDisplayable(null, new Login(username, password, midlet));
+            }
+            else if(command == cancelLoginCmd)
+            {
+                midlet.exitMIDlet();
+            }
+        }
         else if (displayable == this) {
             if (command == WaitScreen.FAILURE_COMMAND) {
-                gvME.dispMan.switchDisplayable(getLoginFailedAlert(), getLoginScreen());
+                if(exceptionType == null || exceptionType.equals("cnf"))
+                {
+                    gvME.dispMan.switchDisplayable(getNoConAlert(), gvME.getMenu());
+                }
+                else
+                {
+                    gvME.dispMan.switchDisplayable(getLoginFailedAlert(), getLoginScreen());
+                }
             } else if (command == WaitScreen.SUCCESS_COMMAND && loginScreen != null) {
                 try {
                     gvLogin.saveLoginInfo();
@@ -174,14 +182,19 @@ public class Login extends WaitScreen implements CommandListener {
     {
         SimpleCancellableTask task = new org.netbeans.microedition.util.SimpleCancellableTask();
         task.setExecutable(new org.netbeans.microedition.util.Executable() {
-            public void execute() throws Exception {
+            public void execute() throws ConnectionNotFoundException, Exception {
                 try{
                     gvLogin.initLogin();
                     gvME.dispMan.switchDisplayable(null, gvME.getMenu());
                 }
+                catch(ConnectionNotFoundException cnf)
+                {
+                    exceptionType = "cnf";
+                    throw cnf;
+                }
                 catch(Exception e)
                 {
-                    System.out.println(e.toString());
+                    exceptionType = "inv";
                     throw e;
                 }
             }
