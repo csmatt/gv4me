@@ -29,7 +29,7 @@ public class Login extends WaitScreen implements CommandListener {
     private Command loginCmd, loginAgainCmd, cancelLoginCmd;
     private TextField usernameTF, passwordTF;
     private Form loginScreen;
-    private Alert loginFailedAlert, noConAlert;
+    private Alert invalidCredsAlert, noConAlert, errorAlert;
     private String username, password;
     private String exceptionType = "";
     private Image image;
@@ -92,13 +92,25 @@ public class Login extends WaitScreen implements CommandListener {
         return passwordTF;
     }
 
-    public Alert getLoginFailedAlert() {
-        if(loginFailedAlert == null)
+    public Alert getInvalidCredsAlert() {
+        if(invalidCredsAlert == null)
         {
-            loginFailedAlert = new Alert("Login Error", "Invalid username or password!", null, AlertType.WARNING);
-            loginFailedAlert.setTimeout(2000);
+            invalidCredsAlert = new Alert("Login Error", "Invalid username or password!", null, AlertType.WARNING);
+            invalidCredsAlert.setTimeout(2000);
         }
-        return loginFailedAlert;
+        return invalidCredsAlert;
+    }
+
+    public Alert getErrorAlert(String info)
+    {
+        if(errorAlert == null)
+        {
+            errorAlert = new Alert("Error", info , null, AlertType.WARNING);
+            errorAlert.addCommand(getLoginAgainCmd());
+            errorAlert.addCommand(getCancelLoginCmd());
+            errorAlert.setCommandListener(this);
+        }
+        return errorAlert;
     }
 
     public Alert getNoConAlert()
@@ -164,9 +176,13 @@ public class Login extends WaitScreen implements CommandListener {
                 {
                     gvME.dispMan.switchDisplayable(getNoConAlert(), gvME.getMenu());
                 }
+                else if(exceptionType.equals("inv"))
+                {
+                    gvME.dispMan.switchDisplayable(getInvalidCredsAlert(), getLoginScreen());
+                }
                 else
                 {
-                    gvME.dispMan.switchDisplayable(getLoginFailedAlert(), getLoginScreen());
+                    gvME.dispMan.switchDisplayable(getErrorAlert(exceptionType), gvME.getMenu());
                 }
             } else if (command == WaitScreen.SUCCESS_COMMAND && loginScreen != null) {
                 try {
@@ -192,9 +208,17 @@ public class Login extends WaitScreen implements CommandListener {
                     exceptionType = "cnf";
                     throw cnf;
                 }
+                catch(IOException ioe)
+                {
+                    if(ioe.getMessage().equals("Invalid Username or Password"))
+                    {
+                        exceptionType = "inv";
+                    }
+                    throw ioe;
+                }
                 catch(Exception e)
                 {
-                    exceptionType = "inv";
+                    exceptionType = e.getMessage() + " " + e.toString();
                     throw e;
                 }
             }

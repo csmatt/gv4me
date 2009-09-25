@@ -148,8 +148,12 @@ public class parseMsgs {
             }
             i = castInt(kvp.getValue());
         }
-        markMsgRead(msgID);
-        return new textConvo(numMsgs, msgID, sender, msgVect, crnt);
+        if(!sender.equals(""))
+        {
+            markMsgRead(msgID);
+            return new textConvo(numMsgs, msgID, sender, msgVect, crnt);
+        }
+        return null;
     }
 
     private static boolean checkSender(String sender)

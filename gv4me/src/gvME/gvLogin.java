@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.Vector;
 import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.io.HttpsConnection;
-import javax.microedition.lcdui.Alert;
 import javax.microedition.lcdui.Command;
 import javax.microedition.rms.RecordStoreException;
 import ui.Login;
@@ -60,7 +59,7 @@ public class gvLogin {
                         gvLogin.username,
                         "&Passwd=",
                         gvLogin.password,
-                        "&service=grandcentral&source=gvSMS",
+                        "&service=grandcentral&source=gv4me",
                         postData
                         };
         requestBody =  tools.combineStrings(reqBodyArray);

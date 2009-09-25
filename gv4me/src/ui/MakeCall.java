@@ -9,7 +9,8 @@ import gvME.*;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
-
+import javax.microedition.lcdui.Alert;
+import javax.microedition.lcdui.AlertType;
 import org.netbeans.microedition.lcdui.WaitScreen;
 import org.netbeans.microedition.util.SimpleCancellableTask;
 
@@ -19,6 +20,7 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
  */
 public class MakeCall extends WaitScreen implements CommandListener, interCom {
     private String contacting = "";
+    private Alert noCallFromAlert;
  //   private Image image;
 
     public MakeCall()
@@ -27,6 +29,10 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
         setTitle("Making Call");
         setCommandListener(this);
      //   setImage(getImage());
+        if(gvME.userSettings.getCallFrom() == null || gvME.userSettings.getCallFrom().equals(""))
+        {
+            gvME.dispMan.switchDisplayable(getNoCallFromAlert(), gvME.getChangeSettingsMenu());
+        }
         setText("Making Call...");
         setTask(getSimpleCancellableTask());
     }
@@ -41,6 +47,16 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
             }
         });
         return task;
+    }
+
+    private Alert getNoCallFromAlert()
+    {
+        if(noCallFromAlert == null)
+        {
+            noCallFromAlert = new Alert("Number Not Found", "Enter Your Number", null, AlertType.WARNING);
+            noCallFromAlert.setTimeout(2000);
+        }
+        return noCallFromAlert;
     }
 
     public void setContacting(String num) {
