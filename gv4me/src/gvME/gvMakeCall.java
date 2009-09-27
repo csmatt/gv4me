@@ -15,7 +15,7 @@ import javax.microedition.io.HttpsConnection;
  * @author matt
  */
 public class gvMakeCall {
-    private final String callURL = "https://www.google.com/voice/call/connect";
+    private static final String callURL = "https://www.google.com/voice/call/connect";
     private Vector reqProps;
     private String rnr;
 

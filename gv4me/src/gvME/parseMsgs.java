@@ -111,6 +111,7 @@ public class parseMsgs {
         textMsg crnt = null;
         String beginToken = beginMsgToken + msgID;
         html = (String) regexreplace(i, html, beginToken, endMsgToken).getKey();
+
         int stop = html.indexOf(msgBottomToken, i);
         String sender = "";
         String message = "";
@@ -147,8 +148,12 @@ public class parseMsgs {
             }
             i = castInt(kvp.getValue());
         }
-        markMsgRead(msgID);
-        return new textConvo(numMsgs, msgID, sender, msgVect, crnt);
+        if(!sender.equals(""))
+        {
+            markMsgRead(msgID);
+            return new textConvo(numMsgs, msgID, sender, msgVect, crnt);
+        }
+        return null;
     }
 
     private static boolean checkSender(String sender)

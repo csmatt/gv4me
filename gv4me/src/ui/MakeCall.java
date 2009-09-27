@@ -6,13 +6,11 @@
 package ui;
 
 import gvME.*;
-import java.io.IOException;
-import java.util.Vector;
-import javax.microedition.io.HttpsConnection;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
-
+import javax.microedition.lcdui.Alert;
+import javax.microedition.lcdui.AlertType;
 import org.netbeans.microedition.lcdui.WaitScreen;
 import org.netbeans.microedition.util.SimpleCancellableTask;
 
@@ -22,9 +20,7 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
  */
 public class MakeCall extends WaitScreen implements CommandListener, interCom {
     private String contacting = "";
-    private static final String callURL = "https://www.google.com/voice/call/connect/";
-    private Vector reqProps;
-    private String rnr;
+    private Alert noCallFromAlert;
  //   private Image image;
 
     public MakeCall()
@@ -33,10 +29,12 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
         setTitle("Making Call");
         setCommandListener(this);
      //   setImage(getImage());
+        if(gvME.userSettings.getCallFrom() == null || gvME.userSettings.getCallFrom().equals(""))
+        {
+            gvME.dispMan.switchDisplayable(getNoCallFromAlert(), gvME.getChangeSettingsMenu());
+        }
         setText("Making Call...");
         setTask(getSimpleCancellableTask());
-        this.reqProps = parseMsgs.getReqProps();
-        this.rnr = gvME.getRNR();
     }
 
     public SimpleCancellableTask getSimpleCancellableTask() {
@@ -49,6 +47,16 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
             }
         });
         return task;
+    }
+
+    private Alert getNoCallFromAlert()
+    {
+        if(noCallFromAlert == null)
+        {
+            noCallFromAlert = new Alert("Number Not Found", "Enter Your Number", null, AlertType.WARNING);
+            noCallFromAlert.setTimeout(2000);
+        }
+        return noCallFromAlert;
     }
 
     public void setContacting(String num) {

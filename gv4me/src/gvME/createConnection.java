@@ -45,9 +45,8 @@ public class createConnection{
             RMSCookieConnector.getCookie(c);
             loc = c.getHeaderField("Location");
             respCode = c.getResponseCode();
-            System.out.println(c.getResponseMessage());
             
-            while(respCode == 302 && loc != null && !loc.equals(""))
+            while(respCode != 200 && respCode == 302 && loc != null && !loc.equals(""))
             {
                 c = RMSCookieConnector.open(loc);
                 respCode = c.getResponseCode();
@@ -101,13 +100,17 @@ public class createConnection{
         rnrInd = check.indexOf("_rnr_se");
 
         if(rnrInd > -1){
-        rnrInd = check.indexOf("value=\"", rnrInd);
+            rnrInd = check.indexOf("value=\"", rnrInd);
 
-        int lastIndex = check.indexOf("\"", rnrInd+8);
+            int lastIndex = check.indexOf("\"", rnrInd+8);
 
-        rnrVal = check.substring(rnrInd+7, lastIndex);
-        //  System.out.println("rnrVal= "+rnrVal);
-        //  System.out.println(check);
+            rnrVal = check.substring(rnrInd+7, lastIndex);
+            //  System.out.println("rnrVal= "+rnrVal);
+            //  System.out.println(check);
+        }
+        else if(check.indexOf("incorrect") >= 0)
+        {
+            throw new IOException("Invalid Username or Password");
         }
         return rnrVal;
     }

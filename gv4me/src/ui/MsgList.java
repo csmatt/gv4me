@@ -6,6 +6,8 @@
 package ui;
 
 import gvME.gvME;
+import gvME.gvMsgList;
+import gvME.parseMsgs;
 import gvME.textConvo;
 import gvME.textMsg;
 import gvME.tools;
@@ -18,6 +20,7 @@ import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Form;
 import javax.microedition.lcdui.Image;
+import javax.microedition.lcdui.Item;
 import javax.microedition.lcdui.List;
 import javax.microedition.lcdui.StringItem;
 
@@ -53,30 +56,28 @@ public class MsgList extends List implements CommandListener {
         this.convo = crnt;
         addItemsToMsgList(this.convo.getMessages());
     }
+    
+    public void addItemsToMsgList(Vector msgs)
+    {
+        deleteAll();
+        Enumeration msgListEnum = gvMsgList.getMsgList(msgs).elements();
+        
+        String msgListItem;
+        while(msgListEnum.hasMoreElements())
+        {
+            msgListItem = (String) msgListEnum.nextElement();
+            append(msgListItem, null);
+        }
+    }
 
     public Vector getMsgListToItemMap()
     {
         return MsgList.MsgListToItemMap;
     }
     
-    private void addItemsToMsgList(Vector msgs)
+    public static void setMsgListToItemMap(Vector msgListToItemMap)
     {
-        Enumeration addMsgEnum = msgs.elements();
-        textMsg crntMsg;
-        StringBuffer itemBuff = new StringBuffer();
-        while(addMsgEnum.hasMoreElements())
-        {
-            crntMsg = (textMsg) addMsgEnum.nextElement();
-            itemBuff = new StringBuffer(crntMsg.getMessage());
-
-            if(itemBuff.length() > itemLength)
-            {
-                itemBuff.setLength(itemLength);
-                itemBuff.append("...");
-            }
-            MsgListToItemMap.addElement(crntMsg);
-            append(new String(itemBuff), null);
-        }
+        MsgList.MsgListToItemMap = msgListToItemMap;
     }
 
     private Form getReadMsg(String title)
