@@ -8,6 +8,7 @@ package ui;
 import gvME.*;
 import java.io.IOException;
 import java.util.Vector;
+import javax.microedition.io.HttpsConnection;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
@@ -21,6 +22,8 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
  * @author matt
  */
 public class SendMsg extends WaitScreen implements CommandListener, interCom {
+    private final String textURL = "https://www.google.com/voice/sms/send";
+    private final String replyURL = "https://www.google.com/voice/m/sendsms";
     private String msg = "";
     private String contacting = "";
     private String rnr = "";
@@ -46,10 +49,43 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
         SimpleCancellableTask task = new SimpleCancellableTask();
         task.setExecutable(new org.netbeans.microedition.util.Executable() {
             public void execute() throws Exception {
-                gvSendMsg.sendMsg(original, contacting, msg, rnr, reqProps);
+                sendMsg();
             }
         });
         return task;
+    }
+    public void sendMsg() throws IOException, Exception
+    {
+        String[] strings = new String[8];
+        String postData = "";
+        String url = "";
+        String text = URLUTF8Encoder.encode(msg);
+        if(original != null) //if this is a reply
+        {
+            String replyNum = original.getReplyNum();
+            contacting = replyNum;
+            url = replyURL;
+            String[] stringBuff = {"_rnr_se=", rnr, "&number=1", contacting, "&id=", original.getMsgID(), "&c=1&smstext=", text};
+            strings = stringBuff;
+            stringBuff = null;
+        }
+        else
+        { //if this is a forward or new message
+            url = textURL;
+            String[] stringBuff = {"id=&phoneNumber=+1", contacting, "&text=", text, "&_rnr_se=", rnr};
+            strings = stringBuff;
+            stringBuff = null;
+        }
+
+        postData = tools.combineStrings(strings);
+        String[] contentLen = {"Content-Length", String.valueOf(postData.length())};
+        reqProps.insertElementAt(contentLen, 2);
+
+        HttpsConnection sendCon = createConnection.open(url, "POST", reqProps, postData);
+        createConnection.close(sendCon);
+
+        reqProps.removeElementAt(2);
+        sendCon = null;
     }
 
     public void commandAction(Command command, Displayable display) {

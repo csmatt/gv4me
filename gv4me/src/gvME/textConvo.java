@@ -72,8 +72,7 @@ public class textConvo {
         for(int i = convo.getMessages().size()-1; i >= 0; i--)
         {
             textMsg crnt = (textMsg) convo.getMessages().elementAt(i);
-            if(lastMsg != null && crnt.getMessage().equals(lastMsg.getMessage())
-                    && lastMsg.getTimeReceived().equals(crnt.getTimeReceived()))
+            if(lastMsg != null && crnt.getMessage().equals(lastMsg.getMessage()))
                 break;
             messages.addElement(crnt);
             numMsgs++;

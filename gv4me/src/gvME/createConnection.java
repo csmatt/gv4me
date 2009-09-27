@@ -101,17 +101,13 @@ public class createConnection{
         rnrInd = check.indexOf("_rnr_se");
 
         if(rnrInd > -1){
-            rnrInd = check.indexOf("value=\"", rnrInd);
+        rnrInd = check.indexOf("value=\"", rnrInd);
 
-            int lastIndex = check.indexOf("\"", rnrInd+8);
+        int lastIndex = check.indexOf("\"", rnrInd+8);
 
-            rnrVal = check.substring(rnrInd+7, lastIndex);
-            //  System.out.println("rnrVal= "+rnrVal);
-            //  System.out.println(check);
-        }
-        else if(check.indexOf("incorrect") >= 0)
-        {
-            throw new IOException("Invalid Username or Password");
+        rnrVal = check.substring(rnrInd+7, lastIndex);
+        //  System.out.println("rnrVal= "+rnrVal);
+        //  System.out.println(check);
         }
         return rnrVal;
     }

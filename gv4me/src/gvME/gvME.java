@@ -27,8 +27,8 @@ import ui.*;
  * @author matt
  */
 public class gvME extends MIDlet implements CommandListener {
-    private static final String sentBoxStore = "sentBoxStore";
-    private static final String outboxStore = "outboxStore";
+    private final String sentBoxStore = "sentBoxStore";
+    private final String outboxStore = "outboxStore";
     private boolean midletPaused = false;    
     private static Timer timer;
     private static long timerDelay = 30000;
@@ -44,11 +44,11 @@ public class gvME extends MIDlet implements CommandListener {
     private static List menu;
     private static WriteMsg newSMS;
     private static Inbox InboxList;
-    private static Form changeSettingsMenu;
-    private static TextField passwordTextField;
-    private static TextField usernameTextField;
-    private static TextField callFromTextField;
-    private static TextField intervalTextField;
+    private Form changeSettingsMenu;
+    private TextField passwordTextField;
+    private TextField usernameTextField;
+    private TextField callFromTextField;
+    private TextField intervalTextField;
     private WaitScreen callWaitScreen;
     private Command backFromMakeCall;
     private static CommandListener cl;
@@ -273,31 +273,31 @@ public class gvME extends MIDlet implements CommandListener {
         return backFromMakeCall;
     }
 
-    public static Command getOkSaveSettings() {
+    public Command getOkSaveSettings() {
         if (okSaveSettings == null) {
             okSaveSettings = new Command("Save", Command.OK, 0);            
         }
         return okSaveSettings;
     }
 
-    public static Command getBackFromSettings() {
+    public Command getBackFromSettings() {
         if (backFromSettings == null) {
             backFromSettings = new Command("Cancel", Command.BACK, 0);            
         }
         return backFromSettings;
     }
 
-    public static Form getChangeSettingsMenu() {
+    public Form getChangeSettingsMenu() {
         if (changeSettingsMenu == null) {
             changeSettingsMenu = new Form("Change Settings", new Item[] { getIntervalTextField(), getUsernameTextField(), getPasswordTextField(), getCallFromTextField() });//GEN-BEGIN:|233-getter|1|233-postInit
             changeSettingsMenu.addCommand(getOkSaveSettings());
             changeSettingsMenu.addCommand(getBackFromSettings());
-            changeSettingsMenu.setCommandListener(cl);
+            changeSettingsMenu.setCommandListener(this);
         }
         return changeSettingsMenu;
     }
 
-    public static TextField getUsernameTextField() {
+    public TextField getUsernameTextField() {
         if (usernameTextField == null) {
             String userName = userSettings.getUsername();
             usernameTextField = new TextField("Username:", userName, 32, TextField.ANY);            
@@ -305,14 +305,14 @@ public class gvME extends MIDlet implements CommandListener {
         return usernameTextField;
     }
 
-    public static TextField getPasswordTextField() {
+    public TextField getPasswordTextField() {
         if (passwordTextField == null) {
             passwordTextField = new TextField("Password:", null, 32, TextField.PASSWORD);    
         }
         return passwordTextField;
     }
 
-    public static TextField getIntervalTextField() {
+    public TextField getIntervalTextField() {
         if (intervalTextField == null) {
             String interval = userSettings.getCheckInterval();
             intervalTextField = new TextField("Check Inbox (secs)", interval, 32, TextField.NUMERIC);//GEN-LINE:|240-getter|1|240-postInit 
@@ -320,7 +320,7 @@ public class gvME extends MIDlet implements CommandListener {
         return intervalTextField;
     }
 
-    public static TextField getCallFromTextField() {
+    public TextField getCallFromTextField() {
         if (callFromTextField == null) {
             String callFrom = userSettings.getCallFrom();
             callFromTextField = new TextField("Call From:", callFrom, 32, TextField.PHONENUMBER);//GEN-LINE:|246-getter|1|246-postInit  

@@ -53,19 +53,6 @@ public class MsgList extends List implements CommandListener {
         this.convo = crnt;
         addItemsToMsgList(this.convo.getMessages());
     }
-    
-//    public void addItemsToMsgList(Vector msgs)
-//    {
-//        deleteAll();
-//        Enumeration msgListEnum = getMsgList(msgs).elements();
-//
-//        String msgListItem;
-//        while(msgListEnum.hasMoreElements())
-//        {
-//            msgListItem = (String) msgListEnum.nextElement();
-//            append(msgListItem, null);
-//        }
-//    }
 
     public Vector getMsgListToItemMap()
     {
@@ -76,7 +63,6 @@ public class MsgList extends List implements CommandListener {
     {
         Enumeration addMsgEnum = msgs.elements();
         textMsg crntMsg;
-//        MsgListToItemMap.removeAllElements();
         StringBuffer itemBuff = new StringBuffer();
         while(addMsgEnum.hasMoreElements())
         {

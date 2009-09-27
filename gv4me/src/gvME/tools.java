@@ -24,19 +24,21 @@ public class tools {
         {
             a.addElement(vectEnum.nextElement());
         }
+        b = null;
+        vectEnum = null;
         return a;
     }
 
     public static Hashtable combineHashtables(Hashtable a, Hashtable b)
     {
-        //Vector newVect = new Vector(a.size() + b.size());
-        //Enumeration vectEnum = b.elements();
         Enumeration hashEnum = b.keys();
         while(hashEnum.hasMoreElements())
         {
             String Key = (String) hashEnum.nextElement();
             a.put(Key, b.get(Key));
         }
+        b = null;
+        hashEnum = null;
         return a;
     }
 
@@ -47,21 +49,26 @@ public class tools {
         {
             strBuf.append(strings[i]);
         }
-        return new String(strBuf);
+        String combinedString = new String(strBuf);
+        strBuf = null;
+        return combinedString;
     }
 
     public static Vector serializeVector(Vector vect) throws IOException
     {
         Vector serializedMsgs = new Vector(20);
         Enumeration vectEnum = vect.elements();
-
+        byte[] crntBytes;
         while(vectEnum.hasMoreElements())
         {
             textMsg crnt = (textMsg) vectEnum.nextElement();
-            byte[] crntBytes = crnt.serialize();
+            crntBytes = crnt.serialize();
             serializedMsgs.addElement(crntBytes);
 
         }
+        vectEnum = null;
+        vect = null;
+        crntBytes = null;
         return serializedMsgs;
     }
 
@@ -87,7 +94,9 @@ public class tools {
             }
             source = (sb.append(source.substring(patIdx))).toString();
         }
-        return sb.toString();
+        String decodedString = new String(sb);
+        sb = null;
+        return decodedString;
     }
 }
 
