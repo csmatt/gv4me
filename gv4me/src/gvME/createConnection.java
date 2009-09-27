@@ -45,8 +45,9 @@ public class createConnection{
             RMSCookieConnector.getCookie(c);
             loc = c.getHeaderField("Location");
             respCode = c.getResponseCode();
+            System.out.println(c.getResponseMessage());
             
-            while(respCode != 200 && respCode == 302 && loc != null && !loc.equals(""))
+            while(respCode == 302 && loc != null && !loc.equals(""))
             {
                 c = RMSCookieConnector.open(loc);
                 respCode = c.getResponseCode();

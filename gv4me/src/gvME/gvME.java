@@ -87,12 +87,6 @@ public class gvME extends MIDlet implements CommandListener {
         dispMan.getDisplay();
     }
 
-//<editor-fold defaultstate="collapsed" desc=" Generated Method: commandAction for Displayables ">//GEN-BEGIN:|7-commandAction|0|7-preCommandAction
-    /**
-     * Called by a system to indicate that a command has been invoked on a particular displayable.
-     * @param command the Command that was invoked
-     * @param displayable the Displayable where the command was invoked
-     */
     public void commandAction(Command command, Displayable displayable) {
          if (displayable == callWaitScreen) {
             if (command == WaitScreen.FAILURE_COMMAND) {
@@ -175,10 +169,6 @@ public class gvME extends MIDlet implements CommandListener {
         userSettings.updateSettings();
     }
 
-    /**
-     * Returns an initiliazed instance of menu component.
-     * @return the initialized component instance
-     */
     public static List getMenu() {
         if (menu == null) {
             menu = new List("Menu", Choice.IMPLICIT);
@@ -195,10 +185,6 @@ public class gvME extends MIDlet implements CommandListener {
         return menu;
     }
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Method: menuAction ">//GEN-BEGIN:|24-action|0|24-preAction
-    /**
-     * Performs an action assigned to the selected list element in the menu component.
-     */
     public void menuAction() throws IOException, Exception {
         String __selectedString = getMenu().getString(getMenu().getSelectedIndex());
         if (__selectedString != null) {
@@ -250,24 +236,13 @@ public class gvME extends MIDlet implements CommandListener {
         return outbox;
     }
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: exitGVSMS ">//GEN-BEGIN:|62-getter|0|62-preInit
-    /**
-     * Returns an initiliazed instance of exitGVSMS component.
-     * @return the initialized component instance
-     */
     public static Command getExitCmd() {
         if (exitCmd == null) {
             exitCmd = new Command("Exit", Command.EXIT, 0);
         }
         return exitCmd;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: backFromInbox ">//GEN-BEGIN:|82-getter|0|82-preInit
-    /**
-     * Returns an initiliazed instance of backFromInbox component.
-     * @return the initialized component instance
-     */
     public Command getBackFromInbox() {
         if (backFromInbox == null) {
             backFromInbox = new Command("Back", Command.BACK, 0);//GEN-LINE:|82-getter|1|82-postInit
@@ -275,26 +250,14 @@ public class gvME extends MIDlet implements CommandListener {
         }
         return backFromInbox;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: minimize ">//GEN-BEGIN:|149-getter|0|149-preInit
-    /**
-     * Returns an initiliazed instance of minimize component.
-     * @return the initialized component instance
-     */
     public static Command getMinimize() {
         if (minimize == null) {
             minimize = new Command("Minimize", Command.BACK, 0);        
         }
         return minimize;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: okMakeCall ">//GEN-BEGIN:|226-getter|0|226-preInit
-    /**
-     * Returns an initiliazed instance of okMakeCall component.
-     * @return the initialized component instance
-     */
     public Command getOkMakeCall() {
         if (okMakeCall == null) {
             okMakeCall = new Command("Ok", Command.OK, 0);
@@ -302,52 +265,28 @@ public class gvME extends MIDlet implements CommandListener {
         }
         return okMakeCall;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: backFromEnterPhone ">//GEN-BEGIN:|228-getter|0|228-preInit
-    /**
-     * Returns an initiliazed instance of backFromEnterPhone component.
-     * @return the initialized component instance
-     */
     public Command getBackFromMakeCall() {
         if (backFromMakeCall == null) {
             backFromMakeCall = new Command("Back", Command.BACK, 0);            
         }
         return backFromMakeCall;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: okSaveSettings ">//GEN-BEGIN:|234-getter|0|234-preInit
-    /**
-     * Returns an initiliazed instance of okSaveSettings component.
-     * @return the initialized component instance
-     */
     public static Command getOkSaveSettings() {
         if (okSaveSettings == null) {
             okSaveSettings = new Command("Save", Command.OK, 0);            
         }
         return okSaveSettings;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: backFromSettings ">//GEN-BEGIN:|236-getter|0|236-preInit
-    /**
-     * Returns an initiliazed instance of backFromSettings component.
-     * @return the initialized component instance
-     */
     public static Command getBackFromSettings() {
         if (backFromSettings == null) {
             backFromSettings = new Command("Cancel", Command.BACK, 0);            
         }
         return backFromSettings;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: changeSettingsMenu ">//GEN-BEGIN:|233-getter|0|233-preInit
-    /**
-     * Returns an initiliazed instance of changeSettingsMenu component.
-     * @return the initialized component instance
-     */
     public static Form getChangeSettingsMenu() {
         if (changeSettingsMenu == null) {
             changeSettingsMenu = new Form("Change Settings", new Item[] { getIntervalTextField(), getUsernameTextField(), getPasswordTextField(), getCallFromTextField() });//GEN-BEGIN:|233-getter|1|233-postInit
@@ -357,13 +296,7 @@ public class gvME extends MIDlet implements CommandListener {
         }
         return changeSettingsMenu;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: usernameTextField ">//GEN-BEGIN:|238-getter|0|238-preInit
-    /**
-     * Returns an initiliazed instance of usernameTextField component.
-     * @return the initialized component instance
-     */
     public static TextField getUsernameTextField() {
         if (usernameTextField == null) {
             String userName = userSettings.getUsername();
@@ -372,24 +305,13 @@ public class gvME extends MIDlet implements CommandListener {
         return usernameTextField;
     }
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: passwordTextField ">//GEN-BEGIN:|239-getter|0|239-preInit
-    /**
-     * Returns an initiliazed instance of passwordTextField component.
-     * @return the initialized component instance
-     */
     public static TextField getPasswordTextField() {
         if (passwordTextField == null) {
             passwordTextField = new TextField("Password:", null, 32, TextField.PASSWORD);    
         }
         return passwordTextField;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: intervalTextField ">//GEN-BEGIN:|240-getter|0|240-preInit
-    /**
-     * Returns an initiliazed instance of intervalTextField component.
-     * @return the initialized component instance
-     */
     public static TextField getIntervalTextField() {
         if (intervalTextField == null) {
             String interval = userSettings.getCheckInterval();
@@ -397,12 +319,7 @@ public class gvME extends MIDlet implements CommandListener {
         }
         return intervalTextField;
     }
- 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: callFromTextField ">//GEN-BEGIN:|246-getter|0|246-preInit
-    /**
-     * Returns an initiliazed instance of callFromTextField component.
-     * @return the initialized component instance
-     */
+
     public static TextField getCallFromTextField() {
         if (callFromTextField == null) {
             String callFrom = userSettings.getCallFrom();

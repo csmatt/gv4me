@@ -62,26 +62,28 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
         {
             sender = original.getSender();
         }
+
         textConvo sentMsg = new textConvo(sender, contacting, new textMsg(msg));
-            if (command == WaitScreen.FAILURE_COMMAND) {
-            try {//TODO:
-                gvME.outbox.addItem(sentMsg);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            } catch (RecordStoreException ex) {
-                ex.printStackTrace();
-            }
-                System.out.println("Failed");
-            } else if (command == WaitScreen.SUCCESS_COMMAND) {
-            try {
-                gvME.SentBox.addItem(sentMsg);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            } catch (RecordStoreException ex) {
-                ex.printStackTrace();
-            }
-                gvME.dispMan.showMenu();
-            }
+
+        if (command == WaitScreen.FAILURE_COMMAND) {
+        try {//TODO:
+            gvME.outbox.addItem(sentMsg);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (RecordStoreException ex) {
+            ex.printStackTrace();
+        }
+            System.out.println("Failed");
+        } else if (command == WaitScreen.SUCCESS_COMMAND) {
+        try {
+            gvME.SentBox.addItem(sentMsg);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (RecordStoreException ex) {
+            ex.printStackTrace();
+        }
+            gvME.dispMan.showMenu();
+        }
     }
     
     /**
