@@ -54,6 +54,7 @@ public class textMsg {
     public static textMsg deserialize(byte[] data) throws IOException
     {
         String[] fields = serial.deserialize(numFields, data);
+        data = null;
         return new textMsg(fields[0], fields[1], fields[2]);
     }
 

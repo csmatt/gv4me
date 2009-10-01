@@ -46,5 +46,12 @@ public class gvSendMsg {
 
         HttpsConnection sendCon = createConnection.open(url, "POST", reqProps, postData);
         createConnection.close(sendCon);
+
+        url = null;
+        text = null;
+        sendCon = null;
+        strings = null;
+        postData = null;
+        contentLen = null;   
     }
 }

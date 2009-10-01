@@ -41,7 +41,12 @@ public class KeyValuePair {
     public static KeyValuePair deserialize(byte[] data) throws IOException
     {
         String[] fields = serial.deserialize(2, data);
-        return new KeyValuePair(fields[0], fields[1]);
+        KeyValuePair kvp = new KeyValuePair(fields[0], fields[1]);
+
+        data = null;
+        fields = null;
+
+        return kvp;
     }
 }
 

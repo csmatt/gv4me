@@ -6,6 +6,9 @@
 package ui;
 
 import gvME.*;
+import java.io.IOException;
+import java.util.Vector;
+import javax.microedition.io.HttpsConnection;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
@@ -21,29 +24,55 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
 public class MakeCall extends WaitScreen implements CommandListener, interCom {
     private String contacting = "";
     private Alert noCallFromAlert;
+    private String rnr;
+    private Vector reqProps = new Vector(2);
+    private final String callURL = "https://www.google.com/voice/call/connect";
  //   private Image image;
 
     public MakeCall()
     {
         super(gvME.dispMan.getDisplay());
-        setTitle("Making Call");
-        setCommandListener(this);
-     //   setImage(getImage());
+        initialize();
+    }
+
+    public MakeCall(String contacting)
+    {
+        super(gvME.dispMan.getDisplay());
+        this.contacting = contacting;
+        initialize();
+    }
+
+    private void initialize()
+    {
         if(gvME.userSettings.getCallFrom() == null || gvME.userSettings.getCallFrom().equals(""))
         {
             gvME.dispMan.switchDisplayable(getNoCallFromAlert(), gvME.getChangeSettingsMenu());
         }
+        setTitle("Making Call");
+        setCommandListener(this);
+     //   setImage(getImage());
+
+        reqProps = parseMsgs.getReqProps();
+        rnr = gvME.getRNR();
         setText("Making Call...");
         setTask(getSimpleCancellableTask());
+    }
+
+    private void makeCall(String contacting) throws IOException, Exception
+    {
+        String[] strings = {"outgoingNumber=+1", contacting, "&forwardingNumber=+1", gvME.userSettings.getCallFrom(), "&subscriberNumber=undefined&remember=0&_rnr_se=", rnr};
+        String postData = tools.combineStrings(strings);
+        String[] contentLen = {"Content-Length", String.valueOf(postData.length())};
+        reqProps.insertElementAt(contentLen, 2);
+        HttpsConnection c = createConnection.open(callURL, "POST", reqProps, postData);
+        c.close();
     }
 
     public SimpleCancellableTask getSimpleCancellableTask() {
         SimpleCancellableTask task = new SimpleCancellableTask();
         task.setExecutable(new org.netbeans.microedition.util.Executable() {
             public void execute() throws Exception {
-                gvMakeCall mc = new gvMakeCall();
-                mc.makeCall(contacting);
-                mc = null;
+                makeCall(contacting);
             }
         });
         return task;

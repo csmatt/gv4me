@@ -18,13 +18,11 @@ import ui.Login;
  * @author matt
  */
 public class gvLogin {
-    private static final String logInURL = "https://www.google.com/accounts/LoginAuth?btmpl=mobile&amp;continue=https%3A%2F%2Fwww.google.com%2Fvoice%2Fm&amp;service=grandcentral&amp;ltmpl=mobile";
+    private static final String logInURL = "https://www.google.com/accounts/LoginAuth?btmpl=mobile&amp;continue=https%3A%2F%2Fwww.google.com%2Fvoice%2Fm&service=grandcentral&ltmpl=mobile";
     private static final String postData = "rememberme=true&ltmpl=mobile&continue=https%3A%2F%2Fwww.google.com%2Fvoice%2Fm&ltmpl=mobile&btmpl=mobile&ltmpl=mobile&rmShown=1&signIn=Sign+in";
     private static Vector reqProps;
     private static String username;
     private static String password;
-    private static Command loginAgainCmd;
-    private static Command cancelLoginCmd;
     private static String requestBody;
     private static Login login;
 
@@ -65,6 +63,7 @@ public class gvLogin {
         requestBody =  tools.combineStrings(reqBodyArray);
 
         logIn();
+        reqBodyArray = null;
         login = null;
     }
     

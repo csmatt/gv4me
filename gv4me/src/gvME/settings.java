@@ -7,6 +7,7 @@ package gvME;
 
 import java.io.IOException;
 import java.util.Vector;
+import javax.microedition.rms.InvalidRecordIDException;
 import javax.microedition.rms.RecordStore;
 import javax.microedition.rms.RecordStoreException;
 
@@ -24,10 +25,10 @@ public class settings {
     private final int numFields = 4;
     private final int MAX_CONTACTS = 10;
     private Vector recentContacts = new Vector();
-    private RecordStore rs;
 
     public settings() throws IOException
     {
+        RecordStore rs = null;
         try {
             rs = RecordStore.openRecordStore(userSettingsStore, true);
             if (rs.getNumRecords() != 0) {
@@ -45,7 +46,9 @@ public class settings {
             try{
                 rs.closeRecordStore();
             }
-            catch(Exception e){}
+            catch(Exception e){
+                e.printStackTrace();
+            }
         }
     }
     
@@ -123,21 +126,37 @@ public class settings {
 
     public void updateContacts() throws RecordStoreException, IOException
     {
+        RecordStore rs = null;
         try{
-        byte[] data = serial.serializeKVPVector(recentContacts);
-        rs = RecordStore.openRecordStore(userSettingsStore, true);
-        if(rs.getRecord(2) == null)
-            rs.addRecord(data, 0, data.length);
-        else
-            rs.setRecord(2, data, 0, data.length);
+            byte[] data = serial.serializeKVPVector(recentContacts);
+            rs = RecordStore.openRecordStore(userSettingsStore, true);
+            if(rs.getNumRecords() != 0){
+            try{
+                rs.setRecord(2, data, 0, data.length);
+            }
+            catch(InvalidRecordIDException ire)
+            {
+                rs.addRecord(data, 0, data.length);
+            }}
+        }
+        catch(RecordStoreException rse)
+        {
+            rse.printStackTrace();
         }
         finally{
+            try{
             rs.closeRecordStore();
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
         }
     }
 
     public void updateSettings() throws RecordStoreException
     {
+        RecordStore rs = null;
         try{
             String[] fields = {username, password, interval, callFrom};
             byte[] data = null;

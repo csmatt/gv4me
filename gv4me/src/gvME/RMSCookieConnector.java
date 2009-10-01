@@ -72,7 +72,7 @@ public class RMSCookieConnector {
     public static HttpsConnection open(String url, String storeName)
                                                       throws Exception {
         cookieStoreName = storeName;
-        gvME.countCons++;
+
         // Open a new connection.
         HttpsConnection c = (HttpsConnection) Connector.open(url);
         // Find cookies from the store and add to the connection header.
@@ -137,20 +137,7 @@ public class RMSCookieConnector {
             String cValue = value.substring(0, j);
             //System.out.println(cValue);
             // Write the cookie into the cookie store.
-            int newID = rs.addRecord(cValue.getBytes(), 0, cValue.length());
-
-            // We set the domain default to the current server.
-         /*   String dValue = c.getHost();
-            if ( dValue == null ) {
-              // If there is no valid domain,
-              // we do not keep the cookie.
-              rs.deleteRecord(newID);
-            } else {
-              // All upper case for easy comparision in the future.
-              dValue = dValue.toUpperCase();
-              // Write the domain into the cookie store.
-              rs.addRecord(dValue.getBytes(), 0, dValue.length());
-            }*/
+            rs.addRecord(cValue.getBytes(), 0, cValue.length());
           }
           k++;
         }
@@ -172,61 +159,18 @@ public class RMSCookieConnector {
         RecordStore rs = null;
         RecordEnumeration re = null;
         try{
-      // String variable domain stores the domain of of the current url.
-     /* String domain;
-      // Find the "/" or ":" after "Https://"
-      int indexSlash = url.indexOf("/", 8);
-      int indexColon = url.indexOf(":", 8);
-      if ( (indexSlash == -1) && (indexColon == -1) ) {
-        // If neither is found, domain ends at the end of the URL.
-        domain = url.substring(8, url.length());
-      } else if ( indexSlash == -1 ) {
-        // If not slash is found but a colon is found, the domain
-        // name ends at the colon.
-        domain = url.substring(8, indexColon);
-      } else if ( indexColon == -1 ) {
-        // If not colon is found but a slash is found, the domain
-        // name ends at the slash.
-        domain = url.substring(8, indexSlash);
-      } else if ( (indexSlash < indexColon) ) {
-        // If both are found but slash appears before colon,
-        // the domain name ends at the slash.
-        domain = url.substring(8, indexSlash);
-      } else {
-        // If both are found but colon appears before slash,
-        // the domain name ends at the colon.
-        domain = url.substring(8, indexColon);
-      }
-      domain = domain.toUpperCase();*/
 
       StringBuffer buff = new StringBuffer();
       try{
-      rs = RecordStore.openRecordStore(cookieStoreName, true);
-      re = rs.enumerateRecords(null, null, false);
+          rs = RecordStore.openRecordStore(cookieStoreName, true);
+          re = rs.enumerateRecords(null, null, false);
+          String cookie = "";
 
-      String cookie = "", cookieDomain = "";
-      // Iterate through the cookie record store and find cookies
-      // with domain matching the current URL.
-      //
-      // isCookie is used to tell whether the current record is
-      // a cookie or an associated domain.
-  //    boolean isCookie = false;
-      while ( re.hasNextElement() ) {
-     //   if ( isCookie ) {
-          cookie = new String(re.nextRecord());
-     /*   } else {
-          cookieDomain = new String(re.nextRecord());
-          // Cookies are valid for sub-domains.
-          if ( domain.endsWith( cookieDomain ) ) {
-            System.out.println("cookie: "+cookie);*/
+          while ( re.hasNextElement() ) {
+            cookie = new String(re.nextRecord());
             buff.append( cookie );
             buff.append("; ");
-  /*        }
-
-        }
-        isCookie = !isCookie;*/
-      }
-
+          }
       }
       catch(Exception e)
       {
@@ -238,7 +182,6 @@ public class RMSCookieConnector {
       if ( cookieStr == null || cookieStr.equals("") ) {
         // Ignore
       } else {
-      //  System.out.println("cookie: " + cookieStr);
         c.setRequestProperty( "cookie", cookieStr );
       }
         }
@@ -246,7 +189,6 @@ public class RMSCookieConnector {
             // Close the store.
             rs.closeRecordStore();
             re.destroy();
-            //  System.out.println("cookies: "+cookieStr);
             return;
         }
     }
@@ -408,24 +350,10 @@ class HttpsRMSCookieConnection implements HttpsConnection {
 
     private void checkResponseCode() throws IOException {
         try{
-        int code = c.getResponseCode();
-        if (code != c.HTTP_OK) {
-          //  if(code == c.HTTP_MOVED_TEMP)
-          //  {
-            String loc = c.getHeaderField("Location");
-            if(loc != null && !loc.equals(""))
-            {
-           /* HttpsConnection hc = RMSCookieConnector.open(loc);//HttpConnectionHelper.connect(getURL());
-            hc.setRequestMethod("GET");
-            hc.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            DataInputStream dis = hc.openDataInputStream();
-            dis.close();
-            hc.close();*/
-           }
-           else{
-               throw new IOException(code + "; " + c.getResponseMessage());
-            }
-        }
+//            int code = c.getResponseCode();
+//            if (code != c.HTTP_OK) {
+//
+//            }
         }
         catch(Exception e)
         {}

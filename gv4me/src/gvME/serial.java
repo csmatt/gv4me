@@ -29,49 +29,61 @@ public class serial {
         catch(Exception e)
         {}
         
-        for(int i = strArray.length; i >= 0; i--)
+        for(int i = 0; i < strArray.length && strArray[i] != null; i++)
         {
-            vect.addElement(new KeyValuePair(strArray[i--],strArray[i]));
+            vect.addElement(new KeyValuePair(strArray[i],strArray[i++]));
         }
+
+        data = null;
+        strArray = null;
+        
         return vect;
     }
 
     public static byte[] serializeKVPVector(Vector vect) throws IOException
     {
         KeyValuePair kvp;
-        int i = vect.size() - 1;
-        String[] strArray = new String[2*(i+1)];
-        while(i < vect.size())
+        int vectSize = vect.size();
+        String[] strArray = new String[2*vectSize];
+        
+        for(int i = 0, j = 0; j < vectSize; i+=2, j++)
         {
-            kvp = (KeyValuePair) vect.elementAt(i);
-            strArray[i] = (String) kvp.getValue();
-            strArray[i+1] = (String) kvp.getKey();
-            i+=2;
+            kvp = (KeyValuePair) vect.elementAt(j);
+            strArray[i] = (String) kvp.getKey();
+            strArray[i+1] = (String) kvp.getValue();
         }
-        return serialize(strArray);
+        byte[] data = serialize(strArray);
+
+        kvp = null;
+        vect = null;
+        strArray = null;
+        
+        return data;
     }
 
     public synchronized static String[] deserialize(int numFields, byte[] data) throws IOException
     {
         String[] fields = new String[numFields];
-        ByteArrayInputStream byteInStream = null;
-        DataInputStream dataInStream = null;
+        ByteArrayInputStream bis = null;
+        DataInputStream dis = null;
         try {
-            byteInStream = new ByteArrayInputStream(data);
-            dataInStream = new DataInputStream(byteInStream);
+            bis = new ByteArrayInputStream(data);
+            dis = new DataInputStream(bis);
 
             for(int i=0; i < numFields; i++)
             {
-                fields[i] = dataInStream.readUTF();
+                fields[i] = dis.readUTF();
             }
         }
         catch(IOException exc) {
-            exc.printStackTrace();
-            return null;
+            throw exc;
         }
         finally{
-            dataInStream.close();
-            byteInStream.close();
+            dis.close();
+            bis.close();
+            dis = null;
+            bis = null;
+            
             return fields;
         }
     }
@@ -82,26 +94,27 @@ public class serial {
      */
     public synchronized static byte[] serialize(String[] fields) throws IOException {
         byte[] data = null;
-        ByteArrayOutputStream byteOutStream = null;
-        DataOutputStream dataOutStream = null;
+        ByteArrayOutputStream bos = null;
+        DataOutputStream dos = null;
         try {
-            byteOutStream = new ByteArrayOutputStream();
-            dataOutStream = new DataOutputStream(byteOutStream);
+            bos = new ByteArrayOutputStream();
+            dos = new DataOutputStream(bos);
 
             for(int i=0; i < fields.length; i++)
             {
-                dataOutStream.writeUTF(fields[i]);
+                dos.writeUTF(fields[i]);
             }
-            data = byteOutStream.toByteArray();
-
-
+            data = bos.toByteArray();
         } catch(IOException exc) {
+            exc.printStackTrace();
             return null;
         }
         finally{
-            dataOutStream.flush();
-            dataOutStream.close();
-            byteOutStream.close();
+            dos.flush();
+            dos.close();
+            bos.close();
+            dos = null;
+            bos = null;
             return data;
         }
     }

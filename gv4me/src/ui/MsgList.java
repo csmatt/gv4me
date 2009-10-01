@@ -6,8 +6,6 @@
 package ui;
 
 import gvME.gvME;
-import gvME.gvMsgList;
-import gvME.parseMsgs;
 import gvME.textConvo;
 import gvME.textMsg;
 import gvME.tools;
@@ -31,15 +29,17 @@ import javax.microedition.lcdui.StringItem;
 public class MsgList extends List implements CommandListener {
 
     private int itemLength = 20;
-    private static Vector MsgListToItemMap = new Vector(10);
+    private Vector msgList = new Vector();
+    private Vector MsgListToItemMap = new Vector();
     private Command viewMsgCmd;
     private Command replyCmd;
     private Command backCmd;
     private Command fwdCmd;
+    private Command callCmd;
+    private Command msgPropsCmd;
     private Form readMsg;
     private Form msgProps;
     private textConvo convo;
-    private Command msgPropsCmd;
 
     //public MsgList(String title, Vector msgs) throws IOException
     public MsgList(textConvo crnt)
@@ -49,6 +49,7 @@ public class MsgList extends List implements CommandListener {
         addCommand(getReplyCmd());
         addCommand(getFwdCmd());
         addCommand(getBackCmd());
+        addCommand(getCallCmd());
         setCommandListener(this);
         setFitPolicy(Choice.TEXT_WRAP_OFF);
         setSelectCommand(getViewMsgCmd());
@@ -60,7 +61,8 @@ public class MsgList extends List implements CommandListener {
     public void addItemsToMsgList(Vector msgs)
     {
         deleteAll();
-        Enumeration msgListEnum = gvMsgList.getMsgList(msgs).elements();
+        getMsgList(msgs);
+        Enumeration msgListEnum = msgList.elements();
         
         String msgListItem;
         while(msgListEnum.hasMoreElements())
@@ -70,15 +72,15 @@ public class MsgList extends List implements CommandListener {
         }
     }
 
-    public Vector getMsgListToItemMap()
-    {
-        return MsgList.MsgListToItemMap;
-    }
-    
-    public static void setMsgListToItemMap(Vector msgListToItemMap)
-    {
-        MsgList.MsgListToItemMap = msgListToItemMap;
-    }
+//    public Vector getMsgListToItemMap()
+//    {
+//        return MsgList.MsgListToItemMap;
+//    }
+//
+//    public static void setMsgListToItemMap(Vector msgListToItemMap)
+//    {
+//        MsgList.MsgListToItemMap = msgListToItemMap;
+//    }
 
     private Form getReadMsg(String title)
     {
@@ -89,6 +91,7 @@ public class MsgList extends List implements CommandListener {
             readMsg.addCommand(fwdCmd);
             readMsg.addCommand(getMsgPropsCmd());
             readMsg.addCommand(backCmd);
+            readMsg.addCommand(getCallCmd());
             readMsg.setCommandListener(this);
         }
         else
@@ -102,6 +105,7 @@ public class MsgList extends List implements CommandListener {
     {
         msgProps = new Form("Properties");
         msgProps.addCommand(getBackCmd());
+        msgProps.addCommand(getCallCmd());
         StringItem sender = new StringItem("Sender: ", msg.getSender());
         msgProps.append(sender);
         StringItem replyNum = new StringItem("Phone Number: ", msg.getReplyNum());
@@ -112,32 +116,53 @@ public class MsgList extends List implements CommandListener {
         return msgProps;
     }
 
+    private void getMsgList(Vector msgs)
+    {
+        Enumeration addMsgEnum = msgs.elements();
+        textMsg crntMsg;
+        MsgListToItemMap.removeAllElements();
+        msgList.removeAllElements();
+        StringBuffer itemBuff = new StringBuffer();
+        while(addMsgEnum.hasMoreElements())
+        {
+            crntMsg = (textMsg) addMsgEnum.nextElement();
+            itemBuff = new StringBuffer(crntMsg.getMessage());
+
+            if(itemBuff.length() > itemLength)
+            {
+                itemBuff.setLength(itemLength);
+                itemBuff.append("...");
+            }
+            MsgListToItemMap.insertElementAt(crntMsg, 0);
+            msgList.insertElementAt(new String(itemBuff), 0);
+        }
+        itemBuff = null;
+    }
+
     public void commandAction(Command command, Displayable displayable) {
         int selIndex = this.getSelectedIndex();
         System.out.println(String.valueOf(selIndex));
         textMsg original = null;
-        if(!MsgListToItemMap.isEmpty())
+
+        if(displayable == this && command == backCmd)
+        {
+            try {
+                gvME.dispMan.switchDisplayable(null, gvME.getInbox());
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        else if(displayable == readMsg && command == backCmd)
+        {
+            gvME.dispMan.switchDisplayable(null, this);
+        }
+        else if(!MsgListToItemMap.isEmpty())
         {
             original = (textMsg) MsgListToItemMap.elementAt(selIndex);
-        }
-        if(displayable == this)
-        {
-            if(command == backCmd)
-            {
-                try {
-                    gvME.dispMan.switchDisplayable(null, gvME.getInbox());
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-            else if(command == viewMsgCmd)
-            {
-                gvME.dispMan.switchDisplayable(null, getReadMsg(convo.getSender()));
-                readMsg.append(tools.decodeString(original.getMessage())); //decodes string from utf8
-            }
-            else if(command == fwdCmd)
+
+            if(command == fwdCmd)
             {
                 WriteMsg wm = new WriteMsg("Forward", convo);
                 gvME.dispMan.switchDisplayable(null, wm);
@@ -147,33 +172,24 @@ public class MsgList extends List implements CommandListener {
                 WriteMsg wm = new WriteMsg("Reply", convo);
                 gvME.dispMan.switchDisplayable(null, wm);
             }
-        }
-        else if(displayable == readMsg)
-        {
-            if(command == backCmd)
+            else if(command == callCmd)
             {
-                gvME.dispMan.switchDisplayable(null, this);
+                MakeCall mc = new MakeCall(convo.getReplyNum());
+                gvME.dispMan.switchDisplayable(null, mc);
+                mc = null;
             }
-            else if(command == msgPropsCmd)
+            else if(displayable == this && command == viewMsgCmd)
+            {
+                gvME.dispMan.switchDisplayable(null, getReadMsg(convo.getSender()));
+                readMsg.append(tools.decodeString(original.getMessage())); //decodes string from utf8
+            }
+            else if(displayable == readMsg && command == msgPropsCmd)
             {
                 textConvo propsConvo = convo;
                 propsConvo.setLastMsg(original);
                 gvME.dispMan.switchDisplayable(null, getMsgProps(propsConvo));
             }
-            else if(command == fwdCmd)
-            {
-                WriteMsg wm = new WriteMsg("Forward", convo);
-                gvME.dispMan.switchDisplayable(null, wm);
-            }
-            else if(command == replyCmd)
-            {
-                WriteMsg wm = new WriteMsg("Reply", convo);
-                gvME.dispMan.switchDisplayable(null, wm);
-            }
-        }
-        else if(displayable == msgProps)
-        {
-            if(command == backCmd)
+            else if(displayable == msgProps && command == backCmd)
             {
                 gvME.dispMan.switchDisplayable(null, this);
             }
@@ -185,6 +201,15 @@ public class MsgList extends List implements CommandListener {
             viewMsgCmd = new Command("Read", Command.OK, 1);
         }
         return viewMsgCmd;
+    }
+
+    private Command getCallCmd()
+    {
+        if(callCmd == null)
+        {
+            callCmd = new Command("Call", Command.ITEM, 0);
+        }
+        return callCmd;
     }
 
     private Command getBackCmd() {

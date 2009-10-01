@@ -140,12 +140,6 @@ public class textConvo {
         this.lastMsg = lastMsg;
     }
 
-//    public void updateConvo(Vector newMsgs)
-//    {
-//        messages = tools.combineVectors(messages, newMsgs);
-//        lastMsg = (textMsg) newMsgs.lastElement();
-//    }
-
     /**
      * Deserializes textMsg properties from data buffer and returns a new textMsg.
      * @param data - data for creating new setting.
@@ -155,41 +149,53 @@ public class textConvo {
     {
         String[] fields = new String[numConvoFields];
         String[] textMsgFields = new String[textMsg.numFields];
-        textMsg msg = null;
-        Vector msgsVect = new Vector(10);
-        textMsg lastMessage;
+        textMsg lastMessage, msg = null;
+        Vector msgsVect = new Vector(5);
         int numMsgs = 0;
+        
         try {
-            ByteArrayInputStream byteInStream = new ByteArrayInputStream(data);
-            DataInputStream dataInStream = new DataInputStream(byteInStream);
-            String n = dataInStream.readUTF();
-            numMsgs = Integer.parseInt(n);
-            
+            ByteArrayInputStream bis = new ByteArrayInputStream(data);
+            DataInputStream dis = new DataInputStream(bis);
+
+            numMsgs = Integer.parseInt(dis.readUTF());
+
             for(int i=0; i < numConvoFields; i++)
             {
-                fields[i] = dataInStream.readUTF();
+                fields[i] = dis.readUTF();
             }
 
             for(int i = 0; i < numMsgs; i++)
             {
 
-                textMsgFields[0] = dataInStream.readUTF();
-                textMsgFields[1] = dataInStream.readUTF();
-                textMsgFields[2] = dataInStream.readUTF();
+                textMsgFields[0] = dis.readUTF();
+                textMsgFields[1] = dis.readUTF();
+                textMsgFields[2] = dis.readUTF();
 
                 msg = new textMsg(textMsgFields[0], textMsgFields[1], textMsgFields[2]);
                 msgsVect.addElement(msg);
             }  
 
             //gets last message from RS for particular msgID
-            textMsgFields[0] = dataInStream.readUTF();
-            textMsgFields[1] = dataInStream.readUTF();
-            textMsgFields[2] = dataInStream.readUTF();
+            textMsgFields[0] = dis.readUTF();
+            textMsgFields[1] = dis.readUTF();
+            textMsgFields[2] = dis.readUTF();
             lastMessage = new textMsg(textMsgFields[0], textMsgFields[1], textMsgFields[2]);
 
-            dataInStream.close();
-            byteInStream.close();
-            return new textConvo(numMsgs, fields[0], fields[1], fields[2], fields[3], msgsVect, lastMessage);
+            dis.close();
+            bis.close();
+
+            textConvo deserialized = new textConvo(numMsgs, fields[0], fields[1], fields[2], fields[3], msgsVect, lastMessage);
+
+            dis = null;
+            bis = null;
+            msg = null;
+            data = null;
+            fields = null;
+            msgsVect = null;
+            lastMessage = null;
+            textMsgFields = null;
+            
+            return deserialized;
             
         }
         catch(IOException exc) {
@@ -212,7 +218,10 @@ public class textConvo {
             crnt = (textMsg) msgsVect.nextElement();
             byteOutStream.write(serializeMsg(crnt));
         }
-        return byteOutStream.toByteArray();
+        byte[] data = byteOutStream.toByteArray();
+        byteOutStream.close();
+        
+        return data;
     }
 
     public static byte[] serializeMsg(textMsg crnt) throws IOException
@@ -222,7 +231,6 @@ public class textConvo {
         String[] fields = {crnt.getMsgID(), crnt.getMessage(), crnt.getTimeReceived()};
         return serial.serialize(fields);
     }
-
 
     /**
      * Serializes textMsg properties to an array of bytes.
@@ -241,6 +249,16 @@ public class textConvo {
         byteOutStream.write(data);
         byteOutStream.write(textMsgs);
         byteOutStream.write(lastMsg_bytes);
-        return byteOutStream.toByteArray();
+        data = byteOutStream.toByteArray();
+        byteOutStream.close();
+        
+        fields = null;
+        textMsgs = null;
+        numMsgField = null;
+        byteOutStream = null;
+        lastMsg_bytes = null;
+        numMsgs_bytes = null;
+        
+        return data;
     }
 }

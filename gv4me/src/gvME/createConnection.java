@@ -88,6 +88,10 @@ public class createConnection{
         String dataString = new String(baos.toByteArray());
         dis.close();
         baos.close();
+        dis = null;
+        baos = null;
+        c = null;
+        buffer = null;
         return dataString;
     }
 
@@ -112,11 +116,15 @@ public class createConnection{
         {
             throw new IOException("Invalid Username or Password");
         }
+        c = null;
+        check = null;
+
         return rnrVal;
     }
 
     public static void close(HttpsConnection c)
     {
         RMSCookieConnector.close(c, null, null);
+        c = null;
     }
 }

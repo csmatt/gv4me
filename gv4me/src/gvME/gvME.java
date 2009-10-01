@@ -66,8 +66,6 @@ public class gvME extends MIDlet implements CommandListener {
         countCons = 0;
         dispMan = new DisplayManager(this);
         cl = this; //reference to 'this' for CommandListener of static method getMenu()
-        SentBox = getSentBox();
-        outbox = getOutbox();
         parseMsgs.setReqProps();
         try {
             RMSCookieConnector.removeCookies();
@@ -76,10 +74,12 @@ public class gvME extends MIDlet implements CommandListener {
         }
     }
 
-    public void startMIDlet() throws IOException, Exception {  
+    public void startMIDlet() throws IOException, Exception {
         gvLogin waitForLogin = new gvLogin(this);
         waitForLogin.checkLoginInfo();
         waitForLogin = null;
+        SentBox = getSentBox();
+        outbox = getOutbox();
         createTimer();
     }
 
@@ -138,13 +138,13 @@ public class gvME extends MIDlet implements CommandListener {
         return gvME.rnr;
     }
 
-    synchronized public static void createTimer()
+    public static void createTimer()
     {
         timer = new Timer();
         timer.schedule(new checkInbox(), timerDelay, Long.parseLong(userSettings.getCheckInterval())*1000);
     }
 
-    public void changeSettings() throws RecordStoreException
+    public static void changeSettings() throws RecordStoreException
     {
         String interval = userSettings.getCheckInterval();
         String username = userSettings.getUsername();
@@ -168,7 +168,7 @@ public class gvME extends MIDlet implements CommandListener {
         {
             userSettings.setPassword(tfPassword);
         }
-        if(!tfCallFrom.equals(callFrom) && !tfCallFrom.equals(""))
+        if(!tfCallFrom.equals(callFrom))
         {
             userSettings.setCallFrom(tfCallFrom);
         }
@@ -218,6 +218,7 @@ public class gvME extends MIDlet implements CommandListener {
             } else if (__selectedString.equals("Make Call")) {                
                 MakeCall mc = new MakeCall();
                 ChooseContact cc = new ChooseContact(getMenu(), mc);
+                mc = null;
                 dispMan.switchDisplayable(null, cc);                
             }
         }        
@@ -350,7 +351,7 @@ public class gvME extends MIDlet implements CommandListener {
      */
     public static Form getChangeSettingsMenu() {
         if (changeSettingsMenu == null) {
-            changeSettingsMenu = new Form("Change Settings", new Item[] { getIntervalTextField(), getUsernameTextField(), getPasswordTextField(), getCallFromTextField() });//GEN-BEGIN:|233-getter|1|233-postInit
+            changeSettingsMenu = new Form("Change Settings", new Item[] { getUsernameTextField(), getPasswordTextField(), getCallFromTextField(), getIntervalTextField() });//GEN-BEGIN:|233-getter|1|233-postInit
             changeSettingsMenu.addCommand(getOkSaveSettings());
             changeSettingsMenu.addCommand(getBackFromSettings());
             changeSettingsMenu.setCommandListener(cl);
@@ -367,7 +368,7 @@ public class gvME extends MIDlet implements CommandListener {
     public static TextField getUsernameTextField() {
         if (usernameTextField == null) {
             String userName = userSettings.getUsername();
-            usernameTextField = new TextField("Username:", userName, 32, TextField.ANY);            
+            usernameTextField = new TextField("Username:", userName, 40, TextField.ANY);
         }
         return usernameTextField;
     }
@@ -379,7 +380,7 @@ public class gvME extends MIDlet implements CommandListener {
      */
     public static TextField getPasswordTextField() {
         if (passwordTextField == null) {
-            passwordTextField = new TextField("Password:", null, 32, TextField.PASSWORD);    
+            passwordTextField = new TextField("Password:", null, 40, TextField.PASSWORD);
         }
         return passwordTextField;
     }
@@ -393,7 +394,7 @@ public class gvME extends MIDlet implements CommandListener {
     public static TextField getIntervalTextField() {
         if (intervalTextField == null) {
             String interval = userSettings.getCheckInterval();
-            intervalTextField = new TextField("Check Inbox (secs)", interval, 32, TextField.NUMERIC);//GEN-LINE:|240-getter|1|240-postInit 
+            intervalTextField = new TextField("Check Inbox (secs)", interval, 10, TextField.NUMERIC);//GEN-LINE:|240-getter|1|240-postInit
         }
         return intervalTextField;
     }
@@ -406,7 +407,7 @@ public class gvME extends MIDlet implements CommandListener {
     public static TextField getCallFromTextField() {
         if (callFromTextField == null) {
             String callFrom = userSettings.getCallFrom();
-            callFromTextField = new TextField("Call From:", callFrom, 32, TextField.PHONENUMBER);//GEN-LINE:|246-getter|1|246-postInit  
+            callFromTextField = new TextField("Call From:", callFrom, 15, TextField.PHONENUMBER);//GEN-LINE:|246-getter|1|246-postInit
         }
         return callFromTextField;
     }
@@ -480,14 +481,17 @@ public class gvME extends MIDlet implements CommandListener {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            if(numNewMsgs > 0)
+            if(newMsgs != null && numNewMsgs > 0)
             {
                 Alert newMsgAlert = new Alert("New Messages");
                 newMsgAlert.setString(numNewMsgs+" new messages");
                 try {
                     numNewMsgs = 0;
                     getInbox().updateInbox(newMsgs);
-                    dispMan.switchDisplayable(newMsgAlert, getInbox());
+                    if(dispMan.getDisplay().getCurrent() == null)
+                    {
+                        dispMan.switchDisplayable(newMsgAlert, getInbox());
+                    }
                     dispMan.vibrate(400);
                 } catch (IOException ex) {
                     ex.printStackTrace();

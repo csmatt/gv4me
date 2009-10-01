@@ -6,6 +6,7 @@
 package ui;
 
 import gvME.*;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
 import javax.microedition.lcdui.Choice;
@@ -28,6 +29,7 @@ public class ChooseContact extends List implements CommandListener{
     private Command backFromRecContactsCmd;
     private Command okEnterNumCmd;
     private Command backFromEnterNumCmd;
+    private Command selectContactCmd;
     private Command backFromPimBrowserCmd;
     private Command okPimBrowserCmd;
     private Command backContactTypeCmd;
@@ -45,14 +47,13 @@ public class ChooseContact extends List implements CommandListener{
         super("Choose Contact", Choice.IMPLICIT);
         this.next = com;
         this.prev = prev;
-//        append("Recent", null);
+        append("Recent", null);
         append("Enter Number", null);
 //        append("Phone Book", null);
         addCommand(getContactTypeCmd());
         addCommand(getBackContactTypeCmd());
         setSelectCommand(contactTypeCmd);
         setCommandListener(this);
-       // initialize();
     }
 
     public String getContact()
@@ -63,12 +64,11 @@ public class ChooseContact extends List implements CommandListener{
     public void chooseContactAction() {
         String __selectedString = this.getString(this.getSelectedIndex());
         if (__selectedString != null) {
-//            if (__selectedString.equals("Recent")) {
-//                gvME.dispMan.switchDisplayable(null, getRecentContactsList());
-//            }
+            if (__selectedString.equals("Recent")) {
+                gvME.dispMan.switchDisplayable(null, getRecentContactsList());
+            }
             if (__selectedString.equals("Enter Number")) {
-                enterNumBox = getEnterNumBox();
-                gvME.dispMan.switchDisplayable(null, enterNumBox);
+                gvME.dispMan.switchDisplayable(null, getEnterNumBox());
             }
 //            else if (__selectedString.equals("Phone Book")) {
 //                pimBrowser = getPimBrowser();
@@ -88,26 +88,30 @@ public class ChooseContact extends List implements CommandListener{
         return enterNumBox;
     }
 
-//    public List getRecentContactsList()
-//    {
-//        if(recentContacts == null)
-//        {
-//            recentContacts = new List("Recent Contacts", List.IMPLICIT);
-//            recentContacts.addCommand(List.SELECT_COMMAND);
-//            recentContacts.addCommand(getBackFromRecContactsCmd());
-//        }
-//            recentContacts.deleteAll();
-//            contacts = gvME.userSettings.getRecentContacts();
-//            //int vectSize = contacts.size();
-//            //for(int i = 0; i < vectSize; i++)
-//            Enumeration contactsEnum = contacts.elements();
-//            {
-//                String contactName = (String) ((KeyValuePair)contactsEnum.nextElement()).getKey();
-//                recentContacts.append(contactName, null);
-//            }
-//
-//        return recentContacts;
-//    }
+    public List getRecentContactsList()
+    {
+        if(recentContacts == null)
+        {
+            recentContacts = new List("Recent Contacts", List.IMPLICIT);
+            recentContacts.addCommand(getSelectContactCmd());
+            recentContacts.addCommand(getBackFromRecContactsCmd());
+            recentContacts.setSelectCommand(selectContactCmd);
+            recentContacts.setCommandListener(this);
+        }
+        else
+        {
+            recentContacts.deleteAll();
+        }
+        contacts = gvME.userSettings.getRecentContacts();
+
+        Enumeration contactsEnum = contacts.elements();
+        while(contactsEnum.hasMoreElements())
+        {
+            String contactName = (String) ((KeyValuePair)contactsEnum.nextElement()).getKey();
+            recentContacts.append(contactName, null);
+        }
+        return recentContacts;
+    }
 
 //    public PIMBrowser getPimBrowser() {
 //        if (pimBrowser == null) {
@@ -129,19 +133,20 @@ public class ChooseContact extends List implements CommandListener{
                 chooseContactAction();
             }
         }
-//        else if (display == recentContacts)
-//        {
-//            if(command == backFromRecContactsCmd)
-//            {
-//                gvME.dispMan.switchToPreviousDisplayable();
-//            }
-//            else if (command == List.SELECT_COMMAND)
-//            {
-//                int selIndex = recentContacts.getSelectedIndex();
-//                contact = (String) ((KeyValuePair)(gvME.userSettings.getRecentContacts().elementAt(selIndex))).getKey();
-//                next.setContacting(contact);
-//            }
-//        }
+        else if (display == recentContacts)
+        {
+            if(command == backFromRecContactsCmd)
+            {
+                gvME.dispMan.switchToPreviousDisplayable();
+            }
+            else if (command == selectContactCmd)
+            {
+                int selIndex = recentContacts.getSelectedIndex();
+                contact = (String) ((KeyValuePair)(gvME.userSettings.getRecentContacts().elementAt(selIndex))).getKey();
+                next.setContacting(contact);
+                gvME.dispMan.switchDisplayable(null,(Displayable) next);
+            }
+        }
         else if (display == enterNumBox)
         {
             if (command == backFromEnterNumCmd) {
@@ -149,11 +154,15 @@ public class ChooseContact extends List implements CommandListener{
             } else if (command == okEnterNumCmd) {
                 contact = enterNumBox.getString();
                 next.setContacting(contact);
-//                try {
-//                    gvME.userSettings.addContact(new KeyValuePair(contact, ""));
-//                } catch (RecordStoreException ex) {
-//                    ex.printStackTrace();
-//                }
+                try {
+                    gvME.userSettings.addContact(new KeyValuePair(contact, ""));
+                } catch (RecordStoreException ex) {
+                    ex.printStackTrace();
+                }
+                catch(IOException ioe)
+                {
+                    ioe.printStackTrace();
+                }
                 gvME.dispMan.switchDisplayable(null,(Displayable) next);
             }
         }
@@ -175,7 +184,14 @@ public class ChooseContact extends List implements CommandListener{
 //            }
 //        }
     }
-
+    private Command getSelectContactCmd()
+    {
+        if(selectContactCmd == null)
+        {
+            selectContactCmd = new Command("Select", Command.ITEM, 1);
+        }
+        return selectContactCmd;
+    }
     private Command getContactTypeCmd() {
         if (contactTypeCmd == null) {
             contactTypeCmd = new Command("Select", Command.ITEM, 1);
@@ -183,13 +199,13 @@ public class ChooseContact extends List implements CommandListener{
         return contactTypeCmd;
     }
 
-//    private Command getBackFromRecContactsCmd()
-//    {
-//        if (backFromRecContactsCmd == null) {
-//            backFromRecContactsCmd = new Command("Back", Command.BACK, 0);
-//        }
-//        return backFromRecContactsCmd;
-//    }
+    private Command getBackFromRecContactsCmd()
+    {
+        if (backFromRecContactsCmd == null) {
+            backFromRecContactsCmd = new Command("Back", Command.BACK, 0);
+        }
+        return backFromRecContactsCmd;
+    }
 //
 //    private Command getBackFromPimBrowserCmd()
 //    {

@@ -38,7 +38,7 @@ public class parseMsgs {
     private static final String dateToken = "displayStartDateTime\":\"";
     private static final String noMsgsString = "No unread items in your inbox.";
     private static final String msgBottomToken = "<td class=\"gc-sline-bottom\">";
-
+    private static String[] markReadStr = {markReadURL,"","&read=1"};
     private static Vector reqProps = new Vector(5);
 
     public static void setReqProps()
@@ -61,13 +61,17 @@ public class parseMsgs {
 
         //checks to see if new messages have arrived and returns if none have
         if(html.equals("") || html.indexOf(noMsgsString) > 0)
+        {
+            html = null;
             return null;
+        }
         //gets message's ID & replyNums from json
         Hashtable convos = getJSONdata(html);
 
         //goes through xml for each msgID found in json (now existing as a hash enumeration)
         Enumeration convosEnum = convos.keys();
         Vector msgVect = null;
+        textConvo crnt;
         String Key = "";
         int newMsgCnt = 0;
         textConvo messages = null;
@@ -81,10 +85,10 @@ public class parseMsgs {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+           
            if(messages == null)
                break;
-
-           textConvo crnt;
+           
            if(Inbox.getInboxHash().containsKey(Key))
            {
                crnt = (textConvo) Inbox.getInboxHash().get(Key);
@@ -100,6 +104,11 @@ public class parseMsgs {
            newMsgCnt++;
        }
         html = null;
+        crnt = null;
+        convos = null;
+        messages = null;
+        convosEnum = null;
+        
         gvME.setNumNewMsgs(newMsgCnt);
         return newConvos;
     }
@@ -148,12 +157,23 @@ public class parseMsgs {
             }
             i = castInt(kvp.getValue());
         }
+        textConvo getMsgConvo = null;
         if(!sender.equals(""))
         {
             markMsgRead(msgID);
-            return new textConvo(numMsgs, msgID, sender, msgVect, crnt);
+            getMsgConvo = new textConvo(numMsgs, msgID, sender, msgVect, crnt);
         }
-        return null;
+        kvp = null;
+        time = null;
+        crnt = null;
+        msgID = null;
+        sender = null;
+        message = null;
+        msgVect = null;
+        beginToken = null;
+        lastMessage = null;
+
+        return getMsgConvo;
     }
 
     private static boolean checkSender(String sender)
@@ -167,12 +187,8 @@ public class parseMsgs {
     //mark message as read
     private static void markMsgRead(String msgID) throws IOException, IOException, Exception
     {
-        String[] strings = {
-                            markReadURL,
-                            msgID,
-                            "&read=1"
-                            };
-        HttpsConnection markRead = createConnection.open(tools.combineStrings(strings), "GET", reqProps, "");
+        markReadStr[1] = msgID;
+        HttpsConnection markRead = createConnection.open(tools.combineStrings(markReadStr), "GET", reqProps, "");
         createConnection.close(markRead);
         markRead = null;
     }
@@ -188,6 +204,7 @@ public class parseMsgs {
         String isRead = "";
         String date = "";
         Hashtable convoHash = new Hashtable();
+        textConvo newConvo;
 
         while(json.indexOf(idToken, i) != -1)
         {
@@ -210,9 +227,16 @@ public class parseMsgs {
             if(isRead.equals("true"))
                     break;
 
-            textConvo newConvo = new textConvo(0, msgID, replyNum, date);
+            newConvo = new textConvo(0, msgID, replyNum, date);
             convoHash.put(msgID, newConvo);
         }
+        kvp = null;
+        date = null;
+        html = null;
+        msgID = null;
+        newConvo = null;
+        replyNum = null;
+
         return convoHash;
     }
     /*
@@ -228,11 +252,13 @@ public class parseMsgs {
     {
         i = html.indexOf(beginToken, i)+beginToken.length();
         int end = html.indexOf(endToken, i);
-
+        KeyValuePair kvp = new KeyValuePair("", null);
         if(stop == 0 || (i >= 0 && end >= 0 && end < stop))
-            return new KeyValuePair(html.substring(i, end), new Integer(end));
-        else
-            return new KeyValuePair("", null);
+        {
+            kvp = new KeyValuePair(html.substring(i, end), new Integer(end));
+        }
+        html = null;
+        return kvp;
     }
 
     private static String getHTML() throws IOException
@@ -269,6 +295,10 @@ public class parseMsgs {
             dis.close();
             baos.close();
             createConnection.close(c);
+            dis = null;
+            baos = null;
+            c = null;
+            
             return html;
         }
     }
