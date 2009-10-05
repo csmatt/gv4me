@@ -29,7 +29,7 @@ import ui.*;
 public class gvME extends MIDlet implements CommandListener {
     private static final String sentBoxStore = "sentBoxStore";
     private static final String outboxStore = "outboxStore";
-    private boolean midletPaused = false;    
+    private static boolean midletPaused = false;
     private static Timer timer;
     private static long timerDelay = 30000;
     private static String rnr;
@@ -72,6 +72,8 @@ public class gvME extends MIDlet implements CommandListener {
         } catch (Exception ex) {
             //ex.printStackTrace();
         }
+        menu = getMenu();
+        InboxList = new Inbox();
     }
 
     public void startMIDlet() throws IOException, Exception {
@@ -195,6 +197,11 @@ public class gvME extends MIDlet implements CommandListener {
         return menu;
     }
 
+    public static void setMenu(int itemNum, String item)
+    {
+        menu.set(itemNum, item, null);
+    }
+
     //<editor-fold defaultstate="collapsed" desc=" Generated Method: menuAction ">//GEN-BEGIN:|24-action|0|24-preAction
     /**
      * Performs an action assigned to the selected list element in the menu component.
@@ -207,7 +214,7 @@ public class gvME extends MIDlet implements CommandListener {
                     newSMS.setString("");
                     newSMS = new WriteMsg("Write New", null);
                     dispMan.switchDisplayable(null, newSMS);
-            } else if (__selectedString.equals("Inbox")) {               
+            } else if (__selectedString.startsWith("Inbox")) {
                 dispMan.switchDisplayable(null, getInbox());
             } else if (__selectedString.equals("Outbox")) {
                 dispMan.switchDisplayable(null, getOutbox());
@@ -464,6 +471,7 @@ public class gvME extends MIDlet implements CommandListener {
 
     public static void setNumNewMsgs(int newMsgCnt)
     {
+        //setMenu(1, )
         gvME.numNewMsgs = newMsgCnt;
     }
 
@@ -488,7 +496,7 @@ public class gvME extends MIDlet implements CommandListener {
                 try {
                     numNewMsgs = 0;
                     getInbox().updateInbox(newMsgs);
-                    if(dispMan.getDisplay().getCurrent() == null)
+                    if(dispMan.getDisplay().getCurrent() == null || midletPaused)
                     {
                         dispMan.switchDisplayable(newMsgAlert, getInbox());
                     }

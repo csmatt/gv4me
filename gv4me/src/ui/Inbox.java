@@ -8,6 +8,7 @@ package ui;
 import gvME.gvME;
 import gvME.parseMsgs;
 import gvME.textConvo;
+import gvME.tools;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -26,6 +27,7 @@ public class Inbox extends MailBox {
     private Command replyCmd;
     private Command refreshCmd;
     private Command callCmd;
+    private Command markUnreadCmd;
     private static MsgList msgList;
     private static WriteMsg wm;
 
@@ -35,6 +37,7 @@ public class Inbox extends MailBox {
         addCommand(getReplyCmd());
         addCommand(getRefreshCmd());
         addCommand(getCallCmd());
+        addCommand(getMarkUnreadCmd());
         initInboxHash();
     }
 
@@ -46,15 +49,26 @@ public class Inbox extends MailBox {
         while(listEnum.hasMoreElements())
         {
             textConvo crnt = (textConvo) listEnum.nextElement();
+            if(!crnt.getIsRead())
+                numUnread++;
             inboxHash.put(crnt.getMsgID(), crnt);
         }
+        updateUnread();
+    }
+
+    private void updateUnread()
+    {
+        String[] inboxUnread = {"Inbox (", String.valueOf(numUnread), ")"};
+        gvME.setMenu(1, tools.combineStrings(inboxUnread));
     }
 
     public void updateInbox(Vector newMsgs) throws IOException, RecordStoreException
     {
-        if(newMsgs != null && newMsgs.size() > 0)
+        int numNewMsgs = 0;
+        if(newMsgs != null && (numNewMsgs = newMsgs.size()) > 0)
         {
-            for(int i = newMsgs.size()-1; i >= 0; i--)
+            numUnread += numNewMsgs;
+            for(int i = numNewMsgs-1; i >= 0; i--)
             {
                 textConvo newConvo = (textConvo) newMsgs.elementAt(i);
                 int index = -1;
@@ -72,7 +86,27 @@ public class Inbox extends MailBox {
                     addItem(newConvo);
                 }
             }
+            updateUnread();
         }
+    }
+    private void markConvoRead(textConvo crnt, int selIndex)
+    {
+        if(!crnt.getIsRead())
+        {
+            crnt.setIsRead(true);
+            numUnread--;
+            set(selIndex, getString(selIndex), super.msgIsRead);
+        }
+        else
+        {
+            numUnread++;
+            crnt.setIsRead(false);
+            set(selIndex, getString(selIndex), super.msgIsUnread);
+        }
+        updateUnread();
+        list.setElementAt(crnt, selIndex);
+        inboxHash.put(crnt.getMsgID(), crnt);
+        updateRS();
     }
 
     private void refreshInbox()
@@ -117,12 +151,31 @@ public class Inbox extends MailBox {
         }
         return callCmd;
     }
+
+    private Command getMarkUnreadCmd()
+    {
+        if(markUnreadCmd == null)
+        {
+            markUnreadCmd = new Command("Mark (Un)read", Command.ITEM, 0);
+        }
+        return markUnreadCmd;
+    }
     
     public void commandAction(Command command, Displayable displayable) {
 
         if(command == backCmd || command == delItemCmd || command == delAllCmd)
         {
             super.commandAction(command, displayable);
+            if(command == delItemCmd)
+            {
+                numUnread--;
+                updateUnread();
+            }
+            if(command == delAllCmd)
+            {
+                numUnread = 0;
+                updateUnread();
+            }
         }
         else if(command == refreshCmd)
         {
@@ -136,6 +189,8 @@ public class Inbox extends MailBox {
             if(command == okCmd)
             {
                 textConvo crnt = (textConvo) list.elementAt(selIndex);
+                if(!crnt.getIsRead())
+                    markConvoRead(crnt, selIndex);
                 msgList = new MsgList(crnt);
                 gvME.dispMan.switchDisplayable(null, msgList);
             }
@@ -149,6 +204,11 @@ public class Inbox extends MailBox {
                 MakeCall mc = new MakeCall(original.getReplyNum());
                 gvME.dispMan.switchDisplayable(null, mc);
                 mc = null;
+            }
+            else if(command == markUnreadCmd)
+            {
+                textConvo crnt = (textConvo) list.elementAt(selIndex);
+                markConvoRead(crnt, selIndex);
             }
         }
     }

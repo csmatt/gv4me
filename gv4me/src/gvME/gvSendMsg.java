@@ -7,6 +7,7 @@ package gvME;
 
 import java.io.IOException;
 import java.util.Vector;
+import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.io.HttpsConnection;
 
 /**
@@ -17,7 +18,7 @@ public class gvSendMsg {
     private static final String textURL = "https://www.google.com/voice/sms/send";
     private static final String replyURL = "https://www.google.com/voice/m/sendsms";
 
-    public static void sendMsg(textConvo original, String sendingTo, String msg, String rnr, Vector reqProps) throws IOException, Exception
+    public static void sendMsg(textConvo original, String sendingTo, String msg, String rnr, Vector reqProps) throws ConnectionNotFoundException, IOException, Exception
     {
         String[] strings = new String[8];
         String postData = "";

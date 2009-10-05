@@ -9,17 +9,20 @@ import gvME.gvME;
 import gvME.textConvo;
 import gvME.textMsg;
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Vector;
 import javax.microedition.lcdui.Choice;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Form;
+import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.List;
 import javax.microedition.rms.InvalidRecordIDException;
 import javax.microedition.rms.RecordEnumeration;
 import javax.microedition.rms.RecordStore;
 import javax.microedition.rms.RecordStoreException;
+import javax.microedition.rms.RecordStoreNotOpenException;
 
 /**
  *
@@ -32,9 +35,11 @@ public class MailBox extends List implements CommandListener {
     public Command delAllCmd;
     public Vector list;
     public String rsName;
-    public Vector rsMap = new Vector(10);
     public static int itemLength = 20;
     private Form readMsg;
+    public int numUnread = 0;
+    public final Image msgIsRead = Image.createImage("/pics/read.png");
+    public final Image msgIsUnread = Image.createImage("/pics/unread.png");
 
     public MailBox(String title, String rsName) throws RecordStoreException, IOException
     {
@@ -63,6 +68,7 @@ public class MailBox extends List implements CommandListener {
 
     public void addItemToMailBox(textConvo crnt, int index) throws IOException, RecordStoreException
     {
+        Image icon;
         StringBuffer itemBuff = new StringBuffer();
         itemBuff = new StringBuffer(crnt.getSender());
         itemBuff.append(": ");
@@ -72,10 +78,14 @@ public class MailBox extends List implements CommandListener {
             itemBuff.setLength(itemLength);
             itemBuff.append("...");
         }
-        if(index >= 0)
-            this.set(index, new String(itemBuff), null);
+        if(crnt.getIsRead())
+            icon = msgIsRead;
         else
-            this.insert(0, new String(itemBuff), null); //TODO: change from null to crnt.isRead();
+            icon = msgIsUnread;
+        if(index >= 0)
+            this.set(index, new String(itemBuff), icon);
+        else
+            this.insert(0, new String(itemBuff), icon); //TODO: change from null to crnt.isRead();
     }
     public void addItem(textConvo crnt) throws IOException, RecordStoreException
     {
@@ -83,74 +93,68 @@ public class MailBox extends List implements CommandListener {
     }
     public void addItem(textConvo crnt, int index) throws IOException, RecordStoreException
     {
-        updateRS(crnt, index);//updates the recordstore by adding the new convo
         addItemToMailBox(crnt, index);//adds item to MailBox GUI List
         if(index >= 0)
             list.setElementAt(crnt, index);
         else
             list.insertElementAt(crnt, 0);//adds item to list vector
+        updateRS();
     }
 
     public void delAll() throws RecordStoreException
     {
+        try{
+        RecordStore.deleteRecordStore(rsName);
+        }
+        catch(Exception e)
+        {}
+        numUnread = 0;
         this.deleteAll();
         list.removeAllElements();
-        RecordStore.deleteRecordStore(rsName);
     }
 
     public void delItem(int selIndex) throws RecordStoreException
     {
         if(!list.isEmpty())
         {
+            numUnread--;
             this.delete(selIndex);
             list.removeElementAt(selIndex);
-            removeRecord(selIndex);
+            updateRS();
         }
     }
 
-    //deletes a record from the recordstore and the recordID from the rsMap
-    public void removeRecord(int index) throws RecordStoreException
+    public void updateRS()
     {
-        int delIndex = ((Integer)(rsMap.elementAt(index))).intValue();
+        try{
+        RecordStore.deleteRecordStore(rsName);
+        }
+        catch(Exception e)
+        {}
         RecordStore rs = null;
         try{
             rs = RecordStore.openRecordStore(rsName, true);
-            rs.deleteRecord(delIndex);
+            
+            for(int i = list.size()-1; i >= 0; i--)
+            {
+                textConvo crnt = (textConvo)list.elementAt(i);
+                byte[] data = crnt.serialize();
+                rs.addRecord(data, 0, data.length);
+            }
         }
+        catch(Exception e)
+        {}
         finally{
-            try{
+            try {
                 rs.closeRecordStore();
-                rsMap.removeElementAt(index);
+            } catch (RecordStoreNotOpenException ex) {
+                ex.printStackTrace();
+            } catch (RecordStoreException ex) {
+                ex.printStackTrace();
             }
-            catch(Exception e)
-            {}
-        }
-
-    }
-
-    //adds a textConvo to the recordstore
-    public void updateRS(textConvo crnt, int setAt) throws IOException, RecordStoreException
-    {
-        byte[] record = crnt.serialize();
-        RecordStore rs = null;
-        try{
-            rs = RecordStore.openRecordStore(rsName, true);
-            if(setAt >= 0)
-            {
-                setAt = ((Integer)rsMap.elementAt(setAt)).intValue();
-                rs.setRecord(setAt, record, 0, record.length);
-            }
-            else
-            {
-                int index = rs.addRecord(record, 0, record.length);
-                rsMap.addElement(new Integer(index));//rsMap maps recordIDs to items in the list vector
-            }
-        }
-        finally{
-            rs.closeRecordStore();
         }
     }
-
+ 
     //creates a vector from the recordstore's contents. it then returns this vector
     public Vector vectFromRS() throws InvalidRecordIDException, IOException, RecordStoreException
     {
@@ -163,9 +167,7 @@ public class MailBox extends List implements CommandListener {
 
             while(re.hasNextElement())
             {
-                int recID = re.nextRecordId();
-                rsMap.addElement(new Integer(recID));
-                textConvo crnt = textConvo.deserialize(rs.getRecord(recID));
+                textConvo crnt = textConvo.deserialize(re.nextRecord());
                 vectOfRS.addElement(crnt);
             }
         }

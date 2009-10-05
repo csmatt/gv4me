@@ -161,7 +161,7 @@ public class parseMsgs {
         if(!sender.equals(""))
         {
             markMsgRead(msgID);
-            getMsgConvo = new textConvo(numMsgs, msgID, sender, msgVect, crnt);
+            getMsgConvo = new textConvo(numMsgs, false, msgID, sender, msgVect, crnt);
         }
         kvp = null;
         time = null;

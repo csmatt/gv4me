@@ -24,10 +24,11 @@ public class textConvo {
     private String msgID = "";
     private String date = "";
     private textMsg lastMsg;
-    private static int numConvoFields = 4;
-    private static int numMsgFields = 3;
+    private boolean isRead = false;
+    private static final int numConvoFields = 4;
+    private static final int numMsgFields = 3;
 
-    public textConvo(int numMsgs, String msgID, String sender, String replyNum, String date, Vector messages, textMsg lastMsg)
+    public textConvo(int numMsgs, boolean isRead, String msgID, String sender, String replyNum, String date, Vector messages, textMsg lastMsg)
     {
         this.numMsgs = numMsgs;
         this.msgID = msgID;
@@ -35,6 +36,24 @@ public class textConvo {
         this.messages = messages;
         this.replyNum = replyNum;
         this.lastMsg = lastMsg;
+        this.date = date;
+        this.isRead = isRead;
+    }
+
+    public textConvo(int numMsgs, boolean isRead, String msgID, String sender, Vector messages, textMsg msg)
+    {
+        this.numMsgs = numMsgs;
+        this.msgID = msgID;
+        this.sender = sender;
+        this.messages = messages;
+        this.lastMsg = msg;
+    }
+
+    public textConvo(int numMsgs, String msgID, String replyNum, String date)
+    {
+        this.numMsgs = numMsgs;
+        this.msgID = msgID;
+        this.replyNum = replyNum;
         this.date = date;
     }
 
@@ -48,21 +67,16 @@ public class textConvo {
         this.replyNum = replyNum;
         this.lastMsg = new textMsg("");
     }
-    public textConvo(int numMsgs, String msgID, String replyNum, String date)
+
+    public boolean setIsRead(boolean isRead)
     {
-        this.numMsgs = numMsgs;
-        this.msgID = msgID;
-        this.replyNum = replyNum;
-        this.date = date;
+        this.isRead = isRead;
+        return this.isRead;
     }
 
-    public textConvo(int numMsgs, String msgID, String sender, Vector messages, textMsg msg)
+    public boolean getIsRead()
     {
-        this.numMsgs = numMsgs;
-        this.msgID = msgID;
-        this.sender = sender;
-        this.messages = messages;
-        this.lastMsg = msg;
+        return isRead;
     }
 
     public void setConvo(textConvo convo)
@@ -78,6 +92,7 @@ public class textConvo {
             messages.addElement(crnt);
             numMsgs++;
         }
+        isRead = false;//sets isRead back to false because we've received a new message
         this.lastMsg = convo.getLastMsg();
     }
 
@@ -151,6 +166,7 @@ public class textConvo {
         String[] textMsgFields = new String[textMsg.numFields];
         textMsg lastMessage, msg = null;
         Vector msgsVect = new Vector(5);
+        boolean isRead;
         int numMsgs = 0;
         
         try {
@@ -158,7 +174,8 @@ public class textConvo {
             DataInputStream dis = new DataInputStream(bis);
 
             numMsgs = Integer.parseInt(dis.readUTF());
-
+            isRead = (Integer.parseInt(dis.readUTF())) == 1;
+            
             for(int i=0; i < numConvoFields; i++)
             {
                 fields[i] = dis.readUTF();
@@ -184,7 +201,7 @@ public class textConvo {
             dis.close();
             bis.close();
 
-            textConvo deserialized = new textConvo(numMsgs, fields[0], fields[1], fields[2], fields[3], msgsVect, lastMessage);
+            textConvo deserialized = new textConvo(numMsgs, isRead, fields[0], fields[1], fields[2], fields[3], msgsVect, lastMessage);
 
             dis = null;
             bis = null;
@@ -240,12 +257,15 @@ public class textConvo {
     {
         String[] fields = {this.msgID, this.sender, this.replyNum, this.date};
         String[] numMsgField = {String.valueOf(this.messages.size())};//this.numMsgs)};
+        String[] isReadStr = {String.valueOf(((isRead) ? 1:0))};
         byte[] numMsgs_bytes = serial.serialize(numMsgField);
+        byte[] isRead_bytes = serial.serialize(isReadStr);
         byte[] data = serial.serialize(fields);
         byte[] textMsgs = serializeMsgs(this.messages);
         byte[] lastMsg_bytes = serializeMsg(this.lastMsg);
         ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
         byteOutStream.write(numMsgs_bytes);
+        byteOutStream.write(isRead_bytes);
         byteOutStream.write(data);
         byteOutStream.write(textMsgs);
         byteOutStream.write(lastMsg_bytes);

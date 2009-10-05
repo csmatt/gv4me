@@ -16,6 +16,7 @@ import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.List;
 import javax.microedition.lcdui.TextBox;
 import javax.microedition.lcdui.TextField;
+import javax.microedition.lcdui.Ticker;
 import javax.microedition.pim.Contact;
 import javax.microedition.pim.PIM;
 import javax.microedition.rms.RecordStoreException;
@@ -119,6 +120,7 @@ public class ChooseContact extends List implements CommandListener{
             pimBrowser.setTitle("Contacts List");
             pimBrowser.addCommand(getOkPimBrowserCmd());
             pimBrowser.addCommand(getBackFromPimBrowserCmd());
+            pimBrowser.setSelectCommand(okPimBrowserCmd);
             pimBrowser.setCommandListener(this);
         }
         return pimBrowser;
@@ -171,12 +173,15 @@ public class ChooseContact extends List implements CommandListener{
             if (command == backFromPimBrowserCmd) {
                 gvME.dispMan.switchToPreviousDisplayable();
             } else if (command == okPimBrowserCmd) {
+                int index = pimBrowser.getSelectedIndex();
                 Contact pimContact = (Contact) pimBrowser.getSelectedItem();
                 String pimName = pimContact.getString(Contact.NAME, Contact.NAME_GIVEN);
-                String pimNumber = pimContact.getString(Contact.ATTR_PREFERRED, Contact.TEL);
+                System.out.println(pimName);
+                String pimNumber = pimContact.getString(Contact.TEL, index);//Contact.ATTR_PREFERRED, Contact.TEL);
                 next.setContacting(pimNumber);
                 try {
                     System.out.println(pimNumber + " " + pimName);
+                    this.setTicker(new Ticker(pimNumber + " " + pimName));
                     gvME.userSettings.addContact(new KeyValuePair(pimNumber, pimName));
                 } catch (RecordStoreException ex) {
                     ex.printStackTrace();
