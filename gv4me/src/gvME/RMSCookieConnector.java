@@ -64,13 +64,13 @@ public class RMSCookieConnector {
     private static String cookieStoreName = "cookieStore";
 
     // Use the default RMS cookie store name.
-    public static HttpsConnection open(String url) throws Exception {
+    public static HttpsConnection open(String url) throws ConnectionNotFoundException, Exception {
         return open(url, cookieStoreName);
     }
 
     // Open a new connection and save cookie into the specified store.
     public static HttpsConnection open(String url, String storeName)
-                                                      throws Exception {
+                                                      throws ConnectionNotFoundException, Exception {
         cookieStoreName = storeName;
 
         // Open a new connection.
@@ -143,6 +143,7 @@ public class RMSCookieConnector {
         }
 
       } catch ( Exception e ) {
+          Logger.add("RMSCookieConnector", "getCookie", e.getMessage());
         throw new IOException( e.getMessage() );
       }
       finally{
@@ -174,6 +175,7 @@ public class RMSCookieConnector {
       }
       catch(Exception e)
       {
+          Logger.add("RMSCookieConnector", "addCookie", e.getMessage());
        System.out.println("error opening record" + e.toString());
       }
       // If we do have cookies to send, set the composed string into

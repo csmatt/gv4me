@@ -17,7 +17,6 @@ import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;
 import javax.microedition.rms.InvalidRecordIDException;
-import javax.microedition.rms.RecordStore;
 import javax.microedition.rms.RecordStoreException;
 import javax.microedition.rms.RecordStoreNotOpenException;
 import org.netbeans.microedition.lcdui.WaitScreen;
@@ -28,35 +27,27 @@ import ui.*;
  */
 public class gvME extends MIDlet implements CommandListener {
     private static final String sentBoxStore = "sentBoxStore";
-    private static final String outboxStore = "outboxStore";
     private static boolean midletPaused = false;
     private static Timer timer;
     private static long timerDelay = 30000;
     private static String rnr;
-    public static settings userSettings;
-    public static DisplayManager dispMan;
-    private static Command exitCmd;
-    private static Command minimize;
-    private static Command backFromInbox;
-    private static Command backFromSettings;
-    private static Command okSaveSettings;
-    private static Command okMakeCall;
-    private static List menu;
-    private static WriteMsg newSMS;
+    private static Command exitCmd, minimize;
     private static Inbox InboxList;
-    private static Form changeSettingsMenu;
-    private static TextField passwordTextField;
-    private static TextField usernameTextField;
-    private static TextField callFromTextField;
-    private static TextField intervalTextField;
-    private WaitScreen callWaitScreen;
-    private Command backFromMakeCall;
     private static CommandListener cl;
     private static int numNewMsgs;
-    public static int countCons;
+    private static Command backCmd, saveSettingsCmd;
+    private static List menu;
+    private WriteMsg newSMS;
+    private static Form changeSettingsMenu;
+    private static TextField passwordTextField, usernameTextField, callFromTextField, intervalTextField;
+    private WaitScreen callWaitScreen;
+    private Alert noCallFromAlert;
+    public int countCons;
     public static MailBox SentBox;
     public static Outbox outbox;
-
+    public static settings userSettings;
+    public static DisplayManager dispMan;
+    
     /*
      * Initilizes the application.
      * It is called only once when the MIDlet is started. The method is called before the <code>startMIDlet</code> method.
@@ -69,9 +60,8 @@ public class gvME extends MIDlet implements CommandListener {
         parseMsgs.setReqProps();
         try {
             RMSCookieConnector.removeCookies();
-        } catch (Exception ex) {
-            //ex.printStackTrace();
-        }
+        } catch (Exception ignore)
+        {}
         menu = getMenu();
         InboxList = new Inbox();
     }
@@ -82,7 +72,8 @@ public class gvME extends MIDlet implements CommandListener {
         waitForLogin = null;
         SentBox = getSentBox();
         outbox = getOutbox();
-        createTimer();
+        if(Integer.parseInt(userSettings.getCheckInterval()) > 0)
+            createTimer();
     }
 
     public void resumeMIDlet() {
@@ -96,19 +87,14 @@ public class gvME extends MIDlet implements CommandListener {
      * @param displayable the Displayable where the command was invoked
      */
     public void commandAction(Command command, Displayable displayable) {
-         if (displayable == callWaitScreen) {
-            if (command == WaitScreen.FAILURE_COMMAND) {
-//TODO
-            } else if (command == WaitScreen.SUCCESS_COMMAND) {
+        if (displayable == changeSettingsMenu) {
+            if (command == backCmd) {
                 dispMan.switchDisplayable(null, getMenu());
-            }
-        } else if (displayable == changeSettingsMenu) {
-            if (command == backFromSettings) {
-                dispMan.switchDisplayable(null, getMenu());
-            } else if (command == okSaveSettings) {
+            } else if (command == saveSettingsCmd) {
                 try {
                     changeSettings();
                 } catch (RecordStoreException ex) {
+                    Logger.add(getClass().getName(), ex.getMessage());
                     ex.printStackTrace();
                 }
                 dispMan.switchDisplayable(null, getMenu());
@@ -118,8 +104,10 @@ public class gvME extends MIDlet implements CommandListener {
                 try {
                     menuAction();
                 } catch (IOException ex) {
+                    Logger.add(getClass().getName(), ex.getMessage());
                     ex.printStackTrace();
                 } catch (Exception ex) {
+                    Logger.add(getClass().getName(), ex.getMessage());
                     ex.printStackTrace();
                 }                
             } else if (command == exitCmd) {               
@@ -146,7 +134,12 @@ public class gvME extends MIDlet implements CommandListener {
         timer.schedule(new checkInbox(), timerDelay, Long.parseLong(userSettings.getCheckInterval())*1000);
     }
 
-    public static void changeSettings() throws RecordStoreException
+    public static void cancelTimer()
+    {
+        timer.cancel();
+    }
+
+    public void changeSettings() throws RecordStoreException
     {
         String interval = userSettings.getCheckInterval();
         String username = userSettings.getUsername();
@@ -160,7 +153,8 @@ public class gvME extends MIDlet implements CommandListener {
         {
             userSettings.setCheckInterval(tfInterval);
             timer.cancel();
-            createTimer();
+            if(Integer.parseInt(tfInterval) > 0)
+                createTimer();
         }
         if(!tfUsername.equals(username))
         {
@@ -222,11 +216,15 @@ public class gvME extends MIDlet implements CommandListener {
                 dispMan.switchDisplayable(null, getSentBox());
             } else if (__selectedString.equals("Settings")) {            
                 dispMan.switchDisplayable(null, getChangeSettingsMenu());                
-            } else if (__selectedString.equals("Make Call")) {                
-                MakeCall mc = new MakeCall();
-                ChooseContact cc = new ChooseContact(getMenu(), mc);
-                mc = null;
-                dispMan.switchDisplayable(null, cc);                
+            } else if (__selectedString.equals("Make Call")) {
+                if(userSettings.getCallFrom().equals(""))
+                    gvME.dispMan.switchDisplayable(getNoCallFromAlert(), gvME.getChangeSettingsMenu());
+                else{
+                    MakeCall mc = new MakeCall();
+                    ChooseContact cc = new ChooseContact(getMenu(), mc);
+                    mc = null;
+                    dispMan.switchDisplayable(null, cc);
+                }
             }
         }        
     }
@@ -249,7 +247,7 @@ public class gvME extends MIDlet implements CommandListener {
         return InboxList;
     }
 
-    public static Outbox getOutbox() throws RecordStoreException, IOException
+    public Outbox getOutbox() throws RecordStoreException, IOException
     {
         if(outbox == null)
         {
@@ -258,121 +256,46 @@ public class gvME extends MIDlet implements CommandListener {
         return outbox;
     }
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: exitGVSMS ">//GEN-BEGIN:|62-getter|0|62-preInit
-    /**
-     * Returns an initiliazed instance of exitGVSMS component.
-     * @return the initialized component instance
-     */
     public static Command getExitCmd() {
         if (exitCmd == null) {
             exitCmd = new Command("Exit", Command.EXIT, 0);
         }
         return exitCmd;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: backFromInbox ">//GEN-BEGIN:|82-getter|0|82-preInit
-    /**
-     * Returns an initiliazed instance of backFromInbox component.
-     * @return the initialized component instance
-     */
-    public Command getBackFromInbox() {
-        if (backFromInbox == null) {
-            backFromInbox = new Command("Back", Command.BACK, 0);//GEN-LINE:|82-getter|1|82-postInit
+    private static Command getBackCmd() {
+        if (backCmd == null) {
+            backCmd = new Command("Back", Command.BACK, 0);
             
         }
-        return backFromInbox;
+        return backCmd;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: minimize ">//GEN-BEGIN:|149-getter|0|149-preInit
-    /**
-     * Returns an initiliazed instance of minimize component.
-     * @return the initialized component instance
-     */
     public static Command getMinimize() {
         if (minimize == null) {
             minimize = new Command("Minimize", Command.BACK, 0);        
         }
         return minimize;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: okMakeCall ">//GEN-BEGIN:|226-getter|0|226-preInit
-    /**
-     * Returns an initiliazed instance of okMakeCall component.
-     * @return the initialized component instance
-     */
-    public Command getOkMakeCall() {
-        if (okMakeCall == null) {
-            okMakeCall = new Command("Ok", Command.OK, 0);
-            
+    private static Command getSaveSettingsCmd() {
+        if (saveSettingsCmd == null) {
+            saveSettingsCmd = new Command("Save", Command.OK, 1);           
         }
-        return okMakeCall;
+        return saveSettingsCmd;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: backFromEnterPhone ">//GEN-BEGIN:|228-getter|0|228-preInit
-    /**
-     * Returns an initiliazed instance of backFromEnterPhone component.
-     * @return the initialized component instance
-     */
-    public Command getBackFromMakeCall() {
-        if (backFromMakeCall == null) {
-            backFromMakeCall = new Command("Back", Command.BACK, 0);            
-        }
-        return backFromMakeCall;
-    }
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: okSaveSettings ">//GEN-BEGIN:|234-getter|0|234-preInit
-    /**
-     * Returns an initiliazed instance of okSaveSettings component.
-     * @return the initialized component instance
-     */
-    public static Command getOkSaveSettings() {
-        if (okSaveSettings == null) {
-            okSaveSettings = new Command("Save", Command.OK, 0);            
-        }
-        return okSaveSettings;
-    }
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: backFromSettings ">//GEN-BEGIN:|236-getter|0|236-preInit
-    /**
-     * Returns an initiliazed instance of backFromSettings component.
-     * @return the initialized component instance
-     */
-    public static Command getBackFromSettings() {
-        if (backFromSettings == null) {
-            backFromSettings = new Command("Cancel", Command.BACK, 0);            
-        }
-        return backFromSettings;
-    }
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: changeSettingsMenu ">//GEN-BEGIN:|233-getter|0|233-preInit
-    /**
-     * Returns an initiliazed instance of changeSettingsMenu component.
-     * @return the initialized component instance
-     */
     public static Form getChangeSettingsMenu() {
         if (changeSettingsMenu == null) {
             changeSettingsMenu = new Form("Change Settings", new Item[] { getUsernameTextField(), getPasswordTextField(), getCallFromTextField(), getIntervalTextField() });//GEN-BEGIN:|233-getter|1|233-postInit
-            changeSettingsMenu.addCommand(getOkSaveSettings());
-            changeSettingsMenu.addCommand(getBackFromSettings());
+            changeSettingsMenu.addCommand(getSaveSettingsCmd());
+            changeSettingsMenu.addCommand(getBackCmd());
             changeSettingsMenu.setCommandListener(cl);
         }
         return changeSettingsMenu;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: usernameTextField ">//GEN-BEGIN:|238-getter|0|238-preInit
-    /**
-     * Returns an initiliazed instance of usernameTextField component.
-     * @return the initialized component instance
-     */
-    public static TextField getUsernameTextField() {
+    private static TextField getUsernameTextField() {
         if (usernameTextField == null) {
             String userName = userSettings.getUsername();
             usernameTextField = new TextField("Username:", userName, 40, TextField.ANY);
@@ -380,43 +303,37 @@ public class gvME extends MIDlet implements CommandListener {
         return usernameTextField;
     }
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: passwordTextField ">//GEN-BEGIN:|239-getter|0|239-preInit
-    /**
-     * Returns an initiliazed instance of passwordTextField component.
-     * @return the initialized component instance
-     */
-    public static TextField getPasswordTextField() {
+    private static TextField getPasswordTextField() {
         if (passwordTextField == null) {
             passwordTextField = new TextField("Password:", null, 40, TextField.PASSWORD);
         }
         return passwordTextField;
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: intervalTextField ">//GEN-BEGIN:|240-getter|0|240-preInit
-    /**
-     * Returns an initiliazed instance of intervalTextField component.
-     * @return the initialized component instance
-     */
-    public static TextField getIntervalTextField() {
+    private static TextField getIntervalTextField() {
         if (intervalTextField == null) {
             String interval = userSettings.getCheckInterval();
-            intervalTextField = new TextField("Check Inbox (secs)", interval, 10, TextField.NUMERIC);//GEN-LINE:|240-getter|1|240-postInit
+            intervalTextField = new TextField("Check Inbox (secs). 0 for never", interval, 10, TextField.NUMERIC);//GEN-LINE:|240-getter|1|240-postInit
         }
         return intervalTextField;
     }
- 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Getter: callFromTextField ">//GEN-BEGIN:|246-getter|0|246-preInit
-    /**
-     * Returns an initiliazed instance of callFromTextField component.
-     * @return the initialized component instance
-     */
-    public static TextField getCallFromTextField() {
+
+    private static TextField getCallFromTextField() {
         if (callFromTextField == null) {
             String callFrom = userSettings.getCallFrom();
             callFromTextField = new TextField("Call From:", callFrom, 15, TextField.PHONENUMBER);//GEN-LINE:|246-getter|1|246-postInit
         }
         return callFromTextField;
+    }
+
+    private Alert getNoCallFromAlert()
+    {
+        if(noCallFromAlert == null)
+        {
+            noCallFromAlert = new Alert("Number Not Found", "Enter Your Number", null, AlertType.WARNING);
+            noCallFromAlert.setTimeout(2000);
+        }
+        return noCallFromAlert;
     }
 
     /**
@@ -440,8 +357,10 @@ public class gvME extends MIDlet implements CommandListener {
                 initialize ();
                 startMIDlet();
             } catch (IOException ex) {
+                Logger.add(getClass().getName(), ex.getMessage());
                 ex.printStackTrace();
             } catch (Exception ex) {
+                Logger.add(getClass().getName(), ex.getMessage());
                 ex.printStackTrace();
             }
         }
@@ -471,7 +390,6 @@ public class gvME extends MIDlet implements CommandListener {
 
     public static void setNumNewMsgs(int newMsgCnt)
     {
-        //setMenu(1, )
         gvME.numNewMsgs = newMsgCnt;
     }
 
@@ -481,12 +399,15 @@ public class gvME extends MIDlet implements CommandListener {
             try {
                 newMsgs = parseMsgs.readMsgs();
             } catch (ConnectionNotFoundException cnf) {
+                Logger.add(getClass().getName(), cnf.toString());
                 System.out.println("Connection Not Found.");
                 createTimer();
                 return;
             }catch (IOException ex) {
+                Logger.add(getClass().getName(), "checkInbox", ex.toString());
                 ex.printStackTrace();
             } catch (Exception ex) {
+                Logger.add(getClass().getName(), "checkInbox", ex.toString());
                 ex.printStackTrace();
             }
             if(newMsgs != null && numNewMsgs > 0)
@@ -502,8 +423,10 @@ public class gvME extends MIDlet implements CommandListener {
                     }
                     dispMan.vibrate(400);
                 } catch (IOException ex) {
+                    Logger.add(getClass().getName(), "checkInbox", ex.getMessage());
                     ex.printStackTrace();
                 } catch (Exception ex) {
+                    Logger.add(getClass().getName(), "checkInbox", ex.getMessage());
                     ex.printStackTrace();
                 }
             }

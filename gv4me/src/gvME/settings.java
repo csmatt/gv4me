@@ -16,7 +16,6 @@ import javax.microedition.rms.RecordStoreException;
  * @author matt
  */
 public class settings {
- //   private final String contactRSName = "contactStore";
     private final String userSettingsStore = "userSettingsStore";
     private String username = "";
     private String password = "";
@@ -40,15 +39,15 @@ public class settings {
                 }
             }
         } catch (RecordStoreException ex) {
+            Logger.add(getClass().getName(), ex.getMessage());
             ex.printStackTrace();
         }
         finally{
             try{
                 rs.closeRecordStore();
             }
-            catch(Exception e){
-                e.printStackTrace();
-            }
+            catch(Exception e)
+            {}
         }
     }
     
@@ -115,7 +114,19 @@ public class settings {
 
     public void addContact(KeyValuePair contact) throws RecordStoreException, IOException
     {
-        if(!recentContacts.contains(contact))
+        for(int i = 0; recentContacts != null && i < recentContacts.size(); i++)
+        {
+            KeyValuePair crnt = (KeyValuePair)recentContacts.elementAt(i);
+            if(crnt.getKey().equals(contact.getKey()))
+            {
+                KeyValuePair temp = new KeyValuePair(crnt.getKey(), crnt.getValue());
+                recentContacts.removeElementAt(i);
+                recentContacts.insertElementAt(temp, 0);
+                return;
+            }
+                
+        }
+        if(recentContacts.indexOf(contact) < 0)
         {
             recentContacts.insertElementAt(contact, 0);
             if(recentContacts.size() > MAX_CONTACTS)
@@ -131,26 +142,26 @@ public class settings {
             byte[] data = serial.serializeKVPVector(recentContacts);
             rs = RecordStore.openRecordStore(userSettingsStore, true);
             if(rs.getNumRecords() != 0){
-            try{
-                rs.setRecord(2, data, 0, data.length);
+                try{
+                    rs.setRecord(2, data, 0, data.length);
+                }
+                catch(InvalidRecordIDException ire)
+                {
+                    rs.addRecord(data, 0, data.length);
+                }
             }
-            catch(InvalidRecordIDException ire)
-            {
-                rs.addRecord(data, 0, data.length);
-            }}
         }
         catch(RecordStoreException rse)
         {
+            Logger.add(getClass().getName(), rse.getMessage());
             rse.printStackTrace();
         }
         finally{
             try{
-            rs.closeRecordStore();
+                rs.closeRecordStore();
             }
             catch(Exception e)
-            {
-                e.printStackTrace();
-            }
+            {}
         }
     }
 
@@ -171,9 +182,10 @@ public class settings {
                 rs.addRecord(data, 0, data.length);
             }
         }
-        catch(Exception e)
+        catch(Exception ex)
         {
-            e.printStackTrace();
+            Logger.add(getClass().getName(), ex.getMessage());
+            ex.printStackTrace();
         }
         finally{
             rs.closeRecordStore();

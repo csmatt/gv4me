@@ -31,11 +31,11 @@ public class serial {
         
         for(int i = 0; i < strArray.length && strArray[i] != null; i++)
         {
-            vect.addElement(new KeyValuePair(strArray[i],strArray[i++]));
+            vect.addElement(new KeyValuePair(strArray[i],strArray[++i]));
         }
 
-        data = null;
-        strArray = null;
+//        data = null;
+//        strArray = null;
         
         return vect;
     }
@@ -54,9 +54,9 @@ public class serial {
         }
         byte[] data = serialize(strArray);
 
-        kvp = null;
-        vect = null;
-        strArray = null;
+//        kvp = null;
+//        vect = null;
+//        strArray = null;
         
         return data;
     }
@@ -75,14 +75,14 @@ public class serial {
                 fields[i] = dis.readUTF();
             }
         }
-        catch(IOException exc) {
-            throw exc;
+        catch(IOException ex) {
+            throw ex;
         }
         finally{
             dis.close();
             bis.close();
-            dis = null;
-            bis = null;
+//            dis = null;
+//            bis = null;
             
             return fields;
         }
@@ -105,16 +105,16 @@ public class serial {
                 dos.writeUTF(fields[i]);
             }
             data = bos.toByteArray();
-        } catch(IOException exc) {
-            exc.printStackTrace();
+        } catch(IOException ex) {
+            ex.printStackTrace();
             return null;
         }
         finally{
             dos.flush();
             dos.close();
             bos.close();
-            dos = null;
-            bos = null;
+//            dos = null;
+//            bos = null;
             return data;
         }
     }

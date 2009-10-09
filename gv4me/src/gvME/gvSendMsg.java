@@ -44,15 +44,20 @@ public class gvSendMsg {
         postData = tools.combineStrings(strings);
         String[] contentLen = {"Content-Length", String.valueOf(postData.length())};
         reqProps.insertElementAt(contentLen, 2);
-
-        HttpsConnection sendCon = createConnection.open(url, "POST", reqProps, postData);
-        createConnection.close(sendCon);
-
-        url = null;
-        text = null;
-        sendCon = null;
-        strings = null;
-        postData = null;
-        contentLen = null;   
+        HttpsConnection sendCon = null;
+        try{
+            sendCon = createConnection.open(url, "POST", reqProps, postData);
+        }
+        catch(ConnectionNotFoundException cnf)
+        {
+            Logger.add("gvSendMsg", cnf.getMessage());
+            throw cnf;
+        }
+        try{
+            createConnection.close(sendCon);
+        }
+        catch(Exception ignore)
+        {}
+        
     }
 }

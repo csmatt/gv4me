@@ -23,9 +23,11 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
  */
 public class MakeCall extends WaitScreen implements CommandListener, interCom {
     private String contacting = "";
-    private Alert noCallFromAlert;
+    private String recipient = "";
+//    private Alert noCallFromAlert;
     private String rnr;
     private Vector reqProps = new Vector(2);
+    private Alert callFailedAlert;
     private final String callURL = "https://www.google.com/voice/call/connect";
  //   private Image image;
 
@@ -35,23 +37,18 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
         initialize();
     }
 
-    public MakeCall(String contacting)
+    public MakeCall(String contacting, String recipient)
     {
         super(gvME.dispMan.getDisplay());
         this.contacting = contacting;
+        this.recipient = recipient;
         initialize();
     }
 
     private void initialize()
     {
-        if(gvME.userSettings.getCallFrom() == null || gvME.userSettings.getCallFrom().equals(""))
-        {
-            gvME.dispMan.switchDisplayable(getNoCallFromAlert(), gvME.getChangeSettingsMenu());
-        }
         setTitle("Making Call");
         setCommandListener(this);
-     //   setImage(getImage());
-
         reqProps = parseMsgs.getReqProps();
         rnr = gvME.getRNR();
         setText("Making Call...");
@@ -65,7 +62,10 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
         String[] contentLen = {"Content-Length", String.valueOf(postData.length())};
         reqProps.insertElementAt(contentLen, 2);
         HttpsConnection c = createConnection.open(callURL, "POST", reqProps, postData);
+        String pageData = createConnection.getPageData(c);
         c.close();
+        if(pageData.indexOf("true") < 0)
+            throw new Exception("call failed");
     }
 
     public SimpleCancellableTask getSimpleCancellableTask() {
@@ -78,26 +78,27 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
         return task;
     }
 
-    private Alert getNoCallFromAlert()
-    {
-        if(noCallFromAlert == null)
-        {
-            noCallFromAlert = new Alert("Number Not Found", "Enter Your Number", null, AlertType.WARNING);
-            noCallFromAlert.setTimeout(2000);
-        }
-        return noCallFromAlert;
+    public void setContacting(String contacting, String recipient) {
+        this.contacting = contacting;
+        this.recipient = recipient;
     }
 
-    public void setContacting(String num) {
-        this.contacting = num;
+    private Alert getCallFailedAlert()
+    {
+        if(callFailedAlert == null)
+        {
+            callFailedAlert = new Alert("Call Failed");
+            callFailedAlert.setString("Unable to complete call.");
+            callFailedAlert.setTimeout(2000);
+        }
+        return callFailedAlert;
     }
 
     public void commandAction(Command command, Displayable display) {
-            if (command == WaitScreen.FAILURE_COMMAND) {
-//TODO:         switchDisplayable(getAlert(), getCallWaitScreen());
-                System.out.println("Failed");
-            } else if (command == WaitScreen.SUCCESS_COMMAND) {
-                gvME.dispMan.showMenu();
-            }
+        if (command == WaitScreen.FAILURE_COMMAND) {
+            gvME.dispMan.switchDisplayable(getCallFailedAlert(), gvME.getMenu());
+        } else if (command == WaitScreen.SUCCESS_COMMAND) {
+            gvME.dispMan.showMenu();
+        }     
     }
 }

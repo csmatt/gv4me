@@ -18,7 +18,7 @@ import javax.microedition.io.HttpsConnection;
  * @author Matt Defenthaler
  */
 public class createConnection{
-    public static synchronized HttpsConnection open(String url, String reqMethod, Vector reqProps, String postData) throws IOException, Exception
+    public static synchronized HttpsConnection open(String url, String reqMethod, Vector reqProps, String postData) throws ConnectionNotFoundException, IOException, Exception
     {
         int respCode = 0;
         String loc = "";
@@ -46,7 +46,7 @@ public class createConnection{
             loc = c.getHeaderField("Location");
             respCode = c.getResponseCode();
             
-            while(respCode != 200 && respCode == 302 && loc != null && !loc.equals(""))
+            while(respCode == 302 && loc != null && !loc.equals(""))
             {
                 c = RMSCookieConnector.open(loc);
                 respCode = c.getResponseCode();
@@ -54,16 +54,22 @@ public class createConnection{
                 System.out.println(String.valueOf(respCode));
                 System.out.println(loc);
             }
+            if(respCode == 400)
+            {
+                createConnection.close(c);
+                RMSCookieConnector.removeCookies();
+                gvLogin.logIn();
+                c = createConnection.open(url, reqMethod, reqProps, postData);
+            }
 
         }
         catch(ConnectionNotFoundException cnf)
         {
+            Logger.add("createConnection", cnf.getMessage());
             throw cnf;
         }
-        finally
-        {
-            return c;
-        }
+
+        return c;
     }
 
     public static String getAuth(HttpsConnection c) throws IOException
@@ -88,10 +94,10 @@ public class createConnection{
         String dataString = new String(baos.toByteArray());
         dis.close();
         baos.close();
-        dis = null;
-        baos = null;
-        c = null;
-        buffer = null;
+//        dis = null;
+//        baos = null;
+//        c = null;
+//        buffer = null;
         return dataString;
     }
 
@@ -116,8 +122,12 @@ public class createConnection{
         {
             throw new IOException("Invalid Username or Password");
         }
-        c = null;
-        check = null;
+        else if(rnrVal.equals(""))
+        {
+            throw new IOException("rnr blank");
+        }
+//        c = null;
+//        check = null;
 
         return rnrVal;
     }

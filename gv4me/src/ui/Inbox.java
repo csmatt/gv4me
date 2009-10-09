@@ -5,6 +5,8 @@
 
 package ui;
 
+import gvME.KeyValuePair;
+import gvME.Logger;
 import gvME.gvME;
 import gvME.parseMsgs;
 import gvME.textConvo;
@@ -28,7 +30,6 @@ public class Inbox extends MailBox {
     private Command refreshCmd;
     private Command callCmd;
     private Command markUnreadCmd;
-    private static MsgList msgList;
     private static WriteMsg wm;
 
     public Inbox() throws IOException, RecordStoreException
@@ -38,6 +39,7 @@ public class Inbox extends MailBox {
         addCommand(getRefreshCmd());
         addCommand(getCallCmd());
         addCommand(getMarkUnreadCmd());
+        setSelectCommand(OKCmd);
         initInboxHash();
     }
 
@@ -67,7 +69,6 @@ public class Inbox extends MailBox {
         int numNewMsgs = 0;
         if(newMsgs != null && (numNewMsgs = newMsgs.size()) > 0)
         {
-            numUnread += numNewMsgs;
             for(int i = numNewMsgs-1; i >= 0; i--)
             {
                 textConvo newConvo = (textConvo) newMsgs.elementAt(i);
@@ -75,6 +76,11 @@ public class Inbox extends MailBox {
                 if(inboxHash.containsKey(newConvo.getMsgID()))
                 {
                     textConvo crnt = (textConvo) inboxHash.get(newConvo.getMsgID());
+                    if(crnt.getIsRead())
+                    {
+                        numUnread++;
+                        crnt.setIsRead(false);
+                    }
                     index = list.indexOf(crnt);
                     inboxHash.put(crnt.getMsgID(), crnt);
                     list.setElementAt(crnt, index);
@@ -82,6 +88,7 @@ public class Inbox extends MailBox {
                 }
                 else
                 {
+                    numUnread++;
                     inboxHash.put(newConvo.getMsgID(), newConvo);
                     addItem(newConvo);
                 }
@@ -116,8 +123,10 @@ public class Inbox extends MailBox {
                 try {
                     gvME.getInbox().updateInbox(parseMsgs.readMsgs());
                 } catch (IOException ex) {
+                     Logger.add(getClass().getName(), ex.getMessage());
                     ex.printStackTrace();
                 } catch (Exception ex) {
+                    Logger.add(getClass().getName(), ex.getMessage());
                     ex.printStackTrace();
                 }
             }
@@ -163,18 +172,27 @@ public class Inbox extends MailBox {
     
     public void commandAction(Command command, Displayable displayable) {
 
-        if(command == backCmd || command == delItemCmd || command == delAllCmd)
-        {
+        if(command == backCmd)
             super.commandAction(command, displayable);
-            if(command == delItemCmd)
-            {
-                numUnread--;
-                updateUnread();
-            }
-            if(command == delAllCmd)
-            {
-                numUnread = 0;
-                updateUnread();
+        else if(command == delItemCmd || command == delAllCmd)
+        {
+            if(!list.isEmpty()){
+                if(command == delItemCmd)
+                {
+                    textConvo crnt = (textConvo)list.elementAt(getSelectedIndex());
+                    String hashkey = (String) crnt.getMsgID();
+                    inboxHash.remove(hashkey);
+                    if(!crnt.getIsRead())
+                        numUnread--;
+                    updateUnread();
+                }
+                if(command == delAllCmd)
+                {
+                    inboxHash.clear();
+                    numUnread = 0;
+                    updateUnread();
+                }
+                super.commandAction(command, displayable);
             }
         }
         else if(command == refreshCmd)
@@ -186,13 +204,12 @@ public class Inbox extends MailBox {
             int selIndex = this.getSelectedIndex();
             textConvo original  = (textConvo) list.elementAt(selIndex);
 
-            if(command == okCmd)
+            if(command == OKCmd)
             {
                 textConvo crnt = (textConvo) list.elementAt(selIndex);
                 if(!crnt.getIsRead())
                     markConvoRead(crnt, selIndex);
-                msgList = new MsgList(crnt);
-                gvME.dispMan.switchDisplayable(null, msgList);
+                gvME.dispMan.switchDisplayable(null, new MsgList(crnt));
             }
             else if(command == replyCmd)
             {
@@ -201,7 +218,7 @@ public class Inbox extends MailBox {
             }
             else if(command == callCmd)
             {
-                MakeCall mc = new MakeCall(original.getReplyNum());
+                MakeCall mc = new MakeCall(original.getReplyNum(), original.getSender());
                 gvME.dispMan.switchDisplayable(null, mc);
                 mc = null;
             }

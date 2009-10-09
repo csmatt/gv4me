@@ -5,6 +5,7 @@
 
 package ui;
 
+import gvME.Logger;
 import gvME.gvLogin;
 import gvME.gvME;
 import java.io.IOException;
@@ -38,7 +39,6 @@ public class Login extends WaitScreen implements CommandListener {
     public Login(String username, String password, gvME midlet)
     {
         super(gvME.dispMan.getDisplay());
-   //     this.userSettings = gvME.userSettings;
         this.username = username;
         this.password = password;
         this.midlet = midlet;
@@ -54,8 +54,9 @@ public class Login extends WaitScreen implements CommandListener {
             try {
                 image = Image.createImage("/pics/gvIcon.png");
                 //image from Matthew Rex Downham
-            } catch (java.io.IOException e) {
-                e.printStackTrace();
+            } catch (IOException ex) {
+                Logger.add(getClass().getName(), ex.getMessage());
+                ex.printStackTrace();
             }
         }
         return image;
@@ -141,7 +142,7 @@ public class Login extends WaitScreen implements CommandListener {
 
     private Command getCancelLoginCmd() {
         if (cancelLoginCmd == null) {
-            cancelLoginCmd = new Command("Quit", Command.CANCEL, 0);
+            cancelLoginCmd = new Command("Offline Mode", Command.CANCEL, 0);
         }
         return cancelLoginCmd;
     }
@@ -155,11 +156,12 @@ public class Login extends WaitScreen implements CommandListener {
                     gvLogin.setLoginInfo(username, password);
                     gvME.dispMan.switchDisplayable(null, this);
                 }catch (Exception ex) {
+                    Logger.add(getClass().getName(), ex.getMessage());
                     ex.printStackTrace();
                 }
             }
         }
-        else if (displayable == noConAlert)
+        else if (displayable == noConAlert || displayable == errorAlert)
         {
             if(command == loginAgainCmd)
             {
@@ -167,7 +169,8 @@ public class Login extends WaitScreen implements CommandListener {
             }
             else if(command == cancelLoginCmd)
             {
-                midlet.exitMIDlet();
+                gvME.cancelTimer();
+                gvME.dispMan.switchDisplayable(null, gvME.getMenu());
             }
         }
         else if (displayable == this) {
@@ -188,6 +191,7 @@ public class Login extends WaitScreen implements CommandListener {
                 try {
                     gvLogin.saveLoginInfo();
                 } catch (RecordStoreException ex) {
+                    Logger.add(getClass().getName(), ex.getMessage());
                     ex.printStackTrace();
                 }
             }
@@ -206,6 +210,7 @@ public class Login extends WaitScreen implements CommandListener {
                 catch(ConnectionNotFoundException cnf)
                 {
                     exceptionType = "cnf";
+                    Logger.add(getClass().getName(), cnf.getMessage());
                     throw cnf;
                 }
                 catch(IOException ioe)
@@ -214,12 +219,14 @@ public class Login extends WaitScreen implements CommandListener {
                     {
                         exceptionType = "inv";
                     }
+                    Logger.add(getClass().getName(), ioe.getMessage());
                     throw ioe;
                 }
-                catch(Exception e)
+                catch(Exception ex)
                 {
-                    exceptionType = e.getMessage() + " " + e.toString();
-                    throw e;
+                    exceptionType = ex.getMessage() + " " + ex.toString();
+                    Logger.add(getClass().getName(), ex.getMessage());
+                    throw ex;
                 }
             }
         });

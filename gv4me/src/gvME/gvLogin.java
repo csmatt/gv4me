@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.Vector;
 import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.io.HttpsConnection;
-import javax.microedition.lcdui.Command;
 import javax.microedition.rms.RecordStoreException;
 import ui.Login;
 
@@ -63,7 +62,6 @@ public class gvLogin {
         requestBody =  tools.combineStrings(reqBodyArray);
 
         logIn();
-        reqBodyArray = null;
         login = null;
     }
     
@@ -72,16 +70,17 @@ public class gvLogin {
         HttpsConnection c = null;
         String[] props = {"Content-Length", String.valueOf(requestBody.length())};
         reqProps.insertElementAt(props, 2);
+        String rnr;
         try{
             c = submitInfo(requestBody);
+            rnr = createConnection.get_rnr_se(c);
         }
         catch(ConnectionNotFoundException cnf)
         {
-            throw new ConnectionNotFoundException();
+            Logger.add("gvLogin", "logIn", cnf.getMessage());
+            throw cnf;
         }
         reqProps.removeElementAt(2);
-
-        String rnr = createConnection.get_rnr_se(c);
         System.out.println("rnr= "+rnr);
 
         //set rnr in gvME so other classes have access

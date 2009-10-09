@@ -9,7 +9,6 @@ import gvME.gvME;
 import gvME.textConvo;
 import gvME.textMsg;
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.Vector;
 import javax.microedition.lcdui.Choice;
 import javax.microedition.lcdui.Command;
@@ -29,10 +28,11 @@ import javax.microedition.rms.RecordStoreNotOpenException;
  * @author matt
  */
 public class MailBox extends List implements CommandListener {
-    public Command okCmd;
+    public Command OKCmd;
     public Command delItemCmd;
     public Command backCmd;
     public Command delAllCmd;
+    public Command markMultiCmd;
     public Vector list;
     public String rsName;
     public static int itemLength = 20;
@@ -44,11 +44,11 @@ public class MailBox extends List implements CommandListener {
     public MailBox(String title, String rsName) throws RecordStoreException, IOException
     {
         super(title, Choice.IMPLICIT);
-        addCommand(getOkCmd());
+        addCommand(getOKCmd());
         addCommand(getDelItemCmd());
         addCommand(getBackCmd());
         addCommand(getDelAllCmd());
-        setSelectCommand(okCmd);
+        setSelectCommand(OKCmd);
         setCommandListener(this);
         setFitPolicy(Choice.TEXT_WRAP_OFF);
         this.rsName = rsName;
@@ -72,7 +72,7 @@ public class MailBox extends List implements CommandListener {
         StringBuffer itemBuff = new StringBuffer();
         itemBuff = new StringBuffer(crnt.getSender());
         itemBuff.append(": ");
-        itemBuff.append(((textMsg)crnt.getMessages().lastElement()).getMessage());
+        itemBuff.append(crnt.getLastMsg().getMessage());//getMessages().lastElement()).getMessage());
         if(itemBuff.length() > itemLength)
         {
             itemBuff.setLength(itemLength);
@@ -85,7 +85,7 @@ public class MailBox extends List implements CommandListener {
         if(index >= 0)
             this.set(index, new String(itemBuff), icon);
         else
-            this.insert(0, new String(itemBuff), icon); //TODO: change from null to crnt.isRead();
+            this.insert(0, new String(itemBuff), icon);
     }
     public void addItem(textConvo crnt) throws IOException, RecordStoreException
     {
@@ -108,7 +108,6 @@ public class MailBox extends List implements CommandListener {
         }
         catch(Exception e)
         {}
-        numUnread = 0;
         this.deleteAll();
         list.removeAllElements();
     }
@@ -117,7 +116,6 @@ public class MailBox extends List implements CommandListener {
     {
         if(!list.isEmpty())
         {
-            numUnread--;
             this.delete(selIndex);
             list.removeElementAt(selIndex);
             updateRS();
@@ -147,11 +145,8 @@ public class MailBox extends List implements CommandListener {
         finally{
             try {
                 rs.closeRecordStore();
-            } catch (RecordStoreNotOpenException ex) {
-                ex.printStackTrace();
-            } catch (RecordStoreException ex) {
-                ex.printStackTrace();
-            }
+            } catch (Exception e)
+            {}
         }
     }
  
@@ -195,11 +190,11 @@ public class MailBox extends List implements CommandListener {
         }
         return delAllCmd;
     }
-    public Command getOkCmd() {
-        if (okCmd == null) {
-            okCmd = new Command("Read", Command.OK, 1);
+    public Command getOKCmd() {
+        if (OKCmd == null) {
+            OKCmd = new Command("Read", Command.OK, 1);
         }
-        return okCmd;
+        return OKCmd;
     }
 
     public Command getBackCmd() {
@@ -207,6 +202,15 @@ public class MailBox extends List implements CommandListener {
             backCmd = new Command("Back", Command.BACK, 2);
         }
         return backCmd;
+    }
+
+    public Command getMultiMarkCmd()
+    {
+        if(markMultiCmd == null)
+        {
+            markMultiCmd = new Command("Mark Multiple", Command.OK, 0);
+        }
+        return markMultiCmd;
     }
 
     public Command getDelItemCmd() {
@@ -246,10 +250,10 @@ public class MailBox extends List implements CommandListener {
                     ex.printStackTrace();
                 }
             }
-            else if(command == okCmd)
+            else if(command == OKCmd)
             {//if not overridden in a subclass, okCmd shows a form with the contents of the selected message
                 textConvo crnt = (textConvo)list.elementAt(selIndex);
-                String msg = ((textMsg)crnt.getMessages().firstElement()).getMessage();
+                String msg = ((textMsg)crnt.getLastMsg()).getMessage();
                 gvME.dispMan.switchDisplayable(null, getReadMsg(crnt.getSender(), msg));
             }
         }

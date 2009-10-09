@@ -26,7 +26,6 @@ public class textConvo {
     private textMsg lastMsg;
     private boolean isRead = false;
     private static final int numConvoFields = 4;
-    private static final int numMsgFields = 3;
 
     public textConvo(int numMsgs, boolean isRead, String msgID, String sender, String replyNum, String date, Vector messages, textMsg lastMsg)
     {
@@ -62,10 +61,10 @@ public class textConvo {
         this.numMsgs = 0;
         this.msgID = "";
         this.date = "";
-        this.messages.addElement(msg);
+//        this.messages.addElement(msg);
         this.sender = sender;
         this.replyNum = replyNum;
-        this.lastMsg = new textMsg("");
+        this.lastMsg = msg;//new textMsg("");
     }
 
     public boolean setIsRead(boolean isRead)
@@ -92,7 +91,7 @@ public class textConvo {
             messages.addElement(crnt);
             numMsgs++;
         }
-        isRead = false;//sets isRead back to false because we've received a new message
+        //isRead = false;//sets isRead back to false because we've received a new message
         this.lastMsg = convo.getLastMsg();
     }
 
@@ -186,37 +185,38 @@ public class textConvo {
 
                 textMsgFields[0] = dis.readUTF();
                 textMsgFields[1] = dis.readUTF();
-                textMsgFields[2] = dis.readUTF();
+//                textMsgFields[2] = dis.readUTF();
 
-                msg = new textMsg(textMsgFields[0], textMsgFields[1], textMsgFields[2]);
+                msg = new textMsg(textMsgFields[0], textMsgFields[1]);
                 msgsVect.addElement(msg);
             }  
 
             //gets last message from RS for particular msgID
             textMsgFields[0] = dis.readUTF();
             textMsgFields[1] = dis.readUTF();
-            textMsgFields[2] = dis.readUTF();
-            lastMessage = new textMsg(textMsgFields[0], textMsgFields[1], textMsgFields[2]);
+//            textMsgFields[2] = dis.readUTF();
+            lastMessage = new textMsg(textMsgFields[0], textMsgFields[1]);
 
             dis.close();
             bis.close();
 
             textConvo deserialized = new textConvo(numMsgs, isRead, fields[0], fields[1], fields[2], fields[3], msgsVect, lastMessage);
 
-            dis = null;
-            bis = null;
-            msg = null;
-            data = null;
-            fields = null;
-            msgsVect = null;
-            lastMessage = null;
-            textMsgFields = null;
+//            dis = null;
+//            bis = null;
+//            msg = null;
+//            data = null;
+//            fields = null;
+//            msgsVect = null;
+//            lastMessage = null;
+//            textMsgFields = null;
             
             return deserialized;
             
         }
-        catch(IOException exc) {
-            exc.printStackTrace();
+        catch(IOException ex) {
+            Logger.add("textConvo deserialize", ex.getMessage());
+            ex.printStackTrace();
             return null;
         }
     }
@@ -245,7 +245,7 @@ public class textConvo {
     {
         if(crnt == null)
             return "".getBytes();
-        String[] fields = {crnt.getMsgID(), crnt.getMessage(), crnt.getTimeReceived()};
+        String[] fields = {crnt.getMessage(), crnt.getTimeReceived()};
         return serial.serialize(fields);
     }
 
@@ -272,12 +272,12 @@ public class textConvo {
         data = byteOutStream.toByteArray();
         byteOutStream.close();
         
-        fields = null;
-        textMsgs = null;
-        numMsgField = null;
-        byteOutStream = null;
-        lastMsg_bytes = null;
-        numMsgs_bytes = null;
+//        fields = null;
+//        textMsgs = null;
+//        numMsgField = null;
+//        byteOutStream = null;
+//        lastMsg_bytes = null;
+//        numMsgs_bytes = null;
         
         return data;
     }

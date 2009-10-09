@@ -20,6 +20,7 @@ public class WriteMsg extends TextBox implements CommandListener {
     private static ChooseContact chooseContact;
     private Command sendCmd;
     private Command backCmd;
+    private Command programInfoCmd;
     private static textConvo original;
     private static String title;
     private static SendMsg sm;
@@ -40,6 +41,7 @@ public class WriteMsg extends TextBox implements CommandListener {
         }
         addCommand(getBackCmd());
         addCommand(getSendCmd());
+        addCommand(getProgramInfoCmd());
         setCommandListener(this);
     }
 
@@ -56,6 +58,16 @@ public class WriteMsg extends TextBox implements CommandListener {
         }
         return backCmd;
     }
+
+    private Command getProgramInfoCmd()
+    {
+        if(programInfoCmd == null)
+        {
+            programInfoCmd = new Command("Debug", Command.ITEM, 3);
+        }
+        return programInfoCmd;
+    }
+
     public void commandAction(Command command, Displayable displayable) {
         if(displayable == this){
             if (command == backCmd) {
@@ -81,6 +93,10 @@ public class WriteMsg extends TextBox implements CommandListener {
                     sm = new SendMsg(original, this.getString());
                     gvME.dispMan.switchDisplayable(null, sm);
                 }
+            }
+            else if(command == programInfoCmd)
+            {
+                gvME.dispMan.switchDisplayable(null, new Logger(this));
             }
         }
     }

@@ -12,29 +12,29 @@ import java.io.IOException;
  * @author matt
  */
 public class textMsg {
-    private String msgID;
+//    private String msgID;
     private String message;
     private String timeReceived;
-    public static final int numFields = 4;
+    public static final int numFields = 2;
 
-    public textMsg(String msgID, String message, String timeReceived)
+    public textMsg(String message, String timeReceived)
     {
-        this.msgID = msgID;
+//        this.msgID = msgID;
         this.message = message;
         this.timeReceived = timeReceived;
     }
 
     public textMsg(String msg)
     {
-        this.msgID = "";
+//        this.msgID = "";
         this.message = msg;
         this.timeReceived = "";
     }
 
-    public String getMsgID()
-    {
-        return this.msgID;
-    }
+//    public String getMsgID()
+//    {
+//        return this.msgID;
+//    }
     
     public String getMessage()
     {
@@ -55,7 +55,7 @@ public class textMsg {
     {
         String[] fields = serial.deserialize(numFields, data);
         data = null;
-        return new textMsg(fields[0], fields[1], fields[2]);
+        return new textMsg(fields[0], fields[1]);//, fields[2]);
     }
 
     /**
@@ -64,7 +64,7 @@ public class textMsg {
      */
     public byte[] serialize() throws IOException
     {
-        String[] fields = {this.msgID, this.message, this.timeReceived};
+        String[] fields = {this.message, this.timeReceived};
         return serial.serialize(fields);
     }
 }

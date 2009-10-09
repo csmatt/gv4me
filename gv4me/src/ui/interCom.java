@@ -10,5 +10,5 @@ package ui;
  * @author matt
  */
 public interface interCom {
-    public void setContacting(String num);
+    public void setContacting(String contacting, String recipient);
 }

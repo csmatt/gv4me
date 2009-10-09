@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.io.HttpsConnection;
 import ui.Inbox;
 
@@ -21,7 +22,6 @@ import ui.Inbox;
 public class parseMsgs {
     private static final String markReadURL = "https://www.google.com/voice/m/mark?p=1&label=unread&id=";
     private static final String getMsgsURL = "https://www.google.com/voice/inbox/recent/unread";
-
     private static final String jsonBegin = "<json><![CDATA[{\"messages\":{\"";
     private static final String idToken = "{\"id\":\"";
     private static final String separateToken = "\",\"";
@@ -54,10 +54,18 @@ public class parseMsgs {
         return parseMsgs.reqProps;
     }
 
-    public static Vector readMsgs() throws IOException, Exception
+    public static Vector readMsgs() throws ConnectionNotFoundException, IOException, Exception
     {
         Vector newConvos = new Vector(5);
-        String html = getHTML();
+        String html = null;
+        try{
+            html = getHTML();
+        }
+        catch(ConnectionNotFoundException cnf)
+        {
+            Logger.add("parseMsgs", "readMsgs", cnf.getMessage());
+            throw cnf;
+        }
 
         //checks to see if new messages have arrived and returns if none have
         if(html.equals("") || html.indexOf(noMsgsString) > 0)
@@ -70,7 +78,6 @@ public class parseMsgs {
 
         //goes through xml for each msgID found in json (now existing as a hash enumeration)
         Enumeration convosEnum = convos.keys();
-        Vector msgVect = null;
         textConvo crnt;
         String Key = "";
         int newMsgCnt = 0;
@@ -81,8 +88,10 @@ public class parseMsgs {
             try {
                 messages = getMsgs(Key, html);
             } catch (IOException ex) {
+                Logger.add("parseMsgs", ex.getMessage());
                 ex.printStackTrace();
             } catch (Exception ex) {
+                Logger.add("parseMsgs", ex.getMessage());
                 ex.printStackTrace();
             }
            
@@ -103,17 +112,17 @@ public class parseMsgs {
            newConvos.addElement(crnt);
            newMsgCnt++;
        }
-        html = null;
-        crnt = null;
-        convos = null;
-        messages = null;
-        convosEnum = null;
+//        html = null;
+//        crnt = null;
+//        convos = null;
+//        messages = null;
+//        convosEnum = null;
         
         gvME.setNumNewMsgs(newMsgCnt);
         return newConvos;
     }
 
-    private static textConvo getMsgs(String msgID, String html) throws IOException, Exception
+    private static textConvo getMsgs(String msgID, String html) throws ConnectionNotFoundException, IOException, Exception
     {
         Vector msgVect = new Vector(10);
         int i = 0;
@@ -151,7 +160,7 @@ public class parseMsgs {
                 kvp = regexreplace(i, html, msgTimeToken, endSpan);
                 time = ((String) kvp.getKey()).trim();
 
-                crnt = new textMsg(msgID, message, time);
+                crnt = new textMsg(message, time);
                 numMsgs++;
                 msgVect.addElement(crnt);
             }
@@ -163,15 +172,15 @@ public class parseMsgs {
             markMsgRead(msgID);
             getMsgConvo = new textConvo(numMsgs, false, msgID, sender, msgVect, crnt);
         }
-        kvp = null;
-        time = null;
-        crnt = null;
-        msgID = null;
-        sender = null;
-        message = null;
-        msgVect = null;
-        beginToken = null;
-        lastMessage = null;
+//        kvp = null;
+//        time = null;
+//        crnt = null;
+//        msgID = null;
+//        sender = null;
+//        message = null;
+//        msgVect = null;
+//        beginToken = null;
+//        lastMessage = null;
 
         return getMsgConvo;
     }
@@ -190,7 +199,6 @@ public class parseMsgs {
         markReadStr[1] = msgID;
         HttpsConnection markRead = createConnection.open(tools.combineStrings(markReadStr), "GET", reqProps, "");
         createConnection.close(markRead);
-        markRead = null;
     }
 
     private static Hashtable getJSONdata(String html)
@@ -230,12 +238,12 @@ public class parseMsgs {
             newConvo = new textConvo(0, msgID, replyNum, date);
             convoHash.put(msgID, newConvo);
         }
-        kvp = null;
-        date = null;
-        html = null;
-        msgID = null;
-        newConvo = null;
-        replyNum = null;
+//        kvp = null;
+//        date = null;
+//        html = null;
+//        msgID = null;
+//        newConvo = null;
+//        replyNum = null;
 
         return convoHash;
     }
@@ -257,11 +265,11 @@ public class parseMsgs {
         {
             kvp = new KeyValuePair(html.substring(i, end), new Integer(end));
         }
-        html = null;
+
         return kvp;
     }
 
-    private static String getHTML() throws IOException
+    private static String getHTML() throws ConnectionNotFoundException, IOException
     {
         String html = "";
         DataInputStream dis = null;
@@ -271,13 +279,13 @@ public class parseMsgs {
             c = createConnection.open(getMsgsURL, "GET", reqProps, "");
 
             //FIXME every 20 connections or so, a 400 HTTP response is returned. This is a temp workaround
-            if(c.getResponseCode() != 200)
-            {
-                createConnection.close(c);
-                RMSCookieConnector.removeCookies();
-                gvLogin.logIn();
-                c = createConnection.open(getMsgsURL, "GET", reqProps, "");
-            }
+//            if(c.getResponseCode() != 200)
+//            {
+//                createConnection.close(c);
+//                RMSCookieConnector.removeCookies();
+//                gvLogin.logIn();
+//                c = createConnection.open(getMsgsURL, "GET", reqProps, "");
+//            }
 
             dis = c.openDataInputStream();
             baos = new ByteArrayOutputStream();
@@ -291,15 +299,25 @@ public class parseMsgs {
             }
             html = new String(baos.toByteArray());
         }
+        catch(ConnectionNotFoundException cnf)
+        {
+            Logger.add("getHTML", cnf.getMessage());
+            try{createConnection.close(c); c = null;}catch(Exception ignore){}
+            throw cnf;
+        }
         finally{
-            dis.close();
-            baos.close();
-            createConnection.close(c);
-            dis = null;
-            baos = null;
-            c = null;
-            
+            try{
+                dis.close();
+                baos.close();
+                createConnection.close(c);
+            }
+            catch(Exception ignore)
+            {}
+//            dis = null;
+//            baos = null;
+//            c = null;
             return html;
+            
         }
     }
 
