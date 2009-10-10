@@ -35,17 +35,14 @@ public class gvME extends MIDlet implements CommandListener {
     private static Inbox InboxList;
     private static CommandListener cl;
     private static int numNewMsgs;
-    private static Command backCmd, saveSettingsCmd;
+    private static Command backCmd;
     private static List menu;
     private WriteMsg newSMS;
-    private static Form changeSettingsMenu;
-    private static TextField passwordTextField, usernameTextField, callFromTextField, intervalTextField;
     private WaitScreen callWaitScreen;
     private Alert noCallFromAlert;
     public int countCons;
     public static MailBox SentBox;
     public static Outbox outbox;
-    public static settings userSettings;
     public static DisplayManager dispMan;
     
     /*
@@ -53,7 +50,7 @@ public class gvME extends MIDlet implements CommandListener {
      * It is called only once when the MIDlet is started. The method is called before the <code>startMIDlet</code> method.
      */
     private void initialize() throws InvalidRecordIDException, IOException, RecordStoreNotOpenException, RecordStoreException {//GEN-END:|0-initialize|0|0-preInitialize
-        userSettings = new settings();
+        new settings(cl);
         countCons = 0;
         dispMan = new DisplayManager(this);
         cl = this; //reference to 'this' for CommandListener of static method getMenu()
@@ -72,7 +69,7 @@ public class gvME extends MIDlet implements CommandListener {
         waitForLogin = null;
         SentBox = getSentBox();
         outbox = getOutbox();
-        if(Integer.parseInt(userSettings.getCheckInterval()) > 0)
+        if(Integer.parseInt(settings.getCheckInterval()) > 0)
             createTimer();
     }
 
@@ -87,19 +84,8 @@ public class gvME extends MIDlet implements CommandListener {
      * @param displayable the Displayable where the command was invoked
      */
     public void commandAction(Command command, Displayable displayable) {
-        if (displayable == changeSettingsMenu) {
-            if (command == backCmd) {
-                dispMan.switchDisplayable(null, getMenu());
-            } else if (command == saveSettingsCmd) {
-                try {
-                    changeSettings();
-                } catch (RecordStoreException ex) {
-                    Logger.add(getClass().getName(), ex.getMessage());
-                    ex.printStackTrace();
-                }
-                dispMan.switchDisplayable(null, getMenu());
-            }
-        } else if (displayable == menu) {
+
+        if (displayable == menu) {
             if (command == List.SELECT_COMMAND) {
                 try {
                     menuAction();
@@ -131,44 +117,12 @@ public class gvME extends MIDlet implements CommandListener {
     public static void createTimer()
     {
         timer = new Timer();
-        timer.schedule(new checkInbox(), timerDelay, Long.parseLong(userSettings.getCheckInterval())*1000);
+        timer.schedule(new checkInbox(), timerDelay, Long.parseLong(settings.getCheckInterval())*1000);
     }
 
     public static void cancelTimer()
     {
         timer.cancel();
-    }
-
-    public void changeSettings() throws RecordStoreException
-    {
-        String interval = userSettings.getCheckInterval();
-        String username = userSettings.getUsername();
-        String callFrom = userSettings.getCallFrom();
-        String tfInterval = intervalTextField.getString();
-        String tfUsername = usernameTextField.getString();
-        String tfPassword = passwordTextField.getString();
-        String tfCallFrom = callFromTextField.getString();
-
-        if(!tfInterval.equals(interval))
-        {
-            userSettings.setCheckInterval(tfInterval);
-            timer.cancel();
-            if(Integer.parseInt(tfInterval) > 0)
-                createTimer();
-        }
-        if(!tfUsername.equals(username))
-        {
-            userSettings.setUsername(tfUsername);
-        }
-        if(!tfPassword.equals(""))
-        {
-            userSettings.setPassword(tfPassword);
-        }
-        if(!tfCallFrom.equals(callFrom))
-        {
-            userSettings.setCallFrom(tfCallFrom);
-        }
-        userSettings.updateSettings();
     }
 
     /**
@@ -215,10 +169,10 @@ public class gvME extends MIDlet implements CommandListener {
             } else if (__selectedString.equals("Sent Box")) {
                 dispMan.switchDisplayable(null, getSentBox());
             } else if (__selectedString.equals("Settings")) {            
-                dispMan.switchDisplayable(null, getChangeSettingsMenu());                
+                dispMan.switchDisplayable(null, settings.getChangeSettingsMenu());
             } else if (__selectedString.equals("Make Call")) {
-                if(userSettings.getCallFrom().equals(""))
-                    gvME.dispMan.switchDisplayable(getNoCallFromAlert(), gvME.getChangeSettingsMenu());
+                if(settings.getCallFrom().equals(""))
+                    gvME.dispMan.switchDisplayable(getNoCallFromAlert(), settings.getChangeSettingsMenu());
                 else{
                     MakeCall mc = new MakeCall();
                     ChooseContact cc = new ChooseContact(getMenu(), mc);
@@ -276,54 +230,6 @@ public class gvME extends MIDlet implements CommandListener {
             minimize = new Command("Minimize", Command.BACK, 0);        
         }
         return minimize;
-    }
-
-    private static Command getSaveSettingsCmd() {
-        if (saveSettingsCmd == null) {
-            saveSettingsCmd = new Command("Save", Command.OK, 1);           
-        }
-        return saveSettingsCmd;
-    }
-
-    public static Form getChangeSettingsMenu() {
-        if (changeSettingsMenu == null) {
-            changeSettingsMenu = new Form("Change Settings", new Item[] { getUsernameTextField(), getPasswordTextField(), getCallFromTextField(), getIntervalTextField() });//GEN-BEGIN:|233-getter|1|233-postInit
-            changeSettingsMenu.addCommand(getSaveSettingsCmd());
-            changeSettingsMenu.addCommand(getBackCmd());
-            changeSettingsMenu.setCommandListener(cl);
-        }
-        return changeSettingsMenu;
-    }
-
-    private static TextField getUsernameTextField() {
-        if (usernameTextField == null) {
-            String userName = userSettings.getUsername();
-            usernameTextField = new TextField("Username:", userName, 40, TextField.ANY);
-        }
-        return usernameTextField;
-    }
-
-    private static TextField getPasswordTextField() {
-        if (passwordTextField == null) {
-            passwordTextField = new TextField("Password:", null, 40, TextField.PASSWORD);
-        }
-        return passwordTextField;
-    }
-
-    private static TextField getIntervalTextField() {
-        if (intervalTextField == null) {
-            String interval = userSettings.getCheckInterval();
-            intervalTextField = new TextField("Check Inbox (secs). 0 for never", interval, 10, TextField.NUMERIC);//GEN-LINE:|240-getter|1|240-postInit
-        }
-        return intervalTextField;
-    }
-
-    private static TextField getCallFromTextField() {
-        if (callFromTextField == null) {
-            String callFrom = userSettings.getCallFrom();
-            callFromTextField = new TextField("Call From:", callFrom, 15, TextField.PHONENUMBER);//GEN-LINE:|246-getter|1|246-postInit
-        }
-        return callFromTextField;
     }
 
     private Alert getNoCallFromAlert()

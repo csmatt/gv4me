@@ -7,6 +7,12 @@ package gvME;
 
 import java.io.IOException;
 import java.util.Vector;
+import javax.microedition.lcdui.Command;
+import javax.microedition.lcdui.CommandListener;
+import javax.microedition.lcdui.Displayable;
+import javax.microedition.lcdui.Form;
+import javax.microedition.lcdui.Item;
+import javax.microedition.lcdui.TextField;
 import javax.microedition.rms.InvalidRecordIDException;
 import javax.microedition.rms.RecordStore;
 import javax.microedition.rms.RecordStoreException;
@@ -16,17 +22,22 @@ import javax.microedition.rms.RecordStoreException;
  * @author matt
  */
 public class settings {
-    private final String userSettingsStore = "userSettingsStore";
-    private String username = "";
-    private String password = "";
-    private String interval = "60";
-    private String callFrom = "";
+    private static final String userSettingsStore = "userSettingsStore";
+    private static Form changeSettingsMenu;
+    private static TextField passwordTextField, usernameTextField, callFromTextField, intervalTextField;
+    private static Command saveSettingsCmd, backCmd;
+    private static String username = "";
+    private static String password = "";
+    private static String interval = "60";
+    private static String callFrom = "";
+    private static CommandListener cl;
     private final int numFields = 4;
-    private final int MAX_CONTACTS = 10;
-    private Vector recentContacts = new Vector();
+    private static final int MAX_CONTACTS = 10;
+    private static Vector recentContacts = new Vector();
 
-    public settings() throws IOException
+    public settings(CommandListener cl) throws IOException
     {
+        settings.cl = cl;
         RecordStore rs = null;
         try {
             rs = RecordStore.openRecordStore(userSettingsStore, true);
@@ -50,15 +61,115 @@ public class settings {
             {}
         }
     }
-    
+
+    public void changeSettings() throws RecordStoreException
+    {
+        String tfInterval = intervalTextField.getString();
+        String tfUsername = usernameTextField.getString();
+        String tfPassword = passwordTextField.getString();
+        String tfCallFrom = callFromTextField.getString();
+
+        if(!tfInterval.equals(interval))
+        {
+            interval = tfInterval;
+            gvME.cancelTimer();
+            if(Integer.parseInt(tfInterval) > 0)
+                gvME.createTimer();
+        }
+        if(!tfUsername.equals(username))
+        {
+            username = tfUsername;
+        }
+        if(!tfPassword.equals(""))
+        {
+            password = tfPassword;
+        }
+        if(!tfCallFrom.equals(callFrom))
+        {
+            settings.callFrom = callFrom;
+        }
+        updateSettings();
+    }
+
+    private static Command getSaveSettingsCmd() {
+        if (saveSettingsCmd == null) {
+            saveSettingsCmd = new Command("Save", Command.OK, 1);
+        }
+        return saveSettingsCmd;
+    }
+
+    private static Command getBackCmd()
+    {
+        if(backCmd == null)
+        {
+            backCmd = new Command("Back", Command.BACK, 0);
+        }
+        return backCmd;
+    }
+
+    public static Form getChangeSettingsMenu() {
+        if (changeSettingsMenu == null) {
+            changeSettingsMenu = new Form("Change Settings", new Item[] { getUsernameTextField(), getPasswordTextField(), getCallFromTextField(), getIntervalTextField() });//GEN-BEGIN:|233-getter|1|233-postInit
+            changeSettingsMenu.addCommand(getSaveSettingsCmd());
+            changeSettingsMenu.addCommand(getBackCmd());
+            changeSettingsMenu.setCommandListener(new CommandListener() {
+
+                public void commandAction(Command command, Displayable displayable) {
+                    if(command == saveSettingsCmd)
+                    {
+                        try {
+                            updateSettings();
+                            gvME.dispMan.showMenu();
+                        } catch (RecordStoreException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                    else if(command == backCmd)
+                    {
+                        gvME.dispMan.showMenu();
+                    }
+                }
+            });
+        }
+        return changeSettingsMenu;
+    }
+
+    private static TextField getUsernameTextField() {
+        if (usernameTextField == null) {
+            usernameTextField = new TextField("Username:", username, 40, TextField.ANY);
+        }
+        return usernameTextField;
+    }
+
+    private static TextField getPasswordTextField() {
+        if (passwordTextField == null) {
+            passwordTextField = new TextField("Password:", null, 40, TextField.PASSWORD);
+        }
+        return passwordTextField;
+    }
+
+    private static TextField getIntervalTextField() {
+        if (intervalTextField == null) {
+            intervalTextField = new TextField("Check Inbox (secs). 0 for never", interval, 10, TextField.NUMERIC);
+        }
+        return intervalTextField;
+    }
+
+    private static TextField getCallFromTextField() {
+        if (callFromTextField == null) {
+            callFromTextField = new TextField("Call From:", callFrom, 15, TextField.PHONENUMBER);
+        }
+        return callFromTextField;
+    }
+
     public void setSettings(String[] fields)
     {
         if(fields != null)
         {
-            this.username = fields[0];
-            this.password = fields[1];
-            this.interval = fields[2];
-            this.callFrom = fields[3];
+            settings.username = fields[0];
+            settings.password = fields[1];
+            settings.interval = fields[2];
+            settings.callFrom = fields[3];
         }
     }
 
@@ -67,52 +178,52 @@ public class settings {
         return numFields;
     }
 
-    public String getCheckInterval()
+    public static String getCheckInterval()
     {
-        return this.interval;
+        return settings.interval;
     }
 
-    public String getUsername()
+    public static String getUsername()
     {
-        return this.username;
+        return settings.username;
     }
 
-    public String getPassword()
+    public static String getPassword()
     {
-        return this.password;
+        return settings.password;
     }
 
-    public String getCallFrom()
+    public static String getCallFrom()
     {
         return callFrom;
     }
 
-    public void setCheckInterval(String interval)
+//    public void setCheckInterval(String interval)
+//    {
+//        this.interval = String.valueOf(interval);
+//    }
+
+    public static void setUsername(String username)
     {
-        this.interval = String.valueOf(interval);
+        settings.username = username;
     }
 
-    public void setUsername(String username)
+    public static void setPassword(String password)
     {
-        this.username = username;
+        settings.password = password;
+    }
+//
+//    public void setCallFrom(String callFrom)
+//    {
+//        this.callFrom = callFrom;
+//    }
+
+    public static Vector getRecentContacts()
+    {
+        return settings.recentContacts;
     }
 
-    public void setPassword(String password)
-    {
-        this.password = password;
-    }
-
-    public void setCallFrom(String callFrom)
-    {
-        this.callFrom = callFrom;
-    }
-
-    public Vector getRecentContacts()
-    {
-        return this.recentContacts;
-    }
-
-    public void addContact(KeyValuePair contact) throws RecordStoreException, IOException
+    public static void addContact(KeyValuePair contact) throws RecordStoreException, IOException
     {
         for(int i = 0; recentContacts != null && i < recentContacts.size(); i++)
         {
@@ -122,6 +233,7 @@ public class settings {
                 KeyValuePair temp = new KeyValuePair(crnt.getKey(), crnt.getValue());
                 recentContacts.removeElementAt(i);
                 recentContacts.insertElementAt(temp, 0);
+                updateContacts();
                 return;
             }
                 
@@ -135,7 +247,7 @@ public class settings {
         }
     }
 
-    public void updateContacts() throws RecordStoreException, IOException
+    public static void updateContacts() throws RecordStoreException, IOException
     {
         RecordStore rs = null;
         try{
@@ -153,7 +265,7 @@ public class settings {
         }
         catch(RecordStoreException rse)
         {
-            Logger.add(getClass().getName(), rse.getMessage());
+            Logger.add("settings", "updateSettings", rse.getMessage());
             rse.printStackTrace();
         }
         finally{
@@ -165,7 +277,7 @@ public class settings {
         }
     }
 
-    public void updateSettings() throws RecordStoreException
+    public static void updateSettings() throws RecordStoreException
     {
         RecordStore rs = null;
         try{
@@ -184,7 +296,7 @@ public class settings {
         }
         catch(Exception ex)
         {
-            Logger.add(getClass().getName(), ex.getMessage());
+            Logger.add("settings", "updateSettings", ex.getMessage());
             ex.printStackTrace();
         }
         finally{

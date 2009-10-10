@@ -57,13 +57,14 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
 
     private void makeCall(String contacting) throws IOException, Exception
     {
-        String[] strings = {"outgoingNumber=+1", contacting, "&forwardingNumber=+1", gvME.userSettings.getCallFrom(), "&subscriberNumber=undefined&remember=0&_rnr_se=", rnr};
+        String[] strings = {"outgoingNumber=+1", contacting, "&forwardingNumber=+1", settings.getCallFrom(), "&subscriberNumber=undefined&remember=0&_rnr_se=", rnr};
         String postData = tools.combineStrings(strings);
         String[] contentLen = {"Content-Length", String.valueOf(postData.length())};
         reqProps.insertElementAt(contentLen, 2);
         HttpsConnection c = createConnection.open(callURL, "POST", reqProps, postData);
         String pageData = createConnection.getPageData(c);
-        c.close();
+        createConnection.close(c);
+        c = null;
         if(pageData.indexOf("true") < 0)
             throw new Exception("call failed");
     }

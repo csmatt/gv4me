@@ -27,8 +27,8 @@ public class gvLogin {
 
     public gvLogin(gvME midlet) throws IOException, Exception
     {
-        gvLogin.username = gvME.userSettings.getUsername();
-        gvLogin.password = gvME.userSettings.getPassword();
+        gvLogin.username = settings.getUsername();
+        gvLogin.password = settings.getPassword();
         gvLogin.reqProps = parseMsgs.getReqProps();
         login = new Login(username, password, midlet);
     }
@@ -98,8 +98,8 @@ public class gvLogin {
 
     public static void saveLoginInfo() throws RecordStoreException, RecordStoreException
     {
-            gvME.userSettings.setUsername(gvLogin.username);
-            gvME.userSettings.setPassword(gvLogin.password);
-            gvME.userSettings.updateSettings();
+            settings.setUsername(gvLogin.username);
+            settings.setPassword(gvLogin.password);
+            settings.updateSettings();
     }
 }

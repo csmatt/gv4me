@@ -34,7 +34,7 @@ public class ChooseContact extends List implements CommandListener{
     private interCom next;
     private List recentContacts;
     private Displayable prev;
-    private Vector contacts = gvME.userSettings.getRecentContacts();;
+    private Vector contacts = settings.getRecentContacts();;
 
     public ChooseContact(Displayable prev, interCom com)
     {
@@ -62,7 +62,7 @@ public class ChooseContact extends List implements CommandListener{
         String pimNumber = pimContact.getString(Contact.TEL, 0);
         next.setContacting(pimNumber, pimName);
         try {
-            gvME.userSettings.addContact(new KeyValuePair(pimNumber, pimName));
+            settings.addContact(new KeyValuePair(pimNumber, pimName));
         } catch (RecordStoreException ex) {
             Logger.add(getClass().getName(), "getNumFromPIMBrowser", ex.getMessage());
             ex.printStackTrace();
@@ -78,7 +78,7 @@ public class ChooseContact extends List implements CommandListener{
 
         next.setContacting(contact, contact);
         try {
-            gvME.userSettings.addContact(new KeyValuePair(contact, contact));
+            settings.addContact(new KeyValuePair(contact, contact));
         } catch (RecordStoreException ex) {
             Logger.add(getClass().getName(), "getNumFromEnterNumBox", ex.getMessage());
             ex.printStackTrace();
@@ -93,7 +93,7 @@ public class ChooseContact extends List implements CommandListener{
     private void getNumFromRecentContacts()
     {
         int selIndex = recentContacts.getSelectedIndex();
-         nameAndNumber = (KeyValuePair)(gvME.userSettings.getRecentContacts().elementAt(selIndex));
+         nameAndNumber = (KeyValuePair)(settings.getRecentContacts().elementAt(selIndex));
         next.setContacting((String)nameAndNumber.getKey(), (String)nameAndNumber.getValue());
         gvME.dispMan.switchDisplayable(null,(Displayable) next);
     }
@@ -139,7 +139,7 @@ public class ChooseContact extends List implements CommandListener{
         {
             recentContacts.deleteAll();
         }
-        contacts = gvME.userSettings.getRecentContacts();
+        contacts = settings.getRecentContacts();
 
         Enumeration contactsEnum = contacts.elements();
         while(contactsEnum.hasMoreElements())
