@@ -19,7 +19,6 @@ import javax.microedition.lcdui.*;
 import javax.microedition.rms.InvalidRecordIDException;
 import javax.microedition.rms.RecordStoreException;
 import javax.microedition.rms.RecordStoreNotOpenException;
-import org.netbeans.microedition.lcdui.WaitScreen;
 import ui.*;
 
 /**
@@ -30,31 +29,26 @@ public class gvME extends MIDlet implements CommandListener {
     private static boolean midletPaused = false;
     private static Timer timer;
     private static long timerDelay = 30000;
-    private static String rnr;
-    private static Command exitCmd, minimize;
+    private static String rnr, auth;
+    private static Command exitCmd, minimize, backCmd;
     private static Inbox InboxList;
     private static CommandListener cl;
     private static int numNewMsgs;
-    private static Command backCmd;
     private static List menu;
-    private WriteMsg newSMS;
-    private WaitScreen callWaitScreen;
     private Alert noCallFromAlert;
-    public int countCons;
     public static MailBox SentBox;
     public static Outbox outbox;
     public static DisplayManager dispMan;
-    
+
     /*
      * Initilizes the application.
      * It is called only once when the MIDlet is started. The method is called before the <code>startMIDlet</code> method.
      */
     private void initialize() throws InvalidRecordIDException, IOException, RecordStoreNotOpenException, RecordStoreException {//GEN-END:|0-initialize|0|0-preInitialize
-        new settings(cl);
-        countCons = 0;
+        settings.initialize();
         dispMan = new DisplayManager(this);
         cl = this; //reference to 'this' for CommandListener of static method getMenu()
-        parseMsgs.setReqProps();
+        connMgr.initReqProps();
         try {
             RMSCookieConnector.removeCookies();
         } catch (Exception ignore)
@@ -64,13 +58,9 @@ public class gvME extends MIDlet implements CommandListener {
     }
 
     public void startMIDlet() throws IOException, Exception {
-        gvLogin waitForLogin = new gvLogin(this);
-        waitForLogin.checkLoginInfo();
-        waitForLogin = null;
+        new Login();
         SentBox = getSentBox();
         outbox = getOutbox();
-        if(Integer.parseInt(settings.getCheckInterval()) > 0)
-            createTimer();
     }
 
     public void resumeMIDlet() {
@@ -89,10 +79,8 @@ public class gvME extends MIDlet implements CommandListener {
             if (command == List.SELECT_COMMAND) {
                 try {
                     menuAction();
-                } catch (IOException ex) {
-                    Logger.add(getClass().getName(), ex.getMessage());
-                    ex.printStackTrace();
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     Logger.add(getClass().getName(), ex.getMessage());
                     ex.printStackTrace();
                 }                
@@ -104,9 +92,19 @@ public class gvME extends MIDlet implements CommandListener {
         }
     }
 
+    public static void setAuth(String auth)
+    {
+        gvME.auth = auth;
+    }
+
     public static void setRNR(String rnr)
     {
         gvME.rnr = rnr;
+    }
+
+    public static String getAuth()
+    {
+        return gvME.auth;
     }
 
     public static String getRNR()
@@ -116,8 +114,11 @@ public class gvME extends MIDlet implements CommandListener {
 
     public static void createTimer()
     {
-        timer = new Timer();
-        timer.schedule(new checkInbox(), timerDelay, Long.parseLong(settings.getCheckInterval())*1000);
+        if(Integer.parseInt(settings.getCheckInterval()) > 0)
+        {
+            timer = new Timer();
+            timer.schedule(new checkInbox(), timerDelay, Long.parseLong(settings.getCheckInterval())*1000);
+        }
     }
 
     public static void cancelTimer()
@@ -158,10 +159,8 @@ public class gvME extends MIDlet implements CommandListener {
         String __selectedString = getMenu().getString(getMenu().getSelectedIndex());
         if (__selectedString != null) {
             if (__selectedString.equals("Write New")) {
-                if(newSMS != null)
-                    newSMS.setString("");
-                    newSMS = new WriteMsg("Write New", null);
-                    dispMan.switchDisplayable(null, newSMS);
+                WriteMsg newSMS = new WriteMsg("Write New", null);
+                dispMan.switchDisplayable(null, newSMS);
             } else if (__selectedString.startsWith("Inbox")) {
                 dispMan.switchDisplayable(null, getInbox());
             } else if (__selectedString.equals("Outbox")) {
@@ -286,7 +285,8 @@ public class gvME extends MIDlet implements CommandListener {
      * @param unconditional if true, then the MIDlet has to be unconditionally terminated and all resources has to be released.
      */
     public void destroyApp(boolean unconditional) {
-        timer.cancel();
+        if(timer != null)
+            timer.cancel();
       //  try {
       //      userSettings.updateContacts();
       //  } catch (RecordStoreException ex) {
@@ -305,7 +305,7 @@ public class gvME extends MIDlet implements CommandListener {
             try {
                 newMsgs = parseMsgs.readMsgs();
             } catch (ConnectionNotFoundException cnf) {
-                Logger.add(getClass().getName(), cnf.toString());
+                //Logger.add(getClass().getName(), cnf.toString());
                 System.out.println("Connection Not Found.");
                 createTimer();
                 return;

@@ -12,29 +12,21 @@ import java.io.IOException;
  * @author matt
  */
 public class textMsg {
-//    private String msgID;
     private String message;
     private String timeReceived;
     public static final int numFields = 2;
 
     public textMsg(String message, String timeReceived)
     {
-//        this.msgID = msgID;
         this.message = message;
         this.timeReceived = timeReceived;
     }
 
     public textMsg(String msg)
     {
-//        this.msgID = "";
         this.message = msg;
         this.timeReceived = "";
     }
-
-//    public String getMsgID()
-//    {
-//        return this.msgID;
-//    }
     
     public String getMessage()
     {

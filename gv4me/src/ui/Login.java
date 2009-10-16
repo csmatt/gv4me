@@ -6,9 +6,12 @@
 package ui;
 
 import gvME.Logger;
-import gvME.gvLogin;
+import gvME.connMgr;
 import gvME.gvME;
+import gvME.settings;
+import gvME.tools;
 import java.io.IOException;
+import java.util.Vector;
 import javax.microedition.lcdui.Alert;
 import javax.microedition.lcdui.AlertType;
 import javax.microedition.lcdui.Command;
@@ -27,6 +30,8 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
  * @author matt
  */
 public class Login extends WaitScreen implements CommandListener {
+    private static final String rnrURL = "https://www.google.com/voice/m/i/voicemail";
+    private static final String clientLoginURL = "https://www.google.com/accounts/ClientLogin";
     private Command loginCmd, loginAgainCmd, cancelLoginCmd;
     private TextField usernameTF, passwordTF;
     private Form loginScreen;
@@ -34,19 +39,35 @@ public class Login extends WaitScreen implements CommandListener {
     private String username, password;
     private String exceptionType = "";
     private Image image;
-    private gvME midlet;
     
-    public Login(String username, String password, gvME midlet)
+    public Login() throws IOException, Exception
     {
         super(gvME.dispMan.getDisplay());
-        this.username = username;
-        this.password = password;
-        this.midlet = midlet;
         setTitle("Logging In...");
         setCommandListener(this);
         setImage(getImage());
         setText("");
         setTask(getSimpleCancellableTask());
+        checkLoginInfo();
+    }
+
+    private void checkLoginInfo() throws IOException, Exception {
+        username = settings.getUsername();
+        password = settings.getPassword();
+        if (!username.equals("") && !password.equals("")) {
+            gvME.dispMan.switchDisplayable(null, this);
+        }
+        else
+        {
+            gvME.dispMan.switchDisplayable(null, getLoginScreen());
+        }
+    }
+
+    private void saveLoginInfo() throws RecordStoreException, RecordStoreException
+    {
+            settings.setUsername(username);
+            settings.setPassword(password);
+            settings.updateSettings();
     }
 
     public Image getImage() {
@@ -153,7 +174,6 @@ public class Login extends WaitScreen implements CommandListener {
                 try {
                     this.username = usernameTF.getString();
                     this.password = passwordTF.getString();
-                    gvLogin.setLoginInfo(username, password);
                     gvME.dispMan.switchDisplayable(null, this);
                 }catch (Exception ex) {
                     Logger.add(getClass().getName(), ex.getMessage());
@@ -165,11 +185,16 @@ public class Login extends WaitScreen implements CommandListener {
         {
             if(command == loginAgainCmd)
             {
-                gvME.dispMan.switchDisplayable(null, new Login(username, password, midlet));
+                try {
+                    gvME.dispMan.switchDisplayable(null, new Login());
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
             else if(command == cancelLoginCmd)
             {
-                gvME.cancelTimer();
                 gvME.dispMan.switchDisplayable(null, gvME.getMenu());
             }
         }
@@ -187,24 +212,57 @@ public class Login extends WaitScreen implements CommandListener {
                 {
                     gvME.dispMan.switchDisplayable(getErrorAlert(exceptionType), gvME.getMenu());
                 }
-            } else if (command == WaitScreen.SUCCESS_COMMAND && loginScreen != null) {
-                try {
-                    gvLogin.saveLoginInfo();
-                } catch (RecordStoreException ex) {
-                    Logger.add(getClass().getName(), ex.getMessage());
-                    ex.printStackTrace();
+            } else if (command == WaitScreen.SUCCESS_COMMAND) {
+                if(loginScreen != null){
+                    try {
+                        saveLoginInfo();
+                    } catch (RecordStoreException ex) {
+                        Logger.add(getClass().getName(), ex.getMessage());
+                        ex.printStackTrace();
+                    }
                 }
+                gvME.createTimer();
             }
         }
     }
-    
+    private void initLogin() throws IOException, Exception
+    {
+        String[] reqBodyArray = {
+                        "accountType=GOOGLE&Email=",
+                        username,
+                        "&Passwd=",
+                        password,
+                        "&service=grandcentral&source=gv4me"
+                        };
+        String requestBody =  tools.combineStrings(reqBodyArray);
+        System.out.println(username + " " + password);
+
+        Vector reqProps = new Vector(5);
+        String[] contentLength = {"Content-Length", String.valueOf(requestBody.length())};
+        reqProps.addElement(contentLength);
+        connMgr.open(clientLoginURL, "POST", reqProps, requestBody);
+        String auth = connMgr.getAuth();
+        int respCode = connMgr.getResponseCode();
+        connMgr.close();
+        if(respCode >= 400 && respCode < 500)
+            throw new IOException("Invalid Username or Password");
+        System.out.println(auth);
+        gvME.setAuth(auth);
+
+        String[] combined = {rnrURL, "?auth=", auth};
+        connMgr.open(tools.combineStrings(combined), "GET", null, "");
+        String rnr = connMgr.get_rnr_se();
+        connMgr.close();
+        gvME.setRNR(rnr);
+    }
+
     public SimpleCancellableTask getSimpleCancellableTask()
     {
         SimpleCancellableTask task = new org.netbeans.microedition.util.SimpleCancellableTask();
         task.setExecutable(new org.netbeans.microedition.util.Executable() {
             public void execute() throws ConnectionNotFoundException, Exception {
                 try{
-                    gvLogin.initLogin();
+                    initLogin();
                     gvME.dispMan.switchDisplayable(null, gvME.getMenu());
                 }
                 catch(ConnectionNotFoundException cnf)

@@ -27,7 +27,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
     private String recipient = "";
     private String rnr = "";
     private textConvo original;
-    private Vector reqProps;
+    private Vector reqProps = new Vector(5);
     private Image image;
     private Alert sendMsgFailedAlert;
 
@@ -58,7 +58,6 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
         setText("Sending Message...");
         this.msg = msg;
         this.rnr = gvME.getRNR();
-        this.reqProps = parseMsgs.getReqProps();
         setTask(getSimpleCancellableTask());
     }
 

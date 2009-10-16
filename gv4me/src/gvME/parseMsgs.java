@@ -1,3 +1,5 @@
+
+
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
@@ -5,14 +7,11 @@
 
 package gvME;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 import javax.microedition.io.ConnectionNotFoundException;
-import javax.microedition.io.HttpsConnection;
 import ui.Inbox;
 
 /**
@@ -40,19 +39,6 @@ public class parseMsgs {
     private static final String msgBottomToken = "<td class=\"gc-sline-bottom\">";
     private static String[] markReadStr = {markReadURL,"","&read=1"};
     private static Vector reqProps = new Vector(5);
-
-    public static void setReqProps()
-    {
-        String[] contentType = {"Content-Type", "application/x-www-form-urlencoded"};
-        String[] connection = {"Connection", "keep-alive"};
-        reqProps.insertElementAt(contentType, 0);
-        reqProps.insertElementAt(connection, 1);
-    }
-
-    public static Vector getReqProps()
-    {
-        return parseMsgs.reqProps;
-    }
 
     public static Vector readMsgs() throws ConnectionNotFoundException, IOException, Exception
     {
@@ -112,12 +98,7 @@ public class parseMsgs {
            newConvos.addElement(crnt);
            newMsgCnt++;
        }
-//        html = null;
-//        crnt = null;
-//        convos = null;
-//        messages = null;
-//        convosEnum = null;
-        
+
         gvME.setNumNewMsgs(newMsgCnt);
         return newConvos;
     }
@@ -172,15 +153,6 @@ public class parseMsgs {
             markMsgRead(msgID);
             getMsgConvo = new textConvo(numMsgs, false, msgID, sender, msgVect, crnt);
         }
-//        kvp = null;
-//        time = null;
-//        crnt = null;
-//        msgID = null;
-//        sender = null;
-//        message = null;
-//        msgVect = null;
-//        beginToken = null;
-//        lastMessage = null;
 
         return getMsgConvo;
     }
@@ -196,9 +168,9 @@ public class parseMsgs {
     //mark message as read
     private static void markMsgRead(String msgID) throws IOException, IOException, Exception
     {
-        markReadStr[1] = msgID;
-        HttpsConnection markRead = createConnection.open(tools.combineStrings(markReadStr), "GET", reqProps, "");
-        createConnection.close(markRead);
+        markReadStr[1] = msgID; //markReadStr[0] is the base address for marking read
+        connMgr.open(tools.combineStrings(markReadStr), "GET", reqProps, "");
+        connMgr.close();
     }
 
     private static Hashtable getJSONdata(String html)
@@ -233,17 +205,11 @@ public class parseMsgs {
             i = castInt(kvp.getValue());
 
             if(isRead.equals("true"))
-                    break;
+                break;
 
             newConvo = new textConvo(0, msgID, replyNum, date);
             convoHash.put(msgID, newConvo);
         }
-//        kvp = null;
-//        date = null;
-//        html = null;
-//        msgID = null;
-//        newConvo = null;
-//        replyNum = null;
 
         return convoHash;
     }
@@ -272,52 +238,24 @@ public class parseMsgs {
     private static String getHTML() throws ConnectionNotFoundException, IOException
     {
         String html = "";
-        DataInputStream dis = null;
-        ByteArrayOutputStream baos = null;
-        HttpsConnection c = null;
         try{
-            c = createConnection.open(getMsgsURL, "GET", reqProps, "");
-
-            //FIXME every 20 connections or so, a 400 HTTP response is returned. This is a temp workaround
-//            if(c.getResponseCode() != 200)
-//            {
-//                createConnection.close(c);
-//                RMSCookieConnector.removeCookies();
-//                gvLogin.logIn();
-//                c = createConnection.open(getMsgsURL, "GET", reqProps, "");
-//            }
-
-            dis = c.openDataInputStream();
-            baos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[4096];
-            int read = dis.read(buffer);
-
-            while(read != -1)
-            {
-                baos.write(buffer,0,read);
-                read = dis.read(buffer);
-            }
-            html = new String(baos.toByteArray());
+            String[] combined = {getMsgsURL, "?auth=", gvME.getAuth()};
+            connMgr.open(tools.combineStrings(combined), "GET", reqProps, "");
+            html = connMgr.getPageData();
         }
         catch(ConnectionNotFoundException cnf)
         {
             Logger.add("getHTML", cnf.getMessage());
-            try{createConnection.close(c); c = null;}catch(Exception ignore){}
             throw cnf;
         }
         finally{
             try{
-                dis.close();
-                baos.close();
-                createConnection.close(c);
+                connMgr.close();
             }
             catch(Exception ignore)
             {}
-//            dis = null;
-//            baos = null;
-//            c = null;
+
             return html;
-            
         }
     }
 

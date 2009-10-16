@@ -34,9 +34,6 @@ public class serial {
             vect.addElement(new KeyValuePair(strArray[i],strArray[++i]));
         }
 
-//        data = null;
-//        strArray = null;
-        
         return vect;
     }
 
@@ -54,10 +51,6 @@ public class serial {
         }
         byte[] data = serialize(strArray);
 
-//        kvp = null;
-//        vect = null;
-//        strArray = null;
-        
         return data;
     }
 
@@ -81,9 +74,7 @@ public class serial {
         finally{
             dis.close();
             bis.close();
-//            dis = null;
-//            bis = null;
-            
+
             return fields;
         }
     }
@@ -113,8 +104,6 @@ public class serial {
             dos.flush();
             dos.close();
             bos.close();
-//            dos = null;
-//            bos = null;
             return data;
         }
     }

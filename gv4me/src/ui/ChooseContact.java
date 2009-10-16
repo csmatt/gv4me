@@ -34,7 +34,7 @@ public class ChooseContact extends List implements CommandListener{
     private interCom next;
     private List recentContacts;
     private Displayable prev;
-    private Vector contacts = settings.getRecentContacts();;
+    private Vector contacts = settings.getRecentContacts();
 
     public ChooseContact(Displayable prev, interCom com)
     {
@@ -42,7 +42,8 @@ public class ChooseContact extends List implements CommandListener{
         this.next = com;
         this.prev = prev;
         append("Recent", null);
-        append("Phone Book", null);
+        if(PimIsSupported())
+            append("Phone Book", null);
         append("Enter Number", null);
         addCommand(getOKCmd());
         addCommand(getBackCmd());
@@ -54,6 +55,16 @@ public class ChooseContact extends List implements CommandListener{
     {
         return this.nameAndNumber;
     }
+
+    private static boolean PimIsSupported() {
+        boolean isSupported = true;
+        String pimApiVersion = System.getProperty("microedition.pim.version");
+        if (pimApiVersion == null) {
+            isSupported = false;
+        }
+        return isSupported;
+    }
+
 
     private void getNumFromPIMBrowser()
     {
@@ -191,7 +202,7 @@ public class ChooseContact extends List implements CommandListener{
                         gvME.dispMan.switchDisplayable(null,(Displayable) next);
                     }
                 }
-                else if(display == pimBrowser) //TODO: get PIMBrowser working
+                else if(display == pimBrowser)
                 {
                     if (command == PIMBrowser.SELECT_PIM_ITEM || command == PIMBrowser.SELECT_COMMAND) {
                         getNumFromPIMBrowser();

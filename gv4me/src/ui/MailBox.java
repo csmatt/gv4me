@@ -21,7 +21,6 @@ import javax.microedition.rms.InvalidRecordIDException;
 import javax.microedition.rms.RecordEnumeration;
 import javax.microedition.rms.RecordStore;
 import javax.microedition.rms.RecordStoreException;
-import javax.microedition.rms.RecordStoreNotOpenException;
 
 /**
  *
@@ -35,7 +34,7 @@ public class MailBox extends List implements CommandListener {
     public Command markMultiCmd;
     public Vector list;
     public String rsName;
-    public static int itemLength = 20;
+    public static int itemLength = 17;
     private Form readMsg;
     public int numUnread = 0;
     public final Image msgIsRead = Image.createImage("/pics/read.png");

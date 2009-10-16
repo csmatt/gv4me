@@ -5,7 +5,6 @@
 
 package ui;
 
-import gvME.KeyValuePair;
 import gvME.Logger;
 import gvME.gvME;
 import gvME.parseMsgs;
@@ -30,7 +29,6 @@ public class Inbox extends MailBox {
     private Command refreshCmd;
     private Command callCmd;
     private Command markUnreadCmd;
-    private static WriteMsg wm;
 
     public Inbox() throws IOException, RecordStoreException
     {
@@ -213,7 +211,7 @@ public class Inbox extends MailBox {
             }
             else if(command == replyCmd)
             {
-                wm = new WriteMsg("Reply", original);
+                WriteMsg wm = new WriteMsg("Reply", original);
                 gvME.dispMan.switchDisplayable(null, wm);
             }
             else if(command == callCmd)

@@ -49,6 +49,7 @@ package gvME;
 
 import java.io.*;
 
+import java.util.Hashtable;
 import javax.microedition.io.*;
 import javax.microedition.rms.*;
 
@@ -58,10 +59,10 @@ import javax.microedition.rms.*;
  */
 public class RMSCookieConnector {
 
-    private RMSCookieConnector() {}
-
     // The default name of the RMS to store cookies.
     private static String cookieStoreName = "cookieStore";
+    private static String GALX;
+    private static Hashtable cookieHash = new Hashtable();
 
     // Use the default RMS cookie store name.
     public static HttpsConnection open(String url) throws ConnectionNotFoundException, Exception {
@@ -77,9 +78,9 @@ public class RMSCookieConnector {
         HttpsConnection c = (HttpsConnection) Connector.open(url);
         // Find cookies from the store and add to the connection header.
         addCookie(c, url);
-        c.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-        c.setRequestProperty("Content-Language", "en-US");
+//        c.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+//
+//        c.setRequestProperty("Content-Language", "en-US");
         // Cookie aware wrapper to the connection object.
         HttpsConnection sc = new HttpsRMSCookieConnection(c);
         return sc;
@@ -125,7 +126,7 @@ public class RMSCookieConnector {
       int k = 0;
       RecordStore rs = null;
       try {
-        // Open the record store.
+        removeCookies();
         rs = RecordStore.openRecordStore(cookieStoreName, true);
         // Iterate through connection headers and find "set-cookie" fields.
         while (c.getHeaderFieldKey(k) != null) {
@@ -135,13 +136,22 @@ public class RMSCookieConnector {
             // Parse the header and get the cookie.
             int j = value.indexOf(";");
             String cValue = value.substring(0, j);
-            //System.out.println(cValue);
+            int index = cValue.indexOf("=");
+            String cookieName = cValue.substring(0, index);
+            String cookieValue = cValue.substring(index+1);
+            cookieHash.put(cookieName, cookieValue);
+            if((j = cValue.indexOf("GALX"))>-1)
+                GALX = cValue.substring(j+5, j+16);
+            System.out.println(cValue);
+//            cookieVect.addElement(cValue);
             // Write the cookie into the cookie store.
-            rs.addRecord(cValue.getBytes(), 0, cValue.length());
+            String[] strings = {cookieName, "=", cookieValue};
+            cValue = tools.combineStrings(strings);
+            byte[] cValue_bytes = cValue.getBytes();
+            rs.addRecord(cValue_bytes, 0, cValue_bytes.length);
           }
           k++;
         }
-
       } catch ( Exception e ) {
           Logger.add("RMSCookieConnector", "getCookie", e.getMessage());
         throw new IOException( e.getMessage() );
@@ -151,6 +161,11 @@ public class RMSCookieConnector {
         rs.closeRecordStore();
         return;
       }
+    }
+
+    public static String getGALX()
+    {
+        return RMSCookieConnector.GALX;
     }
 
     // This method matches cookies in the store with the domain
@@ -169,8 +184,15 @@ public class RMSCookieConnector {
 
           while ( re.hasNextElement() ) {
             cookie = new String(re.nextRecord());
-            buff.append( cookie );
-            buff.append("; ");
+//          Enumeration cookieEnum = cookieVect.elements();
+//          while(cookieEnum.hasMoreElements())
+//          {
+//              cookie = (String)cookieEnum.nextElement();
+//              if(cookie.indexOf("EXPIRED") < 0)
+//              {
+                buff.append( cookie );
+                buff.append("; ");
+//              }
           }
       }
       catch(Exception e)
@@ -185,6 +207,8 @@ public class RMSCookieConnector {
         // Ignore
       } else {
         c.setRequestProperty( "cookie", cookieStr );
+        System.out.println("setting cookies ");
+        System.out.println(cookieStr);
       }
         }
         finally{
@@ -254,6 +278,7 @@ class HttpsRMSCookieConnection implements HttpsConnection {
     public void setRequestProperty(String key, String value)
         throws IOException {
         c.setRequestProperty(key, value);
+        System.out.println("Setting reqProp: "+key+" - "+value);
     }
 
     public int getResponseCode() throws IOException {

@@ -13,7 +13,6 @@ import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Alert;
-import javax.microedition.lcdui.AlertType;
 import org.netbeans.microedition.lcdui.WaitScreen;
 import org.netbeans.microedition.util.SimpleCancellableTask;
 
@@ -49,7 +48,6 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
     {
         setTitle("Making Call");
         setCommandListener(this);
-        reqProps = parseMsgs.getReqProps();
         rnr = gvME.getRNR();
         setText("Making Call...");
         setTask(getSimpleCancellableTask());
@@ -57,14 +55,13 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
 
     private void makeCall(String contacting) throws IOException, Exception
     {
-        String[] strings = {"outgoingNumber=+1", contacting, "&forwardingNumber=+1", settings.getCallFrom(), "&subscriberNumber=undefined&remember=0&_rnr_se=", rnr};
+        String[] strings = {"&outgoingNumber=+1", contacting, "&forwardingNumber=+1", settings.getCallFrom(), "&subscriberNumber=undefined&remember=0&_rnr_se=", rnr};
         String postData = tools.combineStrings(strings);
         String[] contentLen = {"Content-Length", String.valueOf(postData.length())};
-        reqProps.insertElementAt(contentLen, 2);
-        HttpsConnection c = createConnection.open(callURL, "POST", reqProps, postData);
-        String pageData = createConnection.getPageData(c);
-        createConnection.close(c);
-        c = null;
+        reqProps.insertElementAt(contentLen, 0);
+        connMgr.open(callURL, "POST", reqProps, postData);
+        String pageData = connMgr.getPageData();
+        connMgr.close();//c);
         if(pageData.indexOf("true") < 0)
             throw new Exception("call failed");
     }

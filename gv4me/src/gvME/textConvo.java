@@ -61,10 +61,9 @@ public class textConvo {
         this.numMsgs = 0;
         this.msgID = "";
         this.date = "";
-//        this.messages.addElement(msg);
         this.sender = sender;
         this.replyNum = replyNum;
-        this.lastMsg = msg;//new textMsg("");
+        this.lastMsg = msg;
     }
 
     public boolean setIsRead(boolean isRead)
@@ -185,7 +184,6 @@ public class textConvo {
 
                 textMsgFields[0] = dis.readUTF();
                 textMsgFields[1] = dis.readUTF();
-//                textMsgFields[2] = dis.readUTF();
 
                 msg = new textMsg(textMsgFields[0], textMsgFields[1]);
                 msgsVect.addElement(msg);
@@ -201,15 +199,6 @@ public class textConvo {
             bis.close();
 
             textConvo deserialized = new textConvo(numMsgs, isRead, fields[0], fields[1], fields[2], fields[3], msgsVect, lastMessage);
-
-//            dis = null;
-//            bis = null;
-//            msg = null;
-//            data = null;
-//            fields = null;
-//            msgsVect = null;
-//            lastMessage = null;
-//            textMsgFields = null;
             
             return deserialized;
             
@@ -271,14 +260,7 @@ public class textConvo {
         byteOutStream.write(lastMsg_bytes);
         data = byteOutStream.toByteArray();
         byteOutStream.close();
-        
-//        fields = null;
-//        textMsgs = null;
-//        numMsgField = null;
-//        byteOutStream = null;
-//        lastMsg_bytes = null;
-//        numMsgs_bytes = null;
-        
+
         return data;
     }
 }

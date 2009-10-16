@@ -31,11 +31,11 @@ public class settings {
     private static String interval = "60";
     private static String callFrom = "";
     private static CommandListener cl;
-    private final int numFields = 4;
+    private static final int numFields = 4;
     private static final int MAX_CONTACTS = 10;
     private static Vector recentContacts = new Vector();
 
-    public settings(CommandListener cl) throws IOException
+    public static void initialize() throws IOException
     {
         settings.cl = cl;
         RecordStore rs = null;
@@ -50,7 +50,7 @@ public class settings {
                 }
             }
         } catch (RecordStoreException ex) {
-            Logger.add(getClass().getName(), ex.getMessage());
+            Logger.add("settings", "initialize", ex.getMessage());
             ex.printStackTrace();
         }
         finally{
@@ -62,7 +62,7 @@ public class settings {
         }
     }
 
-    public void changeSettings() throws RecordStoreException
+    private static void changeSettings() throws RecordStoreException
     {
         String tfInterval = intervalTextField.getString();
         String tfUsername = usernameTextField.getString();
@@ -86,7 +86,7 @@ public class settings {
         }
         if(!tfCallFrom.equals(callFrom))
         {
-            settings.callFrom = callFrom;
+            settings.callFrom = tfCallFrom;
         }
         updateSettings();
     }
@@ -118,6 +118,7 @@ public class settings {
                     if(command == saveSettingsCmd)
                     {
                         try {
+                            changeSettings();
                             updateSettings();
                             gvME.dispMan.showMenu();
                         } catch (RecordStoreException ex) {
@@ -162,7 +163,7 @@ public class settings {
         return callFromTextField;
     }
 
-    public void setSettings(String[] fields)
+    public static void setSettings(String[] fields)
     {
         if(fields != null)
         {
@@ -173,7 +174,7 @@ public class settings {
         }
     }
 
-    public int getNumFields()
+    public static int getNumFields()
     {
         return numFields;
     }
@@ -198,10 +199,10 @@ public class settings {
         return callFrom;
     }
 
-//    public void setCheckInterval(String interval)
-//    {
-//        this.interval = String.valueOf(interval);
-//    }
+    public static void setCheckInterval(int interval)
+    {
+        settings.interval = String.valueOf(interval);
+    }
 
     public static void setUsername(String username)
     {

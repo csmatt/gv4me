@@ -17,13 +17,13 @@ import javax.microedition.lcdui.TextField;
  * @author matt
  */
 public class WriteMsg extends TextBox implements CommandListener {
-    private static ChooseContact chooseContact;
+//    private static ChooseContact chooseContact;
     private Command sendCmd;
     private Command backCmd;
     private Command programInfoCmd;
     private static textConvo original;
     private static String title;
-    private static SendMsg sm;
+//    private static SendMsg sm;
 
     public WriteMsg(String title, textConvo original)
     {
@@ -84,13 +84,13 @@ public class WriteMsg extends TextBox implements CommandListener {
 
                 if(!title.equals("Reply")) //if it's a new message or a forwarded message
                 {
-                    sm = new SendMsg(original, this.getString());
-                    chooseContact = new ChooseContact(this, sm);
+                    SendMsg sm = new SendMsg(original, this.getString());
+                    ChooseContact chooseContact = new ChooseContact(this, sm);
                     gvME.dispMan.switchDisplayable(null, chooseContact);
                 }
                 else
                 {
-                    sm = new SendMsg(original, this.getString());
+                    SendMsg sm = new SendMsg(original, this.getString());
                     gvME.dispMan.switchDisplayable(null, sm);
                 }
             }

@@ -5,7 +5,6 @@
 
 package ui;
 
-import gvME.KeyValuePair;
 import gvME.Logger;
 import gvME.gvME;
 import gvME.textConvo;
@@ -14,7 +13,6 @@ import gvME.tools;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
-import javax.microedition.lcdui.Choice;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
@@ -28,7 +26,7 @@ import javax.microedition.lcdui.StringItem;
  */
 public class MsgList extends List implements CommandListener {
 
-    private int itemLength = 20;
+    private int itemLength = 17;
     private Vector msgList = new Vector();
     private Vector MsgListToItemMap = new Vector();
     private Command viewMsgCmd;

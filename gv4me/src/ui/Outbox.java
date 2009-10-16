@@ -33,6 +33,18 @@ public class Outbox extends MailBox {
             super.addItem(convo);
     }
 
+    private void sendItem(int index)
+    {
+        textConvo crnt = (textConvo) list.elementAt(index);
+        SendMsg sm = new SendMsg(crnt, crnt.getLastMsg().getMessage());
+        try {
+            this.delItem(index);
+        } catch (RecordStoreException ex) {
+            ex.printStackTrace();
+        }
+        gvME.dispMan.switchDisplayable(null, sm);
+    }
+
     private Command getSendCmd()
     {
         if(sendCmd == null)
@@ -52,31 +64,21 @@ public class Outbox extends MailBox {
     }
 
     public void commandAction(Command command, Displayable displayable) {
-        if(command == backCmd || command == delItemCmd || command == delAllCmd)
+        if(command == sendCmd)
         {
-            super.commandAction(command, displayable);
+            int index = getSelectedIndex();
+            sendItem(index);
+        }
+        else if(command == sendAllCmd)
+        {
+            for(int i = list.size()-1; i >= 0; i--)
+            {
+                sendItem(i);
+            }
         }
         else
         {
-            if(command == sendCmd)
-            {
-                int index = getSelectedIndex();
-                textConvo crnt = (textConvo) list.elementAt(index);
-                SendMsg sm = new SendMsg(crnt, crnt.getLastMsg().getMessage());
-                try {
-                    this.delItem(index);
-                } catch (RecordStoreException ex) {
-                    ex.printStackTrace();
-                }
-                gvME.dispMan.switchDisplayable(null, sm);
-            }
-            else if(command == sendAllCmd)
-            {
-                for(int i = list.size()-1; i >= 0; i--)
-                {
-                    
-                }
-            }
+            super.commandAction(command, displayable);
         }
     }
 }
