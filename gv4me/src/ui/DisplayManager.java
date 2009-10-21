@@ -13,7 +13,7 @@ import javax.microedition.lcdui.Displayable;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class DisplayManager {
     gvME midlet;

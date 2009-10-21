@@ -19,7 +19,7 @@ import javax.microedition.rms.RecordStoreException;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class settings {
     private static final String userSettingsStore = "userSettingsStore";
@@ -33,12 +33,13 @@ public class settings {
     private static CommandListener cl;
     private static final int numFields = 4;
     private static final int MAX_CONTACTS = 10;
-    private static Vector recentContacts = new Vector();
+    private static Vector recentContacts;
 
     public static void initialize() throws IOException
     {
         settings.cl = cl;
         RecordStore rs = null;
+        //getRecentContacts() = new Vector();
         try {
             rs = RecordStore.openRecordStore(userSettingsStore, true);
             if (rs.getNumRecords() != 0) {
@@ -221,29 +222,33 @@ public class settings {
 
     public static Vector getRecentContacts()
     {
-        return settings.recentContacts;
+        if(recentContacts == null)
+        {
+            recentContacts = new Vector();
+        }
+        return recentContacts;
     }
 
     public static void addContact(KeyValuePair contact) throws RecordStoreException, IOException
     {
-        for(int i = 0; recentContacts != null && i < recentContacts.size(); i++)
+        for(int i = 0; getRecentContacts() != null && i < getRecentContacts().size(); i++)
         {
-            KeyValuePair crnt = (KeyValuePair)recentContacts.elementAt(i);
+            KeyValuePair crnt = (KeyValuePair)getRecentContacts().elementAt(i);
             if(crnt.getKey().equals(contact.getKey()))
             {
                 KeyValuePair temp = new KeyValuePair(crnt.getKey(), crnt.getValue());
-                recentContacts.removeElementAt(i);
-                recentContacts.insertElementAt(temp, 0);
+                getRecentContacts().removeElementAt(i);
+                getRecentContacts().insertElementAt(temp, 0);
                 updateContacts();
                 return;
             }
                 
         }
-        if(recentContacts.indexOf(contact) < 0)
+        if(getRecentContacts().indexOf(contact) < 0)
         {
-            recentContacts.insertElementAt(contact, 0);
-            if(recentContacts.size() > MAX_CONTACTS)
-                recentContacts.setSize(MAX_CONTACTS);
+            getRecentContacts().insertElementAt(contact, 0);
+            if(getRecentContacts().size() > MAX_CONTACTS)
+                getRecentContacts().setSize(MAX_CONTACTS);
             updateContacts();
         }
     }
@@ -252,7 +257,7 @@ public class settings {
     {
         RecordStore rs = null;
         try{
-            byte[] data = serial.serializeKVPVector(recentContacts);
+            byte[] data = serial.serializeKVPVector(getRecentContacts());
             rs = RecordStore.openRecordStore(userSettingsStore, true);
             if(rs.getNumRecords() != 0){
                 try{

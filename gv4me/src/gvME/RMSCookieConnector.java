@@ -62,11 +62,20 @@ public class RMSCookieConnector {
     // The default name of the RMS to store cookies.
     private static String cookieStoreName = "cookieStore";
     private static String GALX;
-    private static Hashtable cookieHash = new Hashtable();
+    private static Hashtable cookieHash;
 
     // Use the default RMS cookie store name.
     public static HttpsConnection open(String url) throws ConnectionNotFoundException, Exception {
         return open(url, cookieStoreName);
+    }
+
+    private static Hashtable getCookieHash()
+    {
+        if(cookieHash == null)
+        {
+            cookieHash = new Hashtable();
+        }
+        return cookieHash;
     }
 
     // Open a new connection and save cookie into the specified store.
@@ -139,14 +148,13 @@ public class RMSCookieConnector {
             int index = cValue.indexOf("=");
             String cookieName = cValue.substring(0, index);
             String cookieValue = cValue.substring(index+1);
-            cookieHash.put(cookieName, cookieValue);
-            if((j = cValue.indexOf("GALX"))>-1)
-                GALX = cValue.substring(j+5, j+16);
-            System.out.println(cValue);
+            getCookieHash().put(cookieName, cookieValue);
+//            System.out.println(cValue);
 //            cookieVect.addElement(cValue);
+//            String[] strings = {cookieName, "=", cookieValue};
+//            cValue = tools.combineStrings(strings);
+
             // Write the cookie into the cookie store.
-            String[] strings = {cookieName, "=", cookieValue};
-            cValue = tools.combineStrings(strings);
             byte[] cValue_bytes = cValue.getBytes();
             rs.addRecord(cValue_bytes, 0, cValue_bytes.length);
           }
@@ -154,18 +162,14 @@ public class RMSCookieConnector {
         }
       } catch ( Exception e ) {
           Logger.add("RMSCookieConnector", "getCookie", e.getMessage());
-        throw new IOException( e.getMessage() );
+          close(c,null, null);
+          throw new IOException( e.getMessage() );
       }
       finally{
         // Close store.
         rs.closeRecordStore();
         return;
       }
-    }
-
-    public static String getGALX()
-    {
-        return RMSCookieConnector.GALX;
     }
 
     // This method matches cookies in the store with the domain
@@ -198,7 +202,7 @@ public class RMSCookieConnector {
       catch(Exception e)
       {
           Logger.add("RMSCookieConnector", "addCookie", e.getMessage());
-       System.out.println("error opening record" + e.toString());
+//       System.out.println("error opening record" + e.toString());
       }
       // If we do have cookies to send, set the composed string into
       // "cookie" header.
@@ -207,8 +211,8 @@ public class RMSCookieConnector {
         // Ignore
       } else {
         c.setRequestProperty( "cookie", cookieStr );
-        System.out.println("setting cookies ");
-        System.out.println(cookieStr);
+//        System.out.println("setting cookies ");
+//        System.out.println(cookieStr);
       }
         }
         finally{
@@ -221,8 +225,16 @@ public class RMSCookieConnector {
 
     // Remove all cookies.
     public static void removeCookies() throws Exception {
+        try{
         RecordStore.deleteRecordStore(cookieStoreName);
         return;
+        }
+        catch(RecordStoreNotFoundException ex)
+        {}
+        catch(Exception ex)
+        {
+            Logger.add("RMSCookieConnector", "removeCookies", ex.getMessage());
+        }
     }
 
 }
@@ -278,7 +290,7 @@ class HttpsRMSCookieConnection implements HttpsConnection {
     public void setRequestProperty(String key, String value)
         throws IOException {
         c.setRequestProperty(key, value);
-        System.out.println("Setting reqProp: "+key+" - "+value);
+//        System.out.println("Setting reqProp: "+key+" - "+value);
     }
 
     public int getResponseCode() throws IOException {
@@ -349,6 +361,7 @@ class HttpsRMSCookieConnection implements HttpsConnection {
         } catch (RecordStoreException ex) {
             ex.printStackTrace();
         }
+
         return c.openInputStream();
     }
 

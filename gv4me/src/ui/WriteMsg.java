@@ -14,7 +14,7 @@ import javax.microedition.lcdui.TextField;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class WriteMsg extends TextBox implements CommandListener {
 //    private static ChooseContact chooseContact;
@@ -80,8 +80,6 @@ public class WriteMsg extends TextBox implements CommandListener {
                     gvME.dispMan.switchToPreviousDisplayable();
                 }
             } else if (command == sendCmd) {
-                //original.setLastMsg(new textMsg(this.getString()));
-
                 if(!title.equals("Reply")) //if it's a new message or a forwarded message
                 {
                     SendMsg sm = new SendMsg(original, this.getString());

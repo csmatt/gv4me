@@ -8,6 +8,7 @@ package ui;
 import gvME.Logger;
 import gvME.gvME;
 import gvME.parseMsgs;
+import gvME.settings;
 import gvME.textConvo;
 import gvME.tools;
 import java.io.IOException;
@@ -20,11 +21,10 @@ import javax.microedition.rms.RecordStoreException;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class Inbox extends MailBox {
-    private static final String inboxStore = "inboxStore";
-    private static Hashtable inboxHash = new Hashtable();
+    private static Hashtable inboxHash;
     private Command replyCmd;
     private Command refreshCmd;
     private Command callCmd;
@@ -32,7 +32,7 @@ public class Inbox extends MailBox {
 
     public Inbox() throws IOException, RecordStoreException
     {
-        super("Inbox", inboxStore);
+        super("Inbox", "inboxStore");
         addCommand(getReplyCmd());
         addCommand(getRefreshCmd());
         addCommand(getCallCmd());
@@ -41,8 +41,10 @@ public class Inbox extends MailBox {
         initInboxHash();
     }
 
-    //creates a hashtable of textConvos. Key = textConvo.msgID; Value = textConvo
-    //this is done to more quickly check to see if a textConvo with a given msgID already exists
+    /**
+     *creates a hashtable of textConvos. Key = textConvo.msgID; Value = textConvo
+     *this is done to more quickly check to see if a textConvo with a given msgID already exists
+     */
     private void initInboxHash()
     {
         Enumeration listEnum = list.elements();
@@ -51,17 +53,26 @@ public class Inbox extends MailBox {
             textConvo crnt = (textConvo) listEnum.nextElement();
             if(!crnt.getIsRead())
                 numUnread++;
-            inboxHash.put(crnt.getMsgID(), crnt);
+            getInboxHash().put(crnt.getMsgID(), crnt);
         }
         updateUnread();
     }
 
+    /**
+     * Updates the main menu's Inbox item to reflect the number of unread messages the Inbox contains
+     */
     private void updateUnread()
     {
         String[] inboxUnread = {"Inbox (", String.valueOf(numUnread), ")"};
         gvME.setMenu(1, tools.combineStrings(inboxUnread));
     }
 
+    /**
+     * Adds new messages to the Inbox's list vector, GUI List, and inboxHash
+     * @param newMsgs Vector of messages to add to the Inbox
+     * @throws IOException
+     * @throws RecordStoreException
+     */
     public void updateInbox(Vector newMsgs) throws IOException, RecordStoreException
     {
         int numNewMsgs = 0;
@@ -71,29 +82,35 @@ public class Inbox extends MailBox {
             {
                 textConvo newConvo = (textConvo) newMsgs.elementAt(i);
                 int index = -1;
-                if(inboxHash.containsKey(newConvo.getMsgID()))
+                if(getInboxHash().containsKey(newConvo.getMsgID()))
                 {
-                    textConvo crnt = (textConvo) inboxHash.get(newConvo.getMsgID());
+                    textConvo crnt = (textConvo) getInboxHash().get(newConvo.getMsgID());
                     if(crnt.getIsRead())
                     {
                         numUnread++;
                         crnt.setIsRead(false);
                     }
                     index = list.indexOf(crnt);
-                    inboxHash.put(crnt.getMsgID(), crnt);
+                    getInboxHash().put(crnt.getMsgID(), crnt);
                     list.setElementAt(crnt, index);
                     addItem(crnt, index);
                 }
                 else
                 {
                     numUnread++;
-                    inboxHash.put(newConvo.getMsgID(), newConvo);
+                    getInboxHash().put(newConvo.getMsgID(), newConvo);
                     addItem(newConvo);
                 }
             }
             updateUnread();
         }
     }
+
+    /**
+     * Sets specified textConvo to read.
+     * @param crnt textConvo to mark read.
+     * @param selIndex index of textConvo in GUI List
+     */
     private void markConvoRead(textConvo crnt, int selIndex)
     {
         if(!crnt.getIsRead())
@@ -110,10 +127,13 @@ public class Inbox extends MailBox {
         }
         updateUnread();
         list.setElementAt(crnt, selIndex);
-        inboxHash.put(crnt.getMsgID(), crnt);
+        getInboxHash().put(crnt.getMsgID(), crnt);
         updateRS();
     }
 
+    /**
+     * Method to manually check for new messages.
+     */
     private void refreshInbox()
     {
         Thread refreshThread = new Thread(){
@@ -134,6 +154,10 @@ public class Inbox extends MailBox {
 
     public static Hashtable getInboxHash()
     {
+        if(inboxHash == null)
+        {
+            inboxHash = new Hashtable();
+        }
         return inboxHash;
     }
 
@@ -169,29 +193,26 @@ public class Inbox extends MailBox {
     }
     
     public void commandAction(Command command, Displayable displayable) {
-
         if(command == backCmd)
             super.commandAction(command, displayable);
-        else if(command == delItemCmd || command == delAllCmd)
+        else if(!list.isEmpty() && (command == delItemCmd || command == delAllCmd))
         {
-            if(!list.isEmpty()){
-                if(command == delItemCmd)
-                {
-                    textConvo crnt = (textConvo)list.elementAt(getSelectedIndex());
-                    String hashkey = (String) crnt.getMsgID();
-                    inboxHash.remove(hashkey);
-                    if(!crnt.getIsRead())
-                        numUnread--;
-                    updateUnread();
-                }
-                if(command == delAllCmd)
-                {
-                    inboxHash.clear();
-                    numUnread = 0;
-                    updateUnread();
-                }
-                super.commandAction(command, displayable);
+            if(command == delItemCmd)
+            {
+                textConvo crnt = (textConvo)list.elementAt(getSelectedIndex());
+                String hashkey = (String) crnt.getMsgID();
+                getInboxHash().remove(hashkey);
+                if(!crnt.getIsRead())
+                    numUnread--;
+                updateUnread();
             }
+            if(command == delAllCmd)
+            {
+                getInboxHash().clear();
+                numUnread = 0;
+                updateUnread();
+            }
+            super.commandAction(command, displayable);
         }
         else if(command == refreshCmd)
         {
@@ -216,9 +237,13 @@ public class Inbox extends MailBox {
             }
             else if(command == callCmd)
             {
-                MakeCall mc = new MakeCall(original.getReplyNum(), original.getSender());
-                gvME.dispMan.switchDisplayable(null, mc);
-                mc = null;
+                if(settings.getCallFrom().equals(""))
+                    gvME.dispMan.switchDisplayable(gvME.getNoCallFromAlert(), settings.getChangeSettingsMenu());
+                else{
+                    MakeCall mc = new MakeCall(original.getReplyNum(), original.getSender());
+                    gvME.dispMan.switchDisplayable(null, mc);
+                    mc = null;
+                }
             }
             else if(command == markUnreadCmd)
             {

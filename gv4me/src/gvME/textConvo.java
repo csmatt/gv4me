@@ -14,7 +14,7 @@ import java.util.Vector;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class textConvo {
     private int numMsgs = 0;

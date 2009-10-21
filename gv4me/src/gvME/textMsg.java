@@ -9,7 +9,7 @@ import java.io.IOException;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class textMsg {
     private String message;

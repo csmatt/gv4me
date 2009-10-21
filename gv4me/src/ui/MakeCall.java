@@ -8,7 +8,7 @@ package ui;
 import gvME.*;
 import java.io.IOException;
 import java.util.Vector;
-import javax.microedition.io.HttpsConnection;
+import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
@@ -18,7 +18,8 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
+ * MakeCall handles placing a call through Google Voice.
  */
 public class MakeCall extends WaitScreen implements CommandListener, interCom {
     private String contacting = "";
@@ -53,7 +54,14 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
         setTask(getSimpleCancellableTask());
     }
 
-    private void makeCall(String contacting) throws IOException, Exception
+    /**
+     * Posts data to Google Voice in order to initiate a call
+     * @param contacting The number to be dialed.
+     * @throws ConnectionNotFoundException
+     * @throws IOException
+     * @throws Exception
+     */
+    private void makeCall(String contacting) throws ConnectionNotFoundException, IOException, Exception
     {
         String[] strings = {"&outgoingNumber=+1", contacting, "&forwardingNumber=+1", settings.getCallFrom(), "&subscriberNumber=undefined&remember=0&_rnr_se=", rnr};
         String postData = tools.combineStrings(strings);
@@ -61,7 +69,7 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
         reqProps.insertElementAt(contentLen, 0);
         connMgr.open(callURL, "POST", reqProps, postData);
         String pageData = connMgr.getPageData();
-        connMgr.close();//c);
+        connMgr.close();
         if(pageData.indexOf("true") < 0)
             throw new Exception("call failed");
     }
@@ -76,7 +84,14 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
         return task;
     }
 
+    /**
+     * Sets the number to contact in compliance with the interCom interface.
+     * @param contacting number to contact
+     * @param recipient name of recipient (or number if no name specified)
+     */
     public void setContacting(String contacting, String recipient) {
+        if(contacting.startsWith("1"))
+            contacting = contacting.substring(1);
         this.contacting = contacting;
         this.recipient = recipient;
     }

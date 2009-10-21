@@ -16,7 +16,7 @@ import javax.microedition.lcdui.List;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class Logger extends List implements CommandListener{
     private static Vector log = new Vector();

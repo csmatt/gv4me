@@ -24,7 +24,7 @@ import javax.microedition.rms.RecordStoreException;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class MailBox extends List implements CommandListener {
     public Command OKCmd;
@@ -65,13 +65,20 @@ public class MailBox extends List implements CommandListener {
         }
     }
 
+    /**
+     * Creates a String representation of the textConvo being added to the GUI List
+     * @param crnt textConvo being added
+     * @param index Location in the GUI List at which to insert the crnt textConvo
+     * @throws IOException
+     * @throws RecordStoreException
+     */
     public void addItemToMailBox(textConvo crnt, int index) throws IOException, RecordStoreException
     {
         Image icon;
         StringBuffer itemBuff = new StringBuffer();
         itemBuff = new StringBuffer(crnt.getSender());
         itemBuff.append(": ");
-        itemBuff.append(crnt.getLastMsg().getMessage());//getMessages().lastElement()).getMessage());
+        itemBuff.append(crnt.getLastMsg().getMessage());
         if(itemBuff.length() > itemLength)
         {
             itemBuff.setLength(itemLength);
@@ -86,10 +93,26 @@ public class MailBox extends List implements CommandListener {
         else
             this.insert(0, new String(itemBuff), icon);
     }
+    
+    /**
+     * Intermediate method used to insert brand new textConvo's into the MailBox
+     * @param crnt textConvo being added to the list vector
+     * @throws IOException
+     * @throws RecordStoreException
+     */
     public void addItem(textConvo crnt) throws IOException, RecordStoreException
     {
         addItem(crnt, -1);
     }
+    
+    /**
+     * Inserts a textConvo into the specified index of the list vector and GUI List
+     * @param crnt textConvo being added
+     * @param index Location at which to place crnt textConvo in the list vector and GUI List 
+     * (-1 means it's a brand new textConvo and should be placed at the top of the list.)
+     * @throws IOException
+     * @throws RecordStoreException
+     */
     public void addItem(textConvo crnt, int index) throws IOException, RecordStoreException
     {
         addItemToMailBox(crnt, index);//adds item to MailBox GUI List
@@ -100,6 +123,10 @@ public class MailBox extends List implements CommandListener {
         updateRS();
     }
 
+    /**
+     * Deletes all textConvo's in the MailBox
+     * @throws RecordStoreException
+     */
     public void delAll() throws RecordStoreException
     {
         try{
@@ -111,6 +138,11 @@ public class MailBox extends List implements CommandListener {
         list.removeAllElements();
     }
 
+    /**
+     * Deletes a textConvo from the list vector and GUI List at the specified index
+     * @param selIndex Index of the item to delete.
+     * @throws RecordStoreException
+     */
     public void delItem(int selIndex) throws RecordStoreException
     {
         if(!list.isEmpty())
@@ -121,12 +153,15 @@ public class MailBox extends List implements CommandListener {
         }
     }
 
+    /**
+     * Updates the RecordStore of this MailBox
+     */
     public void updateRS()
     {
         try{
         RecordStore.deleteRecordStore(rsName);
         }
-        catch(Exception e)
+        catch(Exception ignore)
         {}
         RecordStore rs = null;
         try{
@@ -139,17 +174,23 @@ public class MailBox extends List implements CommandListener {
                 rs.addRecord(data, 0, data.length);
             }
         }
-        catch(Exception e)
+        catch(Exception ignore)
         {}
         finally{
             try {
                 rs.closeRecordStore();
-            } catch (Exception e)
+            } catch (Exception ignore)
             {}
         }
     }
- 
-    //creates a vector from the recordstore's contents. it then returns this vector
+
+    /**
+     * Creates a vector from the RecordStore's contents.
+     * @return Returns a vectore from the contents of the RecordStore.
+     * @throws InvalidRecordIDException
+     * @throws IOException
+     * @throws RecordStoreException
+     */
     public Vector vectFromRS() throws InvalidRecordIDException, IOException, RecordStoreException
     {
         Vector vectOfRS = new Vector(10);
@@ -172,6 +213,12 @@ public class MailBox extends List implements CommandListener {
         }
     }
 
+    /**
+     * 
+     * @param title Sender or Recipient of the message
+     * @param msg Text of the message being read
+     * @return Returns a GUI Form with the contents of the message
+     */
     private Form getReadMsg(String title, String msg)
     {
         readMsg = new Form("To: "+title);

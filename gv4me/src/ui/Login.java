@@ -8,6 +8,7 @@ package ui;
 import gvME.Logger;
 import gvME.connMgr;
 import gvME.gvME;
+import gvME.parseMsgs;
 import gvME.settings;
 import gvME.tools;
 import java.io.IOException;
@@ -26,11 +27,11 @@ import org.netbeans.microedition.lcdui.WaitScreen;
 import org.netbeans.microedition.util.SimpleCancellableTask;
 
 /**
- *
- * @author matt
+ * Logs user into his/her Google Voice account and, upon successful login, saves user credentials for future logins
+ * @author Matt Defenthaler
  */
 public class Login extends WaitScreen implements CommandListener {
-    private static final String rnrURL = "https://www.google.com/voice/m/i/voicemail";
+    private static final String rnrURL = "https://www.google.com/voice/m/i/voicemail?p=1000";
     private static final String clientLoginURL = "https://www.google.com/accounts/ClientLogin";
     private Command loginCmd, loginAgainCmd, cancelLoginCmd;
     private TextField usernameTF, passwordTF;
@@ -39,7 +40,12 @@ public class Login extends WaitScreen implements CommandListener {
     private String username, password;
     private String exceptionType = "";
     private Image image;
-    
+
+    /**
+     * Login constructor
+     * @throws IOException
+     * @throws Exception
+     */
     public Login() throws IOException, Exception
     {
         super(gvME.dispMan.getDisplay());
@@ -51,6 +57,11 @@ public class Login extends WaitScreen implements CommandListener {
         checkLoginInfo();
     }
 
+    /**
+     * Checks to see if the username and password are stored, if they aren't the login screen is displayed
+     * @throws IOException
+     * @throws Exception
+     */
     private void checkLoginInfo() throws IOException, Exception {
         username = settings.getUsername();
         password = settings.getPassword();
@@ -63,6 +74,11 @@ public class Login extends WaitScreen implements CommandListener {
         }
     }
 
+    /**
+     * Adds the username and password to the settings class and updates the recordstore with this data
+     * @throws RecordStoreException
+     * @throws RecordStoreException
+     */
     private void saveLoginInfo() throws RecordStoreException, RecordStoreException
     {
             settings.setUsername(username);
@@ -199,22 +215,23 @@ public class Login extends WaitScreen implements CommandListener {
             }
         }
         else if (displayable == this) {
-            if (command == WaitScreen.FAILURE_COMMAND) {
+            if (command == WaitScreen.FAILURE_COMMAND) { //An exception was thrown during login
                 if(exceptionType == null || exceptionType.equals("cnf"))
-                {
+                {//ConnectionNotFoundException was thrown
                     gvME.dispMan.switchDisplayable(getNoConAlert(), gvME.getMenu());
                 }
                 else if(exceptionType.equals("inv"))
-                {
+                {//A 4XX response was received from the server indicating invalid username or password
                     gvME.dispMan.switchDisplayable(getInvalidCredsAlert(), getLoginScreen());
                 }
                 else
-                {
+                {//an unknown error was thrown
                     gvME.dispMan.switchDisplayable(getErrorAlert(exceptionType), gvME.getMenu());
                 }
-            } else if (command == WaitScreen.SUCCESS_COMMAND) {
+            } else if (command == WaitScreen.SUCCESS_COMMAND) 
+                {//the username and password successfully logged the user in
                 if(loginScreen != null){
-                    try {
+                    try {//save the username and password only if the user just entered them
                         saveLoginInfo();
                     } catch (RecordStoreException ex) {
                         Logger.add(getClass().getName(), ex.getMessage());
@@ -225,7 +242,14 @@ public class Login extends WaitScreen implements CommandListener {
             }
         }
     }
-    private void initLogin() throws IOException, Exception
+
+    /**
+     * Posts login data and retrieves rnr value and ClientLogin auth token
+     * @throws ConnectionNotFoundException
+     * @throws IOException
+     * @throws Exception
+     */
+    private void initLogin() throws ConnectionNotFoundException, IOException, Exception
     {
         String[] reqBodyArray = {
                         "accountType=GOOGLE&Email=",
@@ -235,7 +259,6 @@ public class Login extends WaitScreen implements CommandListener {
                         "&service=grandcentral&source=gv4me"
                         };
         String requestBody =  tools.combineStrings(reqBodyArray);
-        System.out.println(username + " " + password);
 
         Vector reqProps = new Vector(5);
         String[] contentLength = {"Content-Length", String.valueOf(requestBody.length())};
@@ -249,7 +272,7 @@ public class Login extends WaitScreen implements CommandListener {
         System.out.println(auth);
         gvME.setAuth(auth);
 
-        String[] combined = {rnrURL, "?auth=", auth};
+        String[] combined = {rnrURL, "&auth=", auth};
         connMgr.open(tools.combineStrings(combined), "GET", null, "");
         String rnr = connMgr.get_rnr_se();
         connMgr.close();

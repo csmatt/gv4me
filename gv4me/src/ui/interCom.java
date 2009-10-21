@@ -7,7 +7,7 @@ package ui;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public interface interCom {
     public void setContacting(String contacting, String recipient);

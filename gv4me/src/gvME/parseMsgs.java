@@ -16,7 +16,8 @@ import ui.Inbox;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
+ * parseMsgs retrieves the HTML data containing unread messages and parses out new message data
  */
 public class parseMsgs {
     private static final String markReadURL = "https://www.google.com/voice/m/mark?p=1&label=unread&id=";
@@ -38,10 +39,10 @@ public class parseMsgs {
     private static final String noMsgsString = "No unread items in your inbox.";
     private static final String msgBottomToken = "<td class=\"gc-sline-bottom\">";
     private static String[] markReadStr = {markReadURL,"","&read=1"};
-    private static Vector reqProps = new Vector(5);
 
     public static Vector readMsgs() throws ConnectionNotFoundException, IOException, Exception
     {
+        System.gc();
         Vector newConvos = new Vector(5);
         String html = null;
         try{
@@ -52,7 +53,6 @@ public class parseMsgs {
             Logger.add("parseMsgs", "readMsgs", cnf.getMessage());
             throw cnf;
         }
-
         //checks to see if new messages have arrived and returns if none have
         if(html.equals("") || html.indexOf(noMsgsString) > 0)
         {
@@ -80,7 +80,7 @@ public class parseMsgs {
                 Logger.add("parseMsgs", ex.getMessage());
                 ex.printStackTrace();
             }
-           
+
            if(messages == null)
                break;
            
@@ -97,15 +97,15 @@ public class parseMsgs {
            
            newConvos.addElement(crnt);
            newMsgCnt++;
-       }
-
+        }
         gvME.setNumNewMsgs(newMsgCnt);
+        System.gc();
         return newConvos;
     }
 
     private static textConvo getMsgs(String msgID, String html) throws ConnectionNotFoundException, IOException, Exception
     {
-        Vector msgVect = new Vector(10);
+        Vector msgVect = new Vector();
         int i = 0;
         textMsg crnt = null;
         String beginToken = beginMsgToken + msgID;
@@ -115,7 +115,7 @@ public class parseMsgs {
         String sender = "";
         String message = "";
         String time = "";
-        String lastMessage = "";
+//        String lastMessage = "";
         KeyValuePair kvp = null;
 
         int numMsgs = 0;
@@ -129,18 +129,22 @@ public class parseMsgs {
             if(hold_Sender.indexOf("Me:") < 0)
             {
                 sender = parseSender(hold_Sender);//hold_Sender prevents garbage from being submitted as the sender of the message
+                
+                //gets message text
                 kvp = regexreplace(i, html, msgTextToken, endSpan);
                 message = (String) kvp.getKey();
                 i = castInt(kvp.getValue());
 
-                if(lastMessage.equals(message))
-                {
-                    markMsgRead(msgID);
-                    return null;
-                }
+//                if(lastMessage.equals(message))
+//                {
+//                    markMsgRead(msgID);
+//                    return null;
+//                }
+                //gets time message was sent
                 kvp = regexreplace(i, html, msgTimeToken, endSpan);
                 time = ((String) kvp.getKey()).trim();
 
+                //creates a new textMsg object and adds it to the list for this textConvo
                 crnt = new textMsg(message, time);
                 numMsgs++;
                 msgVect.addElement(crnt);
@@ -165,14 +169,21 @@ public class parseMsgs {
             return true;
     }
 
-    //mark message as read
+    /**
+     * Marks message as read on Google Voice
+     */
     private static void markMsgRead(String msgID) throws IOException, IOException, Exception
     {
         markReadStr[1] = msgID; //markReadStr[0] is the base address for marking read
-        connMgr.open(tools.combineStrings(markReadStr), "GET", reqProps, "");
+        connMgr.open(tools.combineStrings(markReadStr), "GET", null, "");
         connMgr.close();
     }
 
+    /**
+     * Parses data from the JSON block found at the top of the xml
+     * @param html A String of HTML code
+     * @return Returns a Hashtable: key=msgID; value=[an initial textConvo containing properties found in the JSON block].
+     */
     private static Hashtable getJSONdata(String html)
     {
         int i = 0;
@@ -213,15 +224,29 @@ public class parseMsgs {
 
         return convoHash;
     }
-    /*
-     *  regexreplace
+
+    /**
      *  Finds the next occurrence of the regular expression: beginToken(.*)endToken
-     *  It returns the index of the last character in the endToken
-    */
+     * @param i Index of html to begin searching.
+     * @param html HTML code to search within.
+     * @param beginToken First phrase to look for. Specifies the beginning of the block of interest.
+     * @param endToken Last phrase to look for. Specifies the end of the block of interest.
+     * @return returns the index of the last character in the endToken
+     */
     private static KeyValuePair regexreplace(int i, String html, String beginToken, String endToken)
     {
         return regexreplace(i, 0, html, beginToken, endToken);
     }
+
+    /**
+     *  Finds the next occurrence of the regular expression: beginToken(.*)endToken
+     * @param i Index of html to begin searching.
+     * @param stop Index of html that the search should not go past.
+     * @param html HTML code to search within.
+     * @param beginToken First phrase to look for. Specifies the beginning of the block of interest.
+     * @param endToken Last phrase to look for. Specifies the end of the block of interest.
+     * @return returns the index of the last character in the endToken
+     */
     private static KeyValuePair regexreplace(int i, int stop, String html, String beginToken, String endToken)
     {
         i = html.indexOf(beginToken, i)+beginToken.length();
@@ -235,17 +260,23 @@ public class parseMsgs {
         return kvp;
     }
 
+    /**
+     * Retrieves the HTML from the unread messages page on Google Voice
+     * @return HTML found
+     * @throws ConnectionNotFoundException
+     * @throws IOException
+     */
     private static String getHTML() throws ConnectionNotFoundException, IOException
     {
         String html = "";
         try{
             String[] combined = {getMsgsURL, "?auth=", gvME.getAuth()};
-            connMgr.open(tools.combineStrings(combined), "GET", reqProps, "");
+            connMgr.open(tools.combineStrings(combined), "GET", null, "");
             html = connMgr.getPageData();
         }
         catch(ConnectionNotFoundException cnf)
         {
-            Logger.add("getHTML", cnf.getMessage());
+            Logger.add("getHTML", "connection not found");
             throw cnf;
         }
         finally{
@@ -259,6 +290,11 @@ public class parseMsgs {
         }
     }
 
+    /**
+     * Removes unnecessary characters from the sender String.
+     * @param sender The raw String created from the text between the begin and end tokens used for obtaining the message sender.
+     * @return Returns a string containing only the characters necessary for specifying the message sender.
+     */
     private static String parseSender(String sender)
     {
         while(sender.indexOf('\n') >= 0)
@@ -269,12 +305,22 @@ public class parseMsgs {
         return sender.trim();
     }
 
+   /**
+     * Removes unnecessary characters from the date String.
+     * @param date The raw String created from the text between the begin and end tokens used for obtaining the date the message was sent.
+     * @return Returns a string containing only the characters necessary for specifying the message's sent date.
+     */
     private static String parseDate(String date)
     {
         int slashIndex = date.indexOf("/", date.indexOf("/")+1);
         return date.substring(0, slashIndex+3);
     }
 
+    /**
+     * Makes a primitive int from an Integer object
+     * @param i An Object to be cast to a primitive int
+     * @return Returns a primitive int
+     */
     private static int castInt(Object i)
     {
         return ((Integer) i).intValue();

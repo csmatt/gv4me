@@ -7,6 +7,7 @@ package ui;
 
 import gvME.Logger;
 import gvME.gvME;
+import gvME.settings;
 import gvME.textConvo;
 import gvME.textMsg;
 import gvME.tools;
@@ -22,7 +23,7 @@ import javax.microedition.lcdui.StringItem;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class MsgList extends List implements CommandListener {
 
@@ -89,6 +90,10 @@ public class MsgList extends List implements CommandListener {
         return msgProps;
     }
 
+    /**
+     * Creates String representations of textMsg's and inserts them into the 
+     * @param msgs Vector of textMsg's in the current textConvo
+     */
     private void getMsgList(Vector msgs)
     {
         Enumeration addMsgEnum = msgs.elements();
@@ -146,9 +151,14 @@ public class MsgList extends List implements CommandListener {
             }
             else if(command == callCmd)
             {
-                MakeCall mc = new MakeCall(convo.getReplyNum(), convo.getSender());
-                gvME.dispMan.switchDisplayable(null, mc);
-                mc = null;
+                if(settings.getCallFrom().equals(""))
+                    gvME.dispMan.switchDisplayable(gvME.getNoCallFromAlert(), settings.getChangeSettingsMenu());
+                else
+                {
+                    MakeCall mc = new MakeCall(convo.getReplyNum(), convo.getSender());
+                    gvME.dispMan.switchDisplayable(null, mc);
+                    mc = null;
+                }
             }
             else if(displayable == this && command == viewMsgCmd)
             {

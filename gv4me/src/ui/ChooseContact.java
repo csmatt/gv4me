@@ -23,7 +23,8 @@ import org.netbeans.microedition.lcdui.pda.PIMBrowser;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
+ * ChooseContact displays a list of ways to choose a contact.
  */
 public class ChooseContact extends List implements CommandListener{
     private Command backCmd;
@@ -36,6 +37,11 @@ public class ChooseContact extends List implements CommandListener{
     private Displayable prev;
     private Vector contacts = settings.getRecentContacts();
 
+    /**
+     *
+     * @param prev the Displayable that called ChooseContact
+     * @param com the interCom that called ChooseContact (MakeCall or SendMsg)
+     */
     public ChooseContact(Displayable prev, interCom com)
     {
         super("Choose Contact", Choice.IMPLICIT);
@@ -51,11 +57,19 @@ public class ChooseContact extends List implements CommandListener{
         setCommandListener(this);
     }
 
+    /**
+     *
+     * @return returns the nameAndNumber KeyValuePair for the chosen contact
+     */
     public KeyValuePair getContact()
     {
         return this.nameAndNumber;
     }
 
+    /**
+     *
+     * @return returns true if JSR-075 is supported and false if not
+     */
     private static boolean PimIsSupported() {
         boolean isSupported = true;
         String pimApiVersion = System.getProperty("microedition.pim.version");
@@ -109,7 +123,7 @@ public class ChooseContact extends List implements CommandListener{
         gvME.dispMan.switchDisplayable(null,(Displayable) next);
     }
 
-    public void chooseContactAction() {
+    private void chooseContactAction() {
         String __selectedString = this.getString(this.getSelectedIndex());
         if (__selectedString != null) {
             if (__selectedString.equals("Recent")) {
@@ -125,7 +139,7 @@ public class ChooseContact extends List implements CommandListener{
         }
     }
 
-    public TextBox getEnterNumBox() {
+    private TextBox getEnterNumBox() {
         if(enterNumBox == null)
         {
             enterNumBox = new TextBox("Enter Number", null, 15, TextField.PHONENUMBER);
@@ -136,7 +150,7 @@ public class ChooseContact extends List implements CommandListener{
         return enterNumBox;
     }
 
-    public List getRecentContactsList()
+    private List getRecentContactsList()
     {
         if(recentContacts == null)
         {
@@ -150,18 +164,19 @@ public class ChooseContact extends List implements CommandListener{
         {
             recentContacts.deleteAll();
         }
+        
         contacts = settings.getRecentContacts();
 
-        Enumeration contactsEnum = contacts.elements();
-        while(contactsEnum.hasMoreElements())
-        {
-            String contactName = (String) ((KeyValuePair)contactsEnum.nextElement()).getValue();
-            recentContacts.append(contactName, null);
-        }
+            Enumeration contactsEnum = contacts.elements();
+            while(contactsEnum.hasMoreElements())
+            {
+                String contactName = (String) ((KeyValuePair)contactsEnum.nextElement()).getValue();
+                recentContacts.append(contactName, null);
+            }
         return recentContacts;
     }
 
-    public PIMBrowser getPimBrowser() {
+    private PIMBrowser getPimBrowser() {
         if (pimBrowser == null) {
             pimBrowser = new PIMBrowser(gvME.dispMan.getDisplay(), PIM.CONTACT_LIST);
             pimBrowser.setTitle("Contacts List");
@@ -179,9 +194,7 @@ public class ChooseContact extends List implements CommandListener{
         else if(display == this)
         {
             if (command == OKCmd)
-            {
                 chooseContactAction();
-            }
         }
         else
         {

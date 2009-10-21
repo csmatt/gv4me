@@ -8,6 +8,8 @@ package ui;
 import gvME.*;
 import java.io.IOException;
 import java.util.Vector;
+import javax.microedition.io.ConnectionNotFoundException;
+import javax.microedition.io.HttpsConnection;
 import javax.microedition.lcdui.Alert;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
@@ -19,9 +21,11 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class SendMsg extends WaitScreen implements CommandListener, interCom {
+    private static final String textURL = "https://www.google.com/voice/sms/send";
+    private static final String replyURL = "https://www.google.com/voice/m/sendsms";
     private String msg = "";
     private String contacting = "";
     private String recipient = "";
@@ -66,6 +70,58 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
         this.recipient = recipient;
     }
 
+    /**
+     * Posts data to Google Voice to send a message.
+     * @param original The orignal textConvo that this is a reply to or forward of (optionally null if this is a new message)
+     * @param sendingTo Recipient's phone number.
+     * @param msg Message text.
+     * @param rnr rnr token value.
+     * @throws ConnectionNotFoundException
+     * @throws IOException
+     * @throws Exception
+     */
+    private void sendMsg(textConvo original, String sendingTo, String msg, String rnr) throws ConnectionNotFoundException, IOException, Exception
+    {
+        Vector reqProps = new Vector();
+        String[] strings = new String[8];
+        String postData = "";
+        String url = "";
+        String text = URLUTF8Encoder.encode(msg);
+        if(original != null) //if this is a reply
+        {
+            String replyNum = original.getReplyNum();
+            sendingTo = replyNum;
+            url = replyURL;
+            String[] stringBuff = {"&_rnr_se=", rnr, "&number=1", sendingTo, "&id=", original.getMsgID(), "&c=1&smstext=", text};
+            strings = stringBuff;
+            stringBuff = null;
+        }
+        else
+        { //if this is a forward or new message
+            url = textURL;
+            String[] stringBuff = {"&id=&phoneNumber=+1", sendingTo, "&text=", text, "&_rnr_se=", rnr};
+            strings = stringBuff;
+            stringBuff = null;
+        }
+
+        postData = tools.combineStrings(strings);
+        String[] contentLen = {"Content-Length", String.valueOf(postData.length())};
+        reqProps.addElement(contentLen);
+        HttpsConnection sendCon = null;
+        try{
+            connMgr.open(url, "POST", reqProps, postData);
+        }
+        catch(ConnectionNotFoundException cnf)
+        {
+            Logger.add("gvSendMsg", cnf.getMessage());
+            throw cnf;
+        }
+        try{
+            connMgr.close();
+        }
+        catch(Exception ignore){}
+    }
+
     private Alert getSendMsgFailedAlert()
     {
         if(sendMsgFailedAlert == null)
@@ -80,7 +136,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
         SimpleCancellableTask task = new SimpleCancellableTask();
         task.setExecutable(new org.netbeans.microedition.util.Executable() {
             public void execute() throws Exception {
-                gvSendMsg.sendMsg(original, contacting, msg, rnr, reqProps);
+                sendMsg(original, contacting, msg, rnr);
             }
         });
         return task;
@@ -130,6 +186,11 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
         return image;
     }
 
+    /**
+     * Sets the number to contact in compliance with the interCom interface.
+     * @param contacting number to contact
+     * @param recipient name of recipient (or number if no name specified)
+     */
     public void setContacting(String contacting, String recipient) {
         this.contacting = contacting;
         this.recipient = recipient;

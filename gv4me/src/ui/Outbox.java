@@ -14,7 +14,7 @@ import javax.microedition.rms.RecordStoreException;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class Outbox extends MailBox {
     private static final String outboxStore = "outboxStore";

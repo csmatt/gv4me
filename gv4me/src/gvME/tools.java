@@ -12,10 +12,16 @@ import java.util.Vector;
 
 /**
  *
- * @author matt
+ * @author Matt Defenthaler
  */
 public class tools {
 
+    /**
+     * Returns a vector from combining vectors a and b
+     * @param a
+     * @param b
+     * @return
+     */
     public static Vector combineVectors(Vector a, Vector b)
     {
         Enumeration vectEnum = b.elements();
@@ -28,6 +34,12 @@ public class tools {
         return a;
     }
 
+    /**
+     * Returns a hashtable from combinging hashtable's a and b
+     * @param a
+     * @param b
+     * @return
+     */
     public static Hashtable combineHashtables(Hashtable a, Hashtable b)
     {
         Enumeration hashEnum = b.keys();
@@ -41,6 +53,11 @@ public class tools {
         return a;
     }
 
+    /**
+     * Returns a String from concatenating Strings from the strings String array. This is more efficient than using the '+' operator on Strings
+     * @param strings
+     * @return
+     */
     public static String combineStrings(String[] strings)
     {
         StringBuffer strBuf = new StringBuffer();
@@ -53,6 +70,12 @@ public class tools {
         return combined;
     }
 
+    /**
+     * Returns a Vector of byte arrays created from textMsg's within the vect Vector
+     * @param vect
+     * @return
+     * @throws IOException
+     */
     public static Vector serializeVector(Vector vect) throws IOException
     {
         Vector serializedMsgs = new Vector(5);
@@ -72,6 +95,11 @@ public class tools {
         return serializedMsgs;
     }
 
+    /**
+     * Returns a properly formatted String from the source String
+     * @param source
+     * @return
+     */
     public static String decodeString(String source) {
         if (source == null) {
             return "";

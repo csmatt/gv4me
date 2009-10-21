@@ -22,7 +22,7 @@ import javax.microedition.rms.RecordStoreNotOpenException;
 import ui.*;
 
 /**
- * @author matt
+ * @author Matt Defenthaler
  */
 public class gvME extends MIDlet implements CommandListener {
     private static final String sentBoxStore = "sentBoxStore";
@@ -35,7 +35,7 @@ public class gvME extends MIDlet implements CommandListener {
     private static CommandListener cl;
     private static int numNewMsgs;
     private static List menu;
-    private Alert noCallFromAlert;
+    private static Alert noCallFromAlert;
     public static MailBox SentBox;
     public static Outbox outbox;
     public static DisplayManager dispMan;
@@ -58,7 +58,8 @@ public class gvME extends MIDlet implements CommandListener {
     }
 
     public void startMIDlet() throws IOException, Exception {
-        new Login();
+        Login login = new Login();
+        login = null;
         SentBox = getSentBox();
         outbox = getOutbox();
     }
@@ -92,26 +93,48 @@ public class gvME extends MIDlet implements CommandListener {
         }
     }
 
+    /**
+     * Sets the auth token in this class to make it available to other classes from one place.
+     * The auth token is part of Google's ClientLogin API
+     * @param auth
+     */
     public static void setAuth(String auth)
     {
         gvME.auth = auth;
     }
 
+    /**
+     * Sets the rnr token in this class to make it available to other classes from one place.
+     * The rnr token is part of Google Voice's API and identifies a particular user during a session
+     * @param rnr
+     */
     public static void setRNR(String rnr)
     {
         gvME.rnr = rnr;
     }
 
+    /**
+     * Returns the auth token when requested by other classes
+     * @return returns the auth token
+     */
     public static String getAuth()
     {
         return gvME.auth;
     }
 
+    /**
+     * Returns the rnr token when requested by other classes
+     * @return returns the rnr token
+     */
     public static String getRNR()
     {
         return gvME.rnr;
     }
 
+    /**
+     * Creates a timer that will check for new messages at the interval specified by the user in settings.
+     * If the interval is set to 0, the timer will not be created and checking for new messages will not occur automatically.
+     */
     public static void createTimer()
     {
         if(Integer.parseInt(settings.getCheckInterval()) > 0)
@@ -121,9 +144,15 @@ public class gvME extends MIDlet implements CommandListener {
         }
     }
 
+    /**
+     * Cancels the timer. Checking for new messages is suspended until createTimer() is invoked.
+     */
     public static void cancelTimer()
     {
-        timer.cancel();
+        try{//in case a timer doesn't exist
+            timer.cancel();
+        }
+        catch(Exception ignore){}
     }
 
     /**
@@ -146,6 +175,11 @@ public class gvME extends MIDlet implements CommandListener {
         return menu;
     }
 
+    /**
+     * Changes the text of a main menu item
+     * @param itemNum The index of the item to change
+     * @param item The new text of the item being changed
+     */
     public static void setMenu(int itemNum, String item)
     {
         menu.set(itemNum, item, null);
@@ -182,6 +216,12 @@ public class gvME extends MIDlet implements CommandListener {
         }        
     }
 
+    /**
+     * Gets the SentBox (MailBox containing a list of messages sent from this phone)
+     * @return Returns SentBox
+     * @throws RecordStoreException
+     * @throws IOException
+     */
     public MailBox getSentBox() throws RecordStoreException, IOException
     {
         if(SentBox == null)
@@ -191,6 +231,12 @@ public class gvME extends MIDlet implements CommandListener {
         return SentBox;
     }
 
+    /**
+     * Gets the Inbox (MailBox containing a list of messages received on this phone)
+     * @return Returns Inbox
+     * @throws IOException
+     * @throws Exception
+     */
     public static Inbox getInbox() throws IOException, Exception
     {
         if(InboxList == null)
@@ -200,6 +246,12 @@ public class gvME extends MIDlet implements CommandListener {
         return InboxList;
     }
 
+    /**
+     * Gets the Outbox (MailBox containing a list of messages yet to be sent from this phone)
+     * @return Returns Outbox
+     * @throws RecordStoreException
+     * @throws IOException
+     */
     public Outbox getOutbox() throws RecordStoreException, IOException
     {
         if(outbox == null)
@@ -231,7 +283,7 @@ public class gvME extends MIDlet implements CommandListener {
         return minimize;
     }
 
-    private Alert getNoCallFromAlert()
+    public static Alert getNoCallFromAlert()
     {
         if(noCallFromAlert == null)
         {
@@ -294,19 +346,26 @@ public class gvME extends MIDlet implements CommandListener {
      //   }
     }
 
+    /**
+     * Sets the number of new messages received.
+     * @param newMsgCnt The number of new messages received.
+     */
     public static void setNumNewMsgs(int newMsgCnt)
     {
         gvME.numNewMsgs = newMsgCnt;
     }
 
-    public static class checkInbox extends TimerTask{
+    /**
+     * checkInbox is a class that extends TimerTask in order to execute a check for new messages at the timer's interval
+     */
+    static class checkInbox extends TimerTask{
         public final void run() {
             Vector newMsgs = null;
             try {
                 newMsgs = parseMsgs.readMsgs();
             } catch (ConnectionNotFoundException cnf) {
                 //Logger.add(getClass().getName(), cnf.toString());
-                System.out.println("Connection Not Found.");
+//                System.out.println("Connection Not Found.");
                 createTimer();
                 return;
             }catch (IOException ex) {
