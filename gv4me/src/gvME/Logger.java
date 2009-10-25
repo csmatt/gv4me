@@ -56,6 +56,7 @@ public class Logger extends List implements CommandListener{
         {
             infoForm = new Form("Program Info");
             infoForm.addCommand(backCmd);
+            infoForm.addCommand(OKCmd);
             infoForm.setCommandListener(this);
         }
         Runtime rt = Runtime.getRuntime();
@@ -65,6 +66,7 @@ public class Logger extends List implements CommandListener{
         infoForm.append("used: "+ usedMem);
         infoForm.append("last: "+ lastUsedMem);
         infoForm.append("Diff: "+ (usedMem - lastUsedMem));
+        infoForm.append("connection: "+ connMgr.getHttpsConnectionValue());
         lastUsedMem = usedMem;
         return infoForm;
     }
@@ -137,26 +139,33 @@ public class Logger extends List implements CommandListener{
                 gvME.dispMan.switchDisplayable(null, gvME.getMenu());
             }
         }
-        else if(command == backCmd && displayable != errorForm)// && (displayable == errorForm || displayable == infoForm))
+        else if(command == backCmd)// && displayable != errorForm)// && (displayable == errorForm || displayable == infoForm))
         {
             gvME.dispMan.switchDisplayable(null, this);
         }
         else if(displayable != this && command == OKCmd)
         {
-            Form details = new Form("Details");
-            details.append((String)log.elementAt(errorForm.getSelectedIndex()));
-            details.addCommand(backCmd);
-            details.setCommandListener(this);
-            gvME.dispMan.switchDisplayable(null, details);
+            if(displayable == errorForm)
+            {
+                Form details = new Form("Details");
+                details.append((String)log.elementAt(errorForm.getSelectedIndex()));
+                details.addCommand(backCmd);
+                details.setCommandListener(this);
+                gvME.dispMan.switchDisplayable(null, details);
+            }
+            else if(displayable == infoForm)
+            {
+                gvME.dispMan.switchDisplayable(null, getInfoForm());
+            }
         }
         else if(command == clearCmd)
         {
             log.removeAllElements();
             errorForm.deleteAll();
         }
-        else if(command == backCmd && displayable == errorForm)
-        {
-            gvME.dispMan.switchDisplayable(null, this);
-        }
+//        else if(command == backCmd && displayable == errorForm)
+//        {
+//            gvME.dispMan.switchDisplayable(null, this);
+//        }
     }
 }

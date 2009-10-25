@@ -339,6 +339,11 @@ public class gvME extends MIDlet implements CommandListener {
     public void destroyApp(boolean unconditional) {
         if(timer != null)
             timer.cancel();
+        try {
+            connMgr.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
       //  try {
       //      userSettings.updateContacts();
       //  } catch (RecordStoreException ex) {

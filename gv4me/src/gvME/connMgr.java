@@ -27,7 +27,6 @@ public class connMgr{
         try{
             c = RMSCookieConnector.open(url);
             c.setRequestMethod(reqMethod);
-
             insertReqProps(custReqProps);
 
             if(reqMethod.equals("POST") && !postData.equals(""))
@@ -47,7 +46,6 @@ public class connMgr{
         }
         catch(ConnectionNotFoundException cnf)
         {
-            //close();
             throw cnf;
         }
         finally{
@@ -169,6 +167,17 @@ public class connMgr{
                 String[] props = (String[]) custReqProps.elementAt(i);
                 c.setRequestProperty(props[0], props[1]);
             }
+        }
+    }
+    
+    public static String getHttpsConnectionValue()
+    {
+        try{
+            return c.toString();
+        }
+        catch(Exception ex)
+        {
+            return "null";
         }
     }
     

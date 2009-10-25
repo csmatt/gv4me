@@ -129,7 +129,7 @@ public class ChooseContact extends List implements CommandListener{
             if (__selectedString.equals("Recent")) {
                 gvME.dispMan.switchDisplayable(null, getRecentContactsList());
             }
-            if (__selectedString.equals("Enter Number")) {
+            else if (__selectedString.equals("Enter Number")) {
                 gvME.dispMan.switchDisplayable(null, getEnterNumBox());
             }
             else if (__selectedString.equals("Phone Book")) {

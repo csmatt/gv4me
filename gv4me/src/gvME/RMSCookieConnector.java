@@ -49,9 +49,11 @@ package gvME;
 
 import java.io.*;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
 import javax.microedition.io.*;
-import javax.microedition.rms.*;
+//import javax.microedition.rms.*;
 
 /**
  * Simple way of putting persistent cookie support into the framework. Use
@@ -61,7 +63,6 @@ public class RMSCookieConnector {
 
     // The default name of the RMS to store cookies.
     private static String cookieStoreName = "cookieStore";
-    private static String GALX;
     private static Hashtable cookieHash;
 
     // Use the default RMS cookie store name.
@@ -131,12 +132,13 @@ public class RMSCookieConnector {
     //
     // The record store format is:
     // cookie1, domain1, cookie2, domain2 ...
-    static void getCookie(HttpsConnection c) throws IOException, RecordStoreNotOpenException, RecordStoreException {
+    static void getCookie(HttpsConnection c) throws IOException//, RecordStoreNotOpenException, RecordStoreException
+    {
       int k = 0;
-      RecordStore rs = null;
+//      RecordStore rs = null;
       try {
         removeCookies();
-        rs = RecordStore.openRecordStore(cookieStoreName, true);
+//        rs = RecordStore.openRecordStore(cookieStoreName, true);
         // Iterate through connection headers and find "set-cookie" fields.
         while (c.getHeaderFieldKey(k) != null) {
           String key = c.getHeaderFieldKey(k);
@@ -148,15 +150,19 @@ public class RMSCookieConnector {
             int index = cValue.indexOf("=");
             String cookieName = cValue.substring(0, index);
             String cookieValue = cValue.substring(index+1);
+            
+            // Write the cookie into the cookie store.
             getCookieHash().put(cookieName, cookieValue);
-//            System.out.println(cValue);
-//            cookieVect.addElement(cValue);
-//            String[] strings = {cookieName, "=", cookieValue};
-//            cValue = tools.combineStrings(strings);
+//            if(!cookieVect.contains(cValue))
+//            {
+//                String[] strings = {cookieName, "=", cookieValue};
+//                cValue = tools.combineStrings(strings);
+//                cookieVect.addElement(cValue);
+//            }
 
             // Write the cookie into the cookie store.
-            byte[] cValue_bytes = cValue.getBytes();
-            rs.addRecord(cValue_bytes, 0, cValue_bytes.length);
+//            byte[] cValue_bytes = cValue.getBytes();
+//            rs.addRecord(cValue_bytes, 0, cValue_bytes.length);
           }
           k++;
         }
@@ -167,7 +173,7 @@ public class RMSCookieConnector {
       }
       finally{
         // Close store.
-        rs.closeRecordStore();
+//        rs.closeRecordStore();
         return;
       }
     }
@@ -176,32 +182,37 @@ public class RMSCookieConnector {
     // of the connection. The matched cookies are set into the
     // headers of the connection.
     static void addCookie(HttpsConnection c, String url) throws Exception {
-        RecordStore rs = null;
-        RecordEnumeration re = null;
+//        RecordStore rs = null;
+//        RecordEnumeration re = null;
         try{
 
       StringBuffer buff = new StringBuffer();
       try{
-          rs = RecordStore.openRecordStore(cookieStoreName, true);
-          re = rs.enumerateRecords(null, null, false);
+//          rs = RecordStore.openRecordStore(cookieStoreName, true);
+//          re = rs.enumerateRecords(null, null, false);
           String cookie = "";
+          String cookieName = "";
 
-          while ( re.hasNextElement() ) {
-            cookie = new String(re.nextRecord());
-//          Enumeration cookieEnum = cookieVect.elements();
-//          while(cookieEnum.hasMoreElements())
-//          {
-//              cookie = (String)cookieEnum.nextElement();
-//              if(cookie.indexOf("EXPIRED") < 0)
-//              {
+//          while ( re.hasNextElement() ) {
+//            cookie = new String(re.nextRecord());
+          Enumeration cookieEnum = cookieHash.keys();
+          while(cookieEnum.hasMoreElements())
+          {
+              cookieName = (String)cookieEnum.nextElement();
+              cookie = (String)cookieHash.get(cookieName);
+              String[] cookieString = {cookieName, "=", cookie};
+              cookie = tools.combineStrings(cookieString);
+              if(cookie.indexOf("EXPIRED") < 0)
+              {
                 buff.append( cookie );
                 buff.append("; ");
-//              }
+              }
           }
       }
       catch(Exception e)
       {
           Logger.add("RMSCookieConnector", "addCookie", e.getMessage());
+          throw new Exception(e.getMessage());
 //       System.out.println("error opening record" + e.toString());
       }
       // If we do have cookies to send, set the composed string into
@@ -217,24 +228,25 @@ public class RMSCookieConnector {
         }
         finally{
             // Close the store.
-            rs.closeRecordStore();
-            re.destroy();
+//            rs.closeRecordStore();
+//            re.destroy();
             return;
         }
     }
 
     // Remove all cookies.
     public static void removeCookies() throws Exception {
-        try{
-        RecordStore.deleteRecordStore(cookieStoreName);
-        return;
-        }
-        catch(RecordStoreNotFoundException ex)
-        {}
-        catch(Exception ex)
-        {
-            Logger.add("RMSCookieConnector", "removeCookies", ex.getMessage());
-        }
+//        try{
+//        RecordStore.deleteRecordStore(cookieStoreName);
+            cookieHash.clear();
+//        return;
+//        }
+//        catch(RecordStoreNotFoundException ex)
+//        {}
+//        catch(Exception ex)
+//        {
+//            Logger.add("RMSCookieConnector", "removeCookies", ex.getMessage());
+//        }
     }
 
 }
@@ -354,13 +366,13 @@ class HttpsRMSCookieConnection implements HttpsConnection {
     // The cookies have to be retrieved when we open the input stream.
     public InputStream openInputStream() throws IOException {
         checkResponseCode();
-        try {
+//        try {
             RMSCookieConnector.getCookie(c);
-        } catch (RecordStoreNotOpenException ex) {
-            ex.printStackTrace();
-        } catch (RecordStoreException ex) {
-            ex.printStackTrace();
-        }
+//        } catch (RecordStoreNotOpenException ex) {
+//            ex.printStackTrace();
+//        } catch (RecordStoreException ex) {
+//            ex.printStackTrace();
+//        }
 
         return c.openInputStream();
     }
@@ -368,13 +380,13 @@ class HttpsRMSCookieConnection implements HttpsConnection {
     // The cookies have to be retrieved when we open the input stream.
     public DataInputStream openDataInputStream() throws IOException {
         checkResponseCode();
-        try {
+//        try {
             RMSCookieConnector.getCookie(c);
-        } catch (RecordStoreNotOpenException ex) {
-            ex.printStackTrace();
-        } catch (RecordStoreException ex) {
-            ex.printStackTrace();
-        }
+//        } catch (RecordStoreNotOpenException ex) {
+//            ex.printStackTrace();
+//        } catch (RecordStoreException ex) {
+//            ex.printStackTrace();
+//        }
         return c.openDataInputStream();
     }
 

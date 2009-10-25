@@ -8,7 +8,6 @@ package ui;
 import gvME.Logger;
 import gvME.connMgr;
 import gvME.gvME;
-import gvME.parseMsgs;
 import gvME.settings;
 import gvME.tools;
 import java.io.IOException;
@@ -79,7 +78,7 @@ public class Login extends WaitScreen implements CommandListener {
      * @throws RecordStoreException
      * @throws RecordStoreException
      */
-    private void saveLoginInfo() throws RecordStoreException, RecordStoreException
+    private void saveLoginInfo() throws RecordStoreException
     {
             settings.setUsername(username);
             settings.setPassword(password);
