@@ -229,21 +229,16 @@ public class settings {
         return recentContacts;
     }
 
+    public static void updateContactOrder(int index) throws RecordStoreException, IOException
+    {
+        KeyValuePair crnt = (KeyValuePair)getRecentContacts().elementAt(index);
+        getRecentContacts().insertElementAt(crnt, 0);
+        getRecentContacts().removeElementAt(index+1);
+        updateContacts();
+    }
+
     public static void addContact(KeyValuePair contact) throws RecordStoreException, IOException
     {
-        for(int i = 0; getRecentContacts() != null && i < getRecentContacts().size(); i++)
-        {
-            KeyValuePair crnt = (KeyValuePair)getRecentContacts().elementAt(i);
-            if(crnt.getKey().equals(contact.getKey()))
-            {
-                KeyValuePair temp = new KeyValuePair(crnt.getKey(), crnt.getValue());
-                getRecentContacts().removeElementAt(i);
-                getRecentContacts().insertElementAt(temp, 0);
-                updateContacts();
-                return;
-            }
-                
-        }
         if(getRecentContacts().indexOf(contact) < 0)
         {
             getRecentContacts().insertElementAt(contact, 0);

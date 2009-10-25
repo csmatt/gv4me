@@ -49,6 +49,7 @@ public class Login extends WaitScreen implements CommandListener {
     {
         super(gvME.dispMan.getDisplay());
         setTitle("Logging In...");
+        addCommand(getCancelLoginCmd());
         setCommandListener(this);
         setImage(getImage());
         setText("");
@@ -178,7 +179,7 @@ public class Login extends WaitScreen implements CommandListener {
 
     private Command getCancelLoginCmd() {
         if (cancelLoginCmd == null) {
-            cancelLoginCmd = new Command("Offline Mode", Command.CANCEL, 0);
+            cancelLoginCmd = new Command("Cancel", Command.CANCEL, 0);
         }
         return cancelLoginCmd;
     }
@@ -238,6 +239,15 @@ public class Login extends WaitScreen implements CommandListener {
                     }
                 }
                 gvME.createTimer();
+            }
+            else if(command == cancelLoginCmd)
+            {
+                try {
+                    connMgr.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                gvME.dispMan.switchDisplayable(null, gvME.getMenu());
             }
         }
     }

@@ -118,7 +118,14 @@ public class ChooseContact extends List implements CommandListener{
     private void getNumFromRecentContacts()
     {
         int selIndex = recentContacts.getSelectedIndex();
-         nameAndNumber = (KeyValuePair)(settings.getRecentContacts().elementAt(selIndex));
+        nameAndNumber = (KeyValuePair)(settings.getRecentContacts().elementAt(selIndex));
+        try {
+            settings.updateContactOrder(selIndex);
+        } catch (RecordStoreException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
         next.setContacting((String)nameAndNumber.getKey(), (String)nameAndNumber.getValue());
         gvME.dispMan.switchDisplayable(null,(Displayable) next);
     }
@@ -160,17 +167,14 @@ public class ChooseContact extends List implements CommandListener{
             recentContacts.setSelectCommand(OKCmd);
             recentContacts.setCommandListener(this);
         }
-        else
-        {
             recentContacts.deleteAll();
-        }
         
         contacts = settings.getRecentContacts();
 
             Enumeration contactsEnum = contacts.elements();
             while(contactsEnum.hasMoreElements())
             {
-                String contactName = (String) ((KeyValuePair)contactsEnum.nextElement()).getValue();
+                String contactName = (String)((KeyValuePair)contactsEnum.nextElement()).getValue();
                 recentContacts.append(contactName, null);
             }
         return recentContacts;

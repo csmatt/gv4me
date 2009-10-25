@@ -51,7 +51,7 @@ import java.io.*;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
+//import java.util.Vector;
 import javax.microedition.io.*;
 //import javax.microedition.rms.*;
 
@@ -63,21 +63,21 @@ public class RMSCookieConnector {
 
     // The default name of the RMS to store cookies.
     private static String cookieStoreName = "cookieStore";
-    private static Hashtable cookieHash;
+    private static Hashtable cookieHash = new Hashtable();
 
     // Use the default RMS cookie store name.
     public static HttpsConnection open(String url) throws ConnectionNotFoundException, Exception {
         return open(url, cookieStoreName);
     }
 
-    private static Hashtable getCookieHash()
-    {
-        if(cookieHash == null)
-        {
-            cookieHash = new Hashtable();
-        }
-        return cookieHash;
-    }
+//    private static Hashtable getCookieHash()
+//    {
+//        if(cookieHash == null)
+//        {
+//            cookieHash = new Hashtable();
+//        }
+//        return cookieHash;
+//    }
 
     // Open a new connection and save cookie into the specified store.
     public static HttpsConnection open(String url, String storeName)
@@ -152,7 +152,7 @@ public class RMSCookieConnector {
             String cookieValue = cValue.substring(index+1);
             
             // Write the cookie into the cookie store.
-            getCookieHash().put(cookieName, cookieValue);
+            cookieHash.put(cookieName, cookieValue);
 //            if(!cookieVect.contains(cValue))
 //            {
 //                String[] strings = {cookieName, "=", cookieValue};

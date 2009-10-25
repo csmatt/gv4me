@@ -21,7 +21,7 @@ import javax.microedition.lcdui.List;
 public class Logger extends List implements CommandListener{
     private static Vector log = new Vector();
     private Command OKCmd, backCmd, clearCmd;
-    private Form infoForm;
+    private Form infoForm, errorDetails;
     private List errorForm;
     private static long lastUsedMem = 0;
     private Displayable prev;
@@ -90,6 +90,19 @@ public class Logger extends List implements CommandListener{
         }
         return errorForm;
     }
+    
+    private Form getErrorDetails()
+    {
+        if(errorDetails == null)
+        {
+            errorDetails = new Form("Details");
+            errorDetails.addCommand(backCmd);
+            errorDetails.setCommandListener(this);
+        }
+        errorDetails.deleteAll();
+        errorDetails.append((String)log.elementAt(errorForm.getSelectedIndex()));
+        return errorDetails;
+    }
 
     public static Vector getLog()
     {
@@ -139,19 +152,18 @@ public class Logger extends List implements CommandListener{
                 gvME.dispMan.switchDisplayable(null, gvME.getMenu());
             }
         }
-        else if(command == backCmd)// && displayable != errorForm)// && (displayable == errorForm || displayable == infoForm))
+        else if(command == backCmd)
         {
-            gvME.dispMan.switchDisplayable(null, this);
+            if(displayable == errorDetails)
+                gvME.dispMan.switchDisplayable(null, getErrorList());
+            else if(displayable != this)
+                gvME.dispMan.switchDisplayable(null, this);
         }
-        else if(displayable != this && command == OKCmd)
+        else if(command == OKCmd)
         {
             if(displayable == errorForm)
             {
-                Form details = new Form("Details");
-                details.append((String)log.elementAt(errorForm.getSelectedIndex()));
-                details.addCommand(backCmd);
-                details.setCommandListener(this);
-                gvME.dispMan.switchDisplayable(null, details);
+                gvME.dispMan.switchDisplayable(null, getErrorDetails());
             }
             else if(displayable == infoForm)
             {

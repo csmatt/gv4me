@@ -18,7 +18,7 @@ import javax.microedition.io.HttpsConnection;
  * @author Matt Defenthaler
  */
 public class connMgr{
-    private static Vector reqProps = new Vector(10);
+    private static Vector reqProps = new Vector();
     private static HttpsConnection c = null;
 
     public static synchronized void open(String url, String reqMethod, Vector custReqProps, String postData) throws ConnectionNotFoundException, IOException, Exception
@@ -46,6 +46,7 @@ public class connMgr{
         }
         catch(ConnectionNotFoundException cnf)
         {
+            close();
             throw cnf;
         }
         finally{
@@ -139,13 +140,13 @@ public class connMgr{
     {
         String[] contentType = {"Content-Type", "application/x-www-form-urlencoded"};
         String[] connection = {"Connection", "keep-alive"};
-        reqProps.insertElementAt(contentType, 0);
-        reqProps.insertElementAt(connection, 1);
+        reqProps.addElement(contentType);//, 0);
+        reqProps.addElement(connection);//, 1);
     }
 
     public static void addReqProp(String[] reqProp)
     {
-        reqProps.insertElementAt(reqProp, 2);
+        reqProps.addElement(reqProp);//, 2);
     }
 
     public static Vector getReqProps()
@@ -155,14 +156,14 @@ public class connMgr{
 
     private static void insertReqProps(Vector custReqProps) throws IOException
     {
-        for(int i = 0; i < reqProps.size(); i++)
+        for(int i = reqProps.size() - 1; i >= 0; i--)
         {
             String[] props = (String[]) reqProps.elementAt(i);
             c.setRequestProperty(props[0], props[1]);
         }
         if(custReqProps != null)
         {
-            for(int i = 0; i < custReqProps.size(); i++)
+            for(int i = custReqProps.size() - 1; i >= 0; i--)
             {
                 String[] props = (String[]) custReqProps.elementAt(i);
                 c.setRequestProperty(props[0], props[1]);
