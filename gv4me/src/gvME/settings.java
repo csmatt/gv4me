@@ -195,7 +195,7 @@ public class settings {
 
     private static TextField getCallFromTextField() {
         if (callFromTextField == null) {
-            callFromTextField = new TextField("Call From:", callFrom, 15, TextField.PHONENUMBER);
+            callFromTextField = new TextField("Phone's Number:", callFrom, 15, TextField.PHONENUMBER);
         }
         return callFromTextField;
     }
@@ -239,6 +239,12 @@ public class settings {
             settings.pauseChar= fields[6];
             settings.callWith = Integer.parseInt(fields[7]);
         }
+    }
+
+    public static boolean callOutInfoExists()
+    {
+       return !((getCallWith() == callWithData && callFrom.equals("")) ||
+                (getCallWith() == callWithVoice && gvNumber.equals("")));
     }
 
     public static int getNumFields()

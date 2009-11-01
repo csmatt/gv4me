@@ -199,8 +199,11 @@ public class MailBox extends List implements CommandListener {
             }
         }
         finally{
-            rs.closeRecordStore();
-            re.destroy();
+            try{
+                rs.closeRecordStore();
+                re.destroy();
+            }
+            catch(Exception ignore){}
             return vectOfRS;
         }
     }

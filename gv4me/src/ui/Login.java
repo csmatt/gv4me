@@ -107,6 +107,7 @@ public class Login extends WaitScreen implements CommandListener {
             loginScreen.append(getUsernameTF());
             loginScreen.append(getPasswordTF());
             loginScreen.addCommand(getLoginCmd());
+            loginScreen.addCommand(getCancelLoginCmd());
             loginScreen.setCommandListener(this);
         }
         return loginScreen;
@@ -125,7 +126,7 @@ public class Login extends WaitScreen implements CommandListener {
     {
         if(passwordTF == null)
         {
-            passwordTF = new TextField("Password", "", 40, TextField.PASSWORD);
+            passwordTF = new TextField("Password", "", 40, TextField.PASSWORD | TextField.ANY);
         }
         return passwordTF;
     }
@@ -185,7 +186,11 @@ public class Login extends WaitScreen implements CommandListener {
     }
 
     public void commandAction(Command command, Displayable displayable) {
-        if (displayable == loginScreen) {
+        if (command == cancelLoginCmd)
+        {
+            gvME.dispMan.switchDisplayable(null, gvME.getMenu());
+        }
+        else if (displayable == loginScreen) {
             if (command == loginCmd) {
                 try {
                     this.username = usernameTF.getString();
@@ -209,10 +214,10 @@ public class Login extends WaitScreen implements CommandListener {
                     ex.printStackTrace();
                 }
             }
-            else if(command == cancelLoginCmd)
-            {
-                gvME.dispMan.switchDisplayable(null, gvME.getMenu());
-            }
+           // else if(command == cancelLoginCmd)
+           // {
+           //     gvME.dispMan.switchDisplayable(null, gvME.getMenu());
+            //}
         }
         else if (displayable == this) {
             if (command == WaitScreen.FAILURE_COMMAND) { //An exception was thrown during login

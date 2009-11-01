@@ -8,6 +8,7 @@
 package gvME;
 
 
+import ui.MakeCall;
 import java.io.IOException;
 
 import java.util.Timer;
@@ -24,12 +25,12 @@ import ui.*;
 /**
  * @author Matt Defenthaler
  */
-public class gvME extends MIDlet implements CommandListener {
+public class gvME extends MIDlet implements CommandListener, interCom {
     private static final String sentBoxStore = "sentBoxStore";
     private static boolean midletPaused = false;
     private static Timer timer;
     private static long timerDelay = 30000;
-    private static String rnr, auth;
+    private static String rnr, auth, contacting, recipient;
     private static Command exitCmd, minimize, backCmd;
     private static Inbox InboxList;
     private static CommandListener cl;
@@ -46,6 +47,7 @@ public class gvME extends MIDlet implements CommandListener {
      */
     private void initialize() throws InvalidRecordIDException, IOException, RecordStoreNotOpenException, RecordStoreException {//GEN-END:|0-initialize|0|0-preInitialize
         settings.initialize();
+        MakeCall.setMidlet(this);
         dispMan = new DisplayManager(this);
         cl = this; //reference to 'this' for CommandListener of static method getMenu()
         connMgr.initReqProps();
@@ -204,12 +206,16 @@ public class gvME extends MIDlet implements CommandListener {
             } else if (__selectedString.equals("Settings")) {            
                 dispMan.switchDisplayable(null, settings.getChangeSettingsMenu());
             } else if (__selectedString.equals("Make Call")) {
-                if(settings.getCallFrom().equals(""))
-                    gvME.dispMan.switchDisplayable(getNoCallFromAlert(), settings.getChangeSettingsMenu());
-                else{
-                    MakeCall mc = new MakeCall(this);
-                    ChooseContact cc = new ChooseContact(getMenu(), mc);
-                    dispMan.switchDisplayable(null, cc);
+                try{
+                ChooseContact cc = new ChooseContact(getMenu(), new MakeCall());
+                dispMan.switchDisplayable(null, cc);
+                }
+                catch(Exception ex)
+                {
+                    if(ex.toString().indexOf("no call from") >= 0)
+                    {
+                        dispMan.switchDisplayable(getNoCallFromAlert(), settings.getChangeSettingsMenu());
+                    }
                 }
             }
         }        
@@ -292,6 +298,10 @@ public class gvME extends MIDlet implements CommandListener {
         return noCallFromAlert;
     }
 
+    public MIDlet getMidlet()
+    {
+        return this;
+    }
     /**
      * Exits MIDlet.
      */
@@ -362,6 +372,13 @@ public class gvME extends MIDlet implements CommandListener {
     public void getPlatformRequest(String request) throws ConnectionNotFoundException
     {
         platformRequest(request);
+    }
+
+    public void setContacting(String contacting, String recipient) {
+        if(contacting.startsWith("1"))
+            contacting = contacting.substring(1);
+        this.contacting = contacting;
+        this.recipient = recipient;
     }
 
     /**

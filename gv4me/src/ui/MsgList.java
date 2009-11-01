@@ -150,13 +150,16 @@ public class MsgList extends List implements CommandListener {
             }
             else if(command == callCmd)
             {
-                if(settings.getCallFrom().equals(""))
-                    gvME.dispMan.switchDisplayable(gvME.getNoCallFromAlert(), settings.getChangeSettingsMenu());
-                else
-                {
+                try{
                     MakeCall mc = new MakeCall(convo.getReplyNum(), convo.getSender());
                     gvME.dispMan.switchDisplayable(null, mc);
-                    mc = null;
+                }
+                catch(Exception ex)
+                {
+                    if(ex.toString().indexOf("no call from") >= 0)
+                    {
+                        gvME.dispMan.switchDisplayable(gvME.getNoCallFromAlert(), settings.getChangeSettingsMenu());
+                    }
                 }
             }
             else if(displayable == this && command == viewMsgCmd)

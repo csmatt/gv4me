@@ -5,7 +5,9 @@
 
 package ui;
 
+import ui.*;
 import gvME.*;
+import gvME.gvME;
 import java.io.IOException;
 import java.util.Vector;
 import javax.microedition.io.ConnectionNotFoundException;
@@ -31,22 +33,15 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
     private Alert callFailedAlert;
     private final String callURL = "https://www.google.com/voice/call/connect";
  //   private Image image;
-    private MIDlet midlet = null;
+    private static MIDlet midlet = null;
 
-    public MakeCall()
+    public MakeCall() throws Exception
     {
         super(gvME.dispMan.getDisplay());
         initialize();
     }
 
-    public MakeCall(MIDlet midlet)
-    {
-        super(gvME.dispMan.getDisplay());
-        this.midlet = midlet;
-        initialize();
-    }
-
-    public MakeCall(String contacting, String recipient)
+    public MakeCall(String contacting, String recipient) throws Exception
     {
         super(gvME.dispMan.getDisplay());
         this.contacting = contacting;
@@ -54,8 +49,17 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
         initialize();
     }
 
-    private void initialize()
+    public static void setMidlet(MIDlet midlet)
     {
+        MakeCall.midlet = midlet;
+    }
+
+    private void initialize() throws Exception
+    {
+        if (!settings.callOutInfoExists())
+        {
+            throw new Exception("no call from");
+        }
         setTitle("Making Call");
         setCommandListener(this);
         rnr = gvME.getRNR();
@@ -83,10 +87,10 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
             throw new Exception("call failed");
     }
 
-    private void makeVoiceCall(String contacting)
+    public void makeVoiceCall(String contacting)
     {
         String p = settings.getPauseChar();
-        String[] callString = {"tel:", settings.getGVNumber(), p, settings.getPIN(), p, "2", p, contacting};
+        String[] callString = {"tel:", settings.getGVNumber(), p, settings.getPIN(), p, "2", p, contacting, "#"};
         contacting = tools.combineStrings(callString);
         try {
             boolean b = midlet.platformRequest(contacting);

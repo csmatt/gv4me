@@ -234,12 +234,17 @@ public class Inbox extends MailBox {
             }
             else if(command == callCmd)
             {
-                if(settings.getCallFrom().equals(""))
-                    gvME.dispMan.switchDisplayable(gvME.getNoCallFromAlert(), settings.getChangeSettingsMenu());
-                else{
+                try{
                     MakeCall mc = new MakeCall(original.getReplyNum(), original.getSender());
                     gvME.dispMan.switchDisplayable(null, mc);
-                    mc = null;
+                }
+                catch(Exception ex)
+                {
+                    System.out.println(ex.toString());
+                    if(ex.toString().indexOf("no call from") >= 0)
+                    {
+                        gvME.dispMan.switchDisplayable(gvME.getNoCallFromAlert(), settings.getChangeSettingsMenu());
+                    }
                 }
             }
             else if(command == markUnreadCmd)
