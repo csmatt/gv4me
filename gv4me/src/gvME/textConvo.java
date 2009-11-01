@@ -192,7 +192,7 @@ public class textConvo {
             //gets last message from RS for particular msgID
             textMsgFields[0] = dis.readUTF();
             textMsgFields[1] = dis.readUTF();
-//            textMsgFields[2] = dis.readUTF();
+
             lastMessage = new textMsg(textMsgFields[0], textMsgFields[1]);
 
             dis.close();
@@ -201,7 +201,6 @@ public class textConvo {
             textConvo deserialized = new textConvo(numMsgs, isRead, fields[0], fields[1], fields[2], fields[3], msgsVect, lastMessage);
             
             return deserialized;
-            
         }
         catch(IOException ex) {
             Logger.add("textConvo deserialize", ex.getMessage());
@@ -245,7 +244,7 @@ public class textConvo {
     public byte[] serialize() throws IOException
     {
         String[] fields = {this.msgID, this.sender, this.replyNum, this.date};
-        String[] numMsgField = {String.valueOf(this.messages.size())};//this.numMsgs)};
+        String[] numMsgField = {String.valueOf(this.messages.size())};
         String[] isReadStr = {String.valueOf(((isRead) ? 1:0))};
         byte[] numMsgs_bytes = serial.serialize(numMsgField);
         byte[] isRead_bytes = serial.serialize(isReadStr);

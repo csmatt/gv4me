@@ -20,6 +20,8 @@ import javax.microedition.io.HttpsConnection;
 public class connMgr{
     private static Vector reqProps = new Vector();
     private static HttpsConnection c = null;
+    private static final String beginNumber = "<b class=\"ms3\">";
+    private static final String endNumber = "</b>";
 
     public static synchronized void open(String url, String reqMethod, Vector custReqProps, String postData) throws ConnectionNotFoundException, IOException, Exception
     {
@@ -87,17 +89,29 @@ public class connMgr{
         ByteArrayOutputStream baos = null;
 
         try{
+            int length = (int)c.getLength();
             dis = c.openDataInputStream();
             baos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[4096];
-            int read = dis.read(buffer);
-            //System.out.println(c.getURL());
-            while(read != -1)
+            byte[] data = null;
+            if(length == -1)
             {
-                baos.write(buffer,0,read);
-                read = dis.read(buffer);
+                int chunkSize = 1500;
+                data = new byte[chunkSize];
+                int dataSizeRead = 0;//size of data read from input stream.
+                while((dataSizeRead = dis.read(data))!= -1)
+                {
+                     baos.write(data, 0, dataSizeRead );
+//                     System.out.println("Data Size Read = "+dataSizeRead);
+                }
+                dataString = new String(baos.toByteArray());
+                baos.close();
             }
-            dataString = new String(baos.toByteArray());
+            else
+            {
+                data = new byte[length];
+                dis.readFully(data);
+                dataString = new String(data);
+            }
         }
         catch(IOException ex)
         {
@@ -117,7 +131,20 @@ public class connMgr{
     {
         String check = getPageData();
         String rnrVal = "";
+        if(settings.getGVNumber() == null || settings.getGVNumber().equals(""))
+        {
+            int numberInd = check.indexOf(beginNumber) + beginNumber.length();
 
+            String number = check.substring(numberInd, check.indexOf(endNumber)).trim();
+            StringBuffer numberBuf = new StringBuffer();
+            numberBuf.append(number.substring(1, 4));
+            numberBuf.append(number.substring(6, 9));
+            numberBuf.append(number.substring(10));
+
+            number = new String(numberBuf);
+            settings.setGVNumber(number);
+            System.out.println(number);
+        }
         int rnrInd = check.indexOf("_rnr_se");
 
         if(rnrInd > -1){
@@ -140,13 +167,13 @@ public class connMgr{
     {
         String[] contentType = {"Content-Type", "application/x-www-form-urlencoded"};
         String[] connection = {"Connection", "keep-alive"};
-        reqProps.addElement(contentType);//, 0);
-        reqProps.addElement(connection);//, 1);
+        reqProps.addElement(contentType);
+        reqProps.addElement(connection);
     }
 
     public static void addReqProp(String[] reqProp)
     {
-        reqProps.addElement(reqProp);//, 2);
+        reqProps.addElement(reqProp);
     }
 
     public static Vector getReqProps()

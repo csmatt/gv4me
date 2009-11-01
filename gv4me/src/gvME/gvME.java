@@ -207,9 +207,8 @@ public class gvME extends MIDlet implements CommandListener {
                 if(settings.getCallFrom().equals(""))
                     gvME.dispMan.switchDisplayable(getNoCallFromAlert(), settings.getChangeSettingsMenu());
                 else{
-                    MakeCall mc = new MakeCall();
+                    MakeCall mc = new MakeCall(this);
                     ChooseContact cc = new ChooseContact(getMenu(), mc);
-                    mc = null;
                     dispMan.switchDisplayable(null, cc);
                 }
             }
@@ -358,6 +357,11 @@ public class gvME extends MIDlet implements CommandListener {
     public static void setNumNewMsgs(int newMsgCnt)
     {
         gvME.numNewMsgs = newMsgCnt;
+    }
+
+    public void getPlatformRequest(String request) throws ConnectionNotFoundException
+    {
+        platformRequest(request);
     }
 
     /**

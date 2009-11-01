@@ -27,27 +27,23 @@ import javax.microedition.rms.RecordStoreException;
  * @author Matt Defenthaler
  */
 public class MailBox extends List implements CommandListener {
-    public Command OKCmd;
-    public Command delItemCmd;
-    public Command backCmd;
-    public Command delAllCmd;
-    public Command markMultiCmd;
+    public Command readCmd, delItemCmd, delAllCmd, backCmd, markMultiCmd;
     public Vector list;
     public String rsName;
     public static int itemLength = 17;
-    private Form readMsg;
     public int numUnread = 0;
     public final Image msgIsRead = Image.createImage("/pics/read.png");
     public final Image msgIsUnread = Image.createImage("/pics/unread.png");
+    private Form readMsg;
 
     public MailBox(String title, String rsName) throws RecordStoreException, IOException
     {
         super(title, Choice.IMPLICIT);
-        addCommand(getOKCmd());
+        addCommand(getReadCmd());
         addCommand(getDelItemCmd());
         addCommand(getBackCmd());
         addCommand(getDelAllCmd());
-        setSelectCommand(OKCmd);
+        setSelectCommand(getReadCmd());
         setCommandListener(this);
         setFitPolicy(Choice.TEXT_WRAP_OFF);
         this.rsName = rsName;
@@ -132,8 +128,7 @@ public class MailBox extends List implements CommandListener {
         try{
         RecordStore.deleteRecordStore(rsName);
         }
-        catch(Exception e)
-        {}
+        catch(Exception ignore){}
         this.deleteAll();
         list.removeAllElements();
     }
@@ -161,8 +156,7 @@ public class MailBox extends List implements CommandListener {
         try{
         RecordStore.deleteRecordStore(rsName);
         }
-        catch(Exception ignore)
-        {}
+        catch(Exception ignore){}
         RecordStore rs = null;
         try{
             rs = RecordStore.openRecordStore(rsName, true);
@@ -174,13 +168,11 @@ public class MailBox extends List implements CommandListener {
                 rs.addRecord(data, 0, data.length);
             }
         }
-        catch(Exception ignore)
-        {}
+        catch(Exception ignore){}
         finally{
             try {
                 rs.closeRecordStore();
-            } catch (Exception ignore)
-            {}
+            } catch (Exception ignore){}
         }
     }
 
@@ -228,24 +220,16 @@ public class MailBox extends List implements CommandListener {
         return readMsg;
     }
 
-    public Command getDelAllCmd()
-    {
-        if (delAllCmd == null)
-        {
-            delAllCmd = new Command("Delete All", Command.ITEM, 0);
+    public Command getReadCmd() {
+        if (readCmd == null) {
+            readCmd = new Command("Read", Command.ITEM, 1);
         }
-        return delAllCmd;
-    }
-    public Command getOKCmd() {
-        if (OKCmd == null) {
-            OKCmd = new Command("Read", Command.OK, 1);
-        }
-        return OKCmd;
+        return readCmd;
     }
 
     public Command getBackCmd() {
         if (backCmd == null) {
-            backCmd = new Command("Back", Command.BACK, 2);
+            backCmd = new Command("Back", Command.BACK, 1);
         }
         return backCmd;
     }
@@ -254,16 +238,25 @@ public class MailBox extends List implements CommandListener {
     {
         if(markMultiCmd == null)
         {
-            markMultiCmd = new Command("Mark Multiple", Command.OK, 0);
+            markMultiCmd = new Command("Mark Multiple", Command.OK, 2);
         }
         return markMultiCmd;
     }
 
     public Command getDelItemCmd() {
         if (delItemCmd == null) {
-            delItemCmd = new Command("Delete", Command.ITEM, 0);
+            delItemCmd = new Command("Delete", Command.ITEM, 3);
         }
         return delItemCmd;
+    }
+
+    public Command getDelAllCmd()
+    {
+        if (delAllCmd == null)
+        {
+            delAllCmd = new Command("Delete All", Command.ITEM, 3);
+        }
+        return delAllCmd;
     }
 
     public void commandAction(Command command, Displayable displayable) {
@@ -296,8 +289,8 @@ public class MailBox extends List implements CommandListener {
                     ex.printStackTrace();
                 }
             }
-            else if(command == OKCmd)
-            {//if not overridden in a subclass, okCmd shows a form with the contents of the selected message
+            else if(command == readCmd)
+            {//if not overridden in a subclass, readCmd shows a form with the contents of the selected message
                 textConvo crnt = (textConvo)list.elementAt(selIndex);
                 String msg = ((textMsg)crnt.getLastMsg()).getMessage();
                 gvME.dispMan.switchDisplayable(null, getReadMsg(crnt.getSender(), msg));

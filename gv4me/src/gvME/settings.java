@@ -7,6 +7,8 @@ package gvME;
 
 import java.io.IOException;
 import java.util.Vector;
+import javax.microedition.lcdui.Choice;
+import javax.microedition.lcdui.ChoiceGroup;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
@@ -24,22 +26,28 @@ import javax.microedition.rms.RecordStoreException;
 public class settings {
     private static final String userSettingsStore = "userSettingsStore";
     private static Form changeSettingsMenu;
-    private static TextField passwordTextField, usernameTextField, callFromTextField, intervalTextField;
+    private static TextField passwordTextField, usernameTextField, callFromTextField, intervalTextField, pinTextField, pauseCharTextField, gvNumberTextField;
     private static Command saveSettingsCmd, backCmd;
     private static String username = "";
     private static String password = "";
     private static String interval = "60";
     private static String callFrom = "";
+    private static String pin = "";
+    private static ChoiceGroup callWithChoice;
     private static CommandListener cl;
-    private static final int numFields = 4;
+    private static final int numFields = 8;
     private static final int MAX_CONTACTS = 10;
     private static Vector recentContacts;
+    private static final int callWithData = 0;
+    private static final int callWithVoice = 1;
+    private static int callWith = 1;
+    private static String gvNumber = "";
+    private static String pauseChar = "P";
 
     public static void initialize() throws IOException
     {
         settings.cl = cl;
         RecordStore rs = null;
-        //getRecentContacts() = new Vector();
         try {
             rs = RecordStore.openRecordStore(userSettingsStore, true);
             if (rs.getNumRecords() != 0) {
@@ -58,8 +66,7 @@ public class settings {
             try{
                 rs.closeRecordStore();
             }
-            catch(Exception e)
-            {}
+            catch(Exception ignore){}
         }
     }
 
@@ -69,6 +76,10 @@ public class settings {
         String tfUsername = usernameTextField.getString();
         String tfPassword = passwordTextField.getString();
         String tfCallFrom = callFromTextField.getString();
+        String tfPIN      = pinTextField.getString();
+        String tfGVNumber = gvNumberTextField.getString();
+        String tfPauseChar = pauseCharTextField.getString();
+        callWith = callWithChoice.getSelectedIndex();
 
         if(!tfInterval.equals(interval))
         {
@@ -88,6 +99,18 @@ public class settings {
         if(!tfCallFrom.equals(callFrom))
         {
             settings.callFrom = tfCallFrom;
+        }
+        if(!tfPIN.equals(pin))
+        {
+            settings.pin = tfPIN;
+        }
+        if(tfPauseChar != null && !tfPauseChar.equals(""))
+        {
+            settings.pauseChar = tfPauseChar;
+        }
+        if(!tfGVNumber.equals(gvNumber))
+        {
+            settings.gvNumber = tfGVNumber;
         }
         updateSettings();
     }
@@ -110,7 +133,14 @@ public class settings {
 
     public static Form getChangeSettingsMenu() {
         if (changeSettingsMenu == null) {
-            changeSettingsMenu = new Form("Change Settings", new Item[] { getUsernameTextField(), getPasswordTextField(), getCallFromTextField(), getIntervalTextField() });//GEN-BEGIN:|233-getter|1|233-postInit
+            changeSettingsMenu = new Form("Change Settings", new Item[] { getUsernameTextField(),
+                                                                            getPasswordTextField(),
+                                                                            getCallFromTextField(),
+                                                                            getIntervalTextField(),
+                                                                            getPINTextField(),
+                                                                            getCallWithChoice(),
+                                                                            getPauseCharTextField(),
+                                                                            getGVNumberTextField() });
             changeSettingsMenu.addCommand(getSaveSettingsCmd());
             changeSettingsMenu.addCommand(getBackCmd());
             changeSettingsMenu.setCommandListener(new CommandListener() {
@@ -120,7 +150,6 @@ public class settings {
                     {
                         try {
                             changeSettings();
-                            updateSettings();
                             gvME.dispMan.showMenu();
                         } catch (RecordStoreException ex) {
                             ex.printStackTrace();
@@ -157,11 +186,44 @@ public class settings {
         return intervalTextField;
     }
 
+    private static TextField getPINTextField() {
+        if (pinTextField == null) {
+            pinTextField = new TextField("PIN:", pin, 6, TextField.NUMERIC);
+        }
+        return pinTextField;
+    }
+
     private static TextField getCallFromTextField() {
         if (callFromTextField == null) {
             callFromTextField = new TextField("Call From:", callFrom, 15, TextField.PHONENUMBER);
         }
         return callFromTextField;
+    }
+
+    private static TextField getPauseCharTextField() {
+        if (pauseCharTextField == null) {
+            pauseCharTextField = new TextField("Pause Symbol:", "", 3, TextField.PHONENUMBER);
+        }
+        return pauseCharTextField;
+    }
+
+    private static TextField getGVNumberTextField() {
+        if (gvNumberTextField == null) {
+            gvNumberTextField = new TextField("GV Number:", gvNumber, 10, TextField.PHONENUMBER);
+        }
+        return gvNumberTextField;
+    }
+
+    private static ChoiceGroup getCallWithChoice()
+    {
+        if (callWithChoice == null)
+        {
+            callWithChoice = new ChoiceGroup("Call With", Choice.EXCLUSIVE);
+            callWithChoice.insert(callWithData, "Data", null);
+            callWithChoice.insert(callWithVoice, "Voice", null);
+            callWithChoice.setSelectedIndex(callWith, true);
+        }
+        return callWithChoice;
     }
 
     public static void setSettings(String[] fields)
@@ -172,6 +234,10 @@ public class settings {
             settings.password = fields[1];
             settings.interval = fields[2];
             settings.callFrom = fields[3];
+            settings.pin      = fields[4];
+            settings.gvNumber = fields[5];
+            settings.pauseChar= fields[6];
+            settings.callWith = Integer.parseInt(fields[7]);
         }
     }
 
@@ -198,6 +264,41 @@ public class settings {
     public static String getCallFrom()
     {
         return callFrom;
+    }
+
+    public static int getCallWith()
+    {
+        return callWith;
+    }
+
+    public static int getCallWithVoice()
+    {
+        return callWithVoice;
+    }
+
+    public static int getCallWithData()
+    {
+        return callWithData;
+    }
+
+    public static String getPIN()
+    {
+        return pin;
+    }
+
+    public static String getPauseChar()
+    {
+        return pauseChar;
+    }
+
+    public static String getGVNumber()
+    {
+        return gvNumber;
+    }
+
+    public static void setGVNumber(String number)
+    {
+        settings.gvNumber = number;
     }
 
     public static void setCheckInterval(int interval)
@@ -273,8 +374,7 @@ public class settings {
             try{
                 rs.closeRecordStore();
             }
-            catch(Exception e)
-            {}
+            catch(Exception ignore){}
         }
     }
 
@@ -282,7 +382,7 @@ public class settings {
     {
         RecordStore rs = null;
         try{
-            String[] fields = {username, password, interval, callFrom};
+            String[] fields = {username, password, interval, callFrom, pin, gvNumber, pauseChar, String.valueOf(callWith)};
             byte[] data = null;
             data = serial.serialize(fields);
             rs = RecordStore.openRecordStore(userSettingsStore, true);

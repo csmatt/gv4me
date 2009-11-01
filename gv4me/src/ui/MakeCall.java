@@ -13,6 +13,7 @@ import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Alert;
+import javax.microedition.midlet.MIDlet;
 import org.netbeans.microedition.lcdui.WaitScreen;
 import org.netbeans.microedition.util.SimpleCancellableTask;
 
@@ -30,10 +31,18 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
     private Alert callFailedAlert;
     private final String callURL = "https://www.google.com/voice/call/connect";
  //   private Image image;
+    private MIDlet midlet = null;
 
     public MakeCall()
     {
         super(gvME.dispMan.getDisplay());
+        initialize();
+    }
+
+    public MakeCall(MIDlet midlet)
+    {
+        super(gvME.dispMan.getDisplay());
+        this.midlet = midlet;
         initialize();
     }
 
@@ -61,7 +70,7 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
      * @throws IOException
      * @throws Exception
      */
-    private void makeCall(String contacting) throws ConnectionNotFoundException, IOException, Exception
+    private void makeDataCall(String contacting) throws ConnectionNotFoundException, IOException, Exception
     {
         String[] strings = {"&outgoingNumber=+1", contacting, "&forwardingNumber=+1", settings.getCallFrom(), "&subscriberNumber=undefined&remember=0&_rnr_se=", rnr};
         String postData = tools.combineStrings(strings);
@@ -74,11 +83,26 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
             throw new Exception("call failed");
     }
 
+    private void makeVoiceCall(String contacting)
+    {
+        String p = settings.getPauseChar();
+        String[] callString = {"tel:", settings.getGVNumber(), p, settings.getPIN(), p, "2", p, contacting};
+        contacting = tools.combineStrings(callString);
+        try {
+            boolean b = midlet.platformRequest(contacting);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     public SimpleCancellableTask getSimpleCancellableTask() {
         SimpleCancellableTask task = new SimpleCancellableTask();
         task.setExecutable(new org.netbeans.microedition.util.Executable() {
             public void execute() throws Exception {
-                makeCall(contacting);
+                if(settings.getCallWith() == settings.getCallWithData())
+                    makeDataCall(contacting);
+                else if(settings.getCallWith() == settings.getCallWithVoice())
+                    makeVoiceCall(contacting);
             }
         });
         return task;

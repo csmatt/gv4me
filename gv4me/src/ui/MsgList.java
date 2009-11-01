@@ -28,7 +28,7 @@ import javax.microedition.lcdui.StringItem;
 public class MsgList extends List implements CommandListener {
 
     private int itemLength = 17;
-    private Vector msgList = new Vector();
+   // private Vector msgList = new Vector();
     private Vector MsgListToItemMap = new Vector();
     private Command viewMsgCmd;
     private Command replyCmd;
@@ -116,7 +116,6 @@ public class MsgList extends List implements CommandListener {
 
     public void commandAction(Command command, Displayable displayable) {
         int selIndex = this.getSelectedIndex();
-        System.out.println(String.valueOf(selIndex));
         textMsg original = null;
 
         if(displayable == this && command == backCmd)
@@ -185,7 +184,7 @@ public class MsgList extends List implements CommandListener {
 
     private Command getViewMsgCmd() {
         if (viewMsgCmd == null) {
-            viewMsgCmd = new Command("Read", Command.OK, 1);
+            viewMsgCmd = new Command("Read", Command.ITEM, 1);
         }
         return viewMsgCmd;
     }
@@ -194,21 +193,21 @@ public class MsgList extends List implements CommandListener {
     {
         if(callCmd == null)
         {
-            callCmd = new Command("Call", Command.ITEM, 0);
+            callCmd = new Command("Call", Command.ITEM, 2);
         }
         return callCmd;
     }
 
     private Command getBackCmd() {
         if (backCmd == null) {
-            backCmd = new Command("Back", Command.BACK, 2);
+            backCmd = new Command("Back", Command.BACK, 1);
         }
         return backCmd;
     }
 
     private Command getMsgPropsCmd() {
         if (msgPropsCmd == null) {
-            msgPropsCmd = new Command("Properties", Command.ITEM, 4);
+            msgPropsCmd = new Command("Properties", Command.ITEM, 3);
         }
         return msgPropsCmd;
     }
@@ -217,21 +216,21 @@ public class MsgList extends List implements CommandListener {
     {
         if (replyReadCmd == null)
         {
-            replyReadCmd = new Command("Reply", Command.ITEM, 1);
+            replyReadCmd = new Command("Reply", Command.ITEM, 2);
         }
         return replyReadCmd;
     }
 
     private Command getReplyCmd() {
         if (replyCmd == null) {
-            replyCmd = new Command("Reply", Command.ITEM, 0);
+            replyCmd = new Command("Reply", Command.ITEM, 2);
         }
         return replyCmd;
     }
 
     private Command getFwdCmd() {
         if (fwdCmd == null) {
-            fwdCmd = new Command("Forward", Command.ITEM, 6);
+            fwdCmd = new Command("Forward", Command.ITEM, 3);
         }
         return fwdCmd;
     }

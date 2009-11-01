@@ -25,10 +25,7 @@ import javax.microedition.rms.RecordStoreException;
  */
 public class Inbox extends MailBox {
     private static Hashtable inboxHash;
-    private Command replyCmd;
-    private Command refreshCmd;
-    private Command callCmd;
-    private Command markUnreadCmd;
+    private Command replyCmd, refreshCmd, callCmd, markUnreadCmd;
 
     public Inbox() throws IOException, RecordStoreException
     {
@@ -37,7 +34,7 @@ public class Inbox extends MailBox {
         addCommand(getRefreshCmd());
         addCommand(getCallCmd());
         addCommand(getMarkUnreadCmd());
-        setSelectCommand(OKCmd);
+        setSelectCommand(getReadCmd());
         initInboxHash();
     }
 
@@ -163,22 +160,15 @@ public class Inbox extends MailBox {
 
     private Command getReplyCmd() {
         if (replyCmd == null) {
-            replyCmd = new Command("Reply", Command.ITEM, 3);
+            replyCmd = new Command("Reply", Command.ITEM, 2);
         }
         return replyCmd;
-    }
-
-    private Command getRefreshCmd() {
-        if (refreshCmd == null) {
-            refreshCmd = new Command("Refresh", Command.ITEM, 4);
-        }
-        return refreshCmd;
     }
 
     private Command getCallCmd(){
         if (callCmd == null)
         {
-            callCmd = new Command("Call", Command.ITEM, 5);
+            callCmd = new Command("Call", Command.ITEM, 3);
         }
         return callCmd;
     }
@@ -187,11 +177,18 @@ public class Inbox extends MailBox {
     {
         if(markUnreadCmd == null)
         {
-            markUnreadCmd = new Command("Mark (Un)read", Command.ITEM, 0);
+            markUnreadCmd = new Command("Mark (Un)read", Command.ITEM, 4);
         }
         return markUnreadCmd;
     }
-    
+
+    private Command getRefreshCmd() {
+        if (refreshCmd == null) {
+            refreshCmd = new Command("Refresh", Command.ITEM, 8);
+        }
+        return refreshCmd;
+    }
+
     public void commandAction(Command command, Displayable displayable) {
         if(command == backCmd)
             super.commandAction(command, displayable);
@@ -223,7 +220,7 @@ public class Inbox extends MailBox {
             int selIndex = this.getSelectedIndex();
             textConvo original  = (textConvo) list.elementAt(selIndex);
 
-            if(command == OKCmd)
+            if(command == readCmd)
             {
                 textConvo crnt = (textConvo) list.elementAt(selIndex);
                 if(!crnt.getIsRead())
