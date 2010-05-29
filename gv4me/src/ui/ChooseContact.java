@@ -5,7 +5,10 @@
 
 package ui;
 
-import gvME.*;
+import gvME.KeyValuePair;
+import gvME.Logger;
+import gvME.settings;
+import gvME.gvME;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -79,12 +82,22 @@ public class ChooseContact extends List implements CommandListener{
         return isSupported;
     }
 
+    private String removePrefix(String contacting)
+    {
+        if(contacting.startsWith("+1"))
+            return contacting.substring(2);
+        else if(contacting.startsWith("1"))
+            return contacting.substring(1);
+        else
+            return contacting;
+    }
 
     private void getNumFromPIMBrowser()
     {
         Contact pimContact = (Contact) pimBrowser.getSelectedItem();
         String pimName = pimContact.getString(Contact.FORMATTED_NAME, 0);
         String pimNumber = pimContact.getString(Contact.TEL, 0);
+        pimNumber = removePrefix(pimNumber);
         next.setContacting(pimNumber, pimName);
         try {
             settings.addContact(new KeyValuePair(pimNumber, pimName));
@@ -100,7 +113,7 @@ public class ChooseContact extends List implements CommandListener{
     private void getNumFromEnterNumBox()
     {
         String contact = enterNumBox.getString();
-
+        
         next.setContacting(contact, contact);
         try {
             settings.addContact(new KeyValuePair(contact, contact));
@@ -149,7 +162,7 @@ public class ChooseContact extends List implements CommandListener{
     private TextBox getEnterNumBox() {
         if(enterNumBox == null)
         {
-            enterNumBox = new TextBox("Enter Number", null, 15, TextField.PHONENUMBER);
+            enterNumBox = new TextBox("Enter Number", null, 20, TextField.PHONENUMBER);
             enterNumBox.addCommand(getOKCmd());
             enterNumBox.addCommand(getBackCmd());
             enterNumBox.setCommandListener(this);

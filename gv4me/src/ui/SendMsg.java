@@ -5,7 +5,14 @@
 
 package ui;
 
-import gvME.*;
+
+import gvME.Logger;
+import gvME.URLUTF8Encoder;
+import gvME.connMgr;
+import gvME.gvME;
+import gvME.textConvo;
+import gvME.textMsg;
+import gvME.tools;
 import java.io.IOException;
 import java.util.Vector;
 import javax.microedition.io.ConnectionNotFoundException;
@@ -34,6 +41,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
     private Vector reqProps = new Vector(5);
     private Image image;
     private Alert sendMsgFailedAlert;
+    private Command cancelSendCmd;
 
     public SendMsg(textConvo original, String msg)
     {
@@ -58,6 +66,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
     {
         setTitle("Sending Message");
         setCommandListener(this);
+        addCommand(getCancelSendCmd());
         setImage(getImage());
         setText("Sending Message...");
         this.msg = msg;
@@ -82,7 +91,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
      */
     private void sendMsg(textConvo original, String sendingTo, String msg, String rnr) throws ConnectionNotFoundException, IOException, Exception
     {
-        Vector reqProps = new Vector();
+//        Vector reqProps = new Vector();
         String[] strings = new String[8];
         String postData = "";
         String url = "";
@@ -107,7 +116,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
         postData = tools.combineStrings(strings);
         String[] contentLen = {"Content-Length", String.valueOf(postData.length())};
         reqProps.addElement(contentLen);
-        HttpsConnection sendCon = null;
+//        HttpsConnection sendCon = null;
         try{
             connMgr.open(url, "POST", reqProps, postData);
         }
@@ -116,10 +125,12 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
             Logger.add("gvSendMsg", cnf.getMessage());
             throw cnf;
         }
-        try{
-            connMgr.close();
+        finally{
+            try{
+                connMgr.close();
+            }
+            catch(Exception ignore){}
         }
-        catch(Exception ignore){}
     }
 
     private Alert getSendMsgFailedAlert()
@@ -144,10 +155,11 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
 
     public void commandAction(Command command, Displayable display) {
         textConvo sentMsg = new textConvo(recipient, contacting, new textMsg(msg));
-            if (command == WaitScreen.FAILURE_COMMAND) {
+            if (command == WaitScreen.FAILURE_COMMAND || command == cancelSendCmd) {
                 try {
-                    gvME.outbox.addItem(sentMsg);
-                    System.out.println("Failed");
+                    getTask().cancel();
+                    gvME.getOutbox().addItem(sentMsg);
+              //      System.out.println("Failed");
                     gvME.dispMan.switchDisplayable(getSendMsgFailedAlert(), gvME.getMenu());
                 } catch (IOException ex) {
                     Logger.add(getClass().getName(), "WS Fail", ex.getMessage());
@@ -158,7 +170,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
                 }
             } else if (command == WaitScreen.SUCCESS_COMMAND) {
                 try {
-                    gvME.SentBox.addItem(sentMsg);
+                    gvME.getSentBox().addItem(sentMsg);
                 } catch (IOException ex) {
                     Logger.add(getClass().getName(), "WS Success", ex.getMessage());
                     ex.printStackTrace();
@@ -194,5 +206,14 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
     public void setContacting(String contacting, String recipient) {
         this.contacting = contacting;
         this.recipient = recipient;
+    }
+
+    private Command getCancelSendCmd()
+    {
+        if(cancelSendCmd == null)
+        {
+            cancelSendCmd = new Command("Cancel", Command.CANCEL, 0);
+        }
+        return cancelSendCmd;
     }
 }

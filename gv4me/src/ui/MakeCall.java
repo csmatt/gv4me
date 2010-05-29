@@ -5,9 +5,10 @@
 
 package ui;
 
-import ui.*;
-import gvME.*;
+import gvME.connMgr;
 import gvME.gvME;
+import gvME.settings;
+import gvME.tools;
 import java.io.IOException;
 import java.util.Vector;
 import javax.microedition.io.ConnectionNotFoundException;
@@ -27,7 +28,6 @@ import org.netbeans.microedition.util.SimpleCancellableTask;
 public class MakeCall extends WaitScreen implements CommandListener, interCom {
     private String contacting = "";
     private String recipient = "";
-//    private Alert noCallFromAlert;
     private String rnr;
     private Vector reqProps = new Vector(2);
     private Alert callFailedAlert;
@@ -76,13 +76,15 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
      */
     private void makeDataCall(String contacting) throws ConnectionNotFoundException, IOException, Exception
     {
-        String[] strings = {"&outgoingNumber=+1", contacting, "&forwardingNumber=+1", settings.getCallFrom(), "&subscriberNumber=undefined&remember=0&_rnr_se=", rnr};
+        String[] strings = {"outgoingNumber=+1", contacting, "&forwardingNumber=+1", settings.getCallFrom(), "&subscriberNumber=undefined&phoneType=2&remember=0&_rnr_se=", rnr};
         String postData = tools.combineStrings(strings);
+        System.out.println(postData);
         String[] contentLen = {"Content-Length", String.valueOf(postData.length())};
         reqProps.insertElementAt(contentLen, 0);
         connMgr.open(callURL, "POST", reqProps, postData);
         String pageData = connMgr.getPageData();
         connMgr.close();
+        System.out.println(pageData);
         if(pageData.indexOf("true") < 0)
             throw new Exception("call failed");
     }
@@ -90,7 +92,7 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
     public void makeVoiceCall(String contacting)
     {
         String p = settings.getPauseChar();
-        String[] callString = {"tel:", settings.getGVNumber(), p, settings.getPIN(), p, "2", p, contacting, "#"};
+        String[] callString = {"tel:", settings.getGVNumber(), ";postd=", settings.getPIN(), p, "2", contacting, "#"};
         contacting = tools.combineStrings(callString);
         try {
             boolean b = midlet.platformRequest(contacting);

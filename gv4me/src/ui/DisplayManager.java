@@ -5,8 +5,7 @@
 
 package ui;
 
-//import gvME.*;
-import gvME.*;
+import gvME.gvME;
 import javax.microedition.lcdui.Alert;
 import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
@@ -16,7 +15,7 @@ import javax.microedition.lcdui.Displayable;
  * @author Matt Defenthaler
  */
 public class DisplayManager {
-    gvME midlet;
+    gvME midlet = null;
     private java.util.Hashtable __previousDisplayables = new java.util.Hashtable();
 
     public DisplayManager(gvME midlet)

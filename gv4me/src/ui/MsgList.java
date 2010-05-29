@@ -27,9 +27,8 @@ import javax.microedition.lcdui.StringItem;
  */
 public class MsgList extends List implements CommandListener {
 
-    private int itemLength = 17;
-   // private Vector msgList = new Vector();
-    private Vector MsgListToItemMap = new Vector();
+    private final int itemLength = 17;
+    private Vector MsgListToItemMap;
     private Command viewMsgCmd;
     private Command replyCmd;
     private Command backCmd;
@@ -96,6 +95,7 @@ public class MsgList extends List implements CommandListener {
      */
     private void getMsgList(Vector msgs)
     {
+        MsgListToItemMap = new Vector();
         Enumeration addMsgEnum = msgs.elements();
         textMsg crntMsg;
         StringBuffer itemBuff = new StringBuffer();
@@ -110,7 +110,9 @@ public class MsgList extends List implements CommandListener {
                 itemBuff.append("...");
             }
             MsgListToItemMap.insertElementAt(crntMsg, 0);
+           // String itemBuffStr = new String(itemBuff);
             this.insert(0, new String(itemBuff), null);
+
         }
     }
 
@@ -121,6 +123,7 @@ public class MsgList extends List implements CommandListener {
         if(displayable == this && command == backCmd)
         {
             try {
+                MsgListToItemMap = null;
                 gvME.dispMan.switchDisplayable(null, gvME.getInbox());
             } catch (IOException ex) {
                 Logger.add(getClass().getName(), ex.getMessage());

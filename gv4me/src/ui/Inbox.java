@@ -192,7 +192,7 @@ public class Inbox extends MailBox {
     public void commandAction(Command command, Displayable displayable) {
         if(command == backCmd)
             super.commandAction(command, displayable);
-        else if(!list.isEmpty() && (command == delItemCmd || command == delAllCmd))
+        else if(!list.isEmpty()&& (command == delItemCmd || command == delAllCmd))
         {
             if(command == delItemCmd)
             {
@@ -240,7 +240,7 @@ public class Inbox extends MailBox {
                 }
                 catch(Exception ex)
                 {
-                    System.out.println(ex.toString());
+                 //   System.out.println(ex.toString());
                     if(ex.toString().indexOf("no call from") >= 0)
                     {
                         gvME.dispMan.switchDisplayable(gvME.getNoCallFromAlert(), settings.getChangeSettingsMenu());

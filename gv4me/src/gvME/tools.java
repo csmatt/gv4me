@@ -61,7 +61,8 @@ public class tools {
     public static String combineStrings(String[] strings)
     {
         StringBuffer strBuf = new StringBuffer();
-        for(int i = 0; i < strings.length; i++)
+        int strsLen = strings.length;
+        for(int i = 0; i < strsLen; i++)
         {
             strBuf.append(strings[i]);
         }

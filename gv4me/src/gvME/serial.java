@@ -28,8 +28,9 @@ public class serial {
         }
         catch(Exception e)
         {}
-        
-        for(int i = 0; i < strArray.length && strArray[i] != null; i++)
+
+        int strLen = strArray.length;
+        for(int i = 0; i < strLen && strArray[i] != null; i++)
         {
             vect.addElement(new KeyValuePair(strArray[i],strArray[++i]));
         }
@@ -91,7 +92,8 @@ public class serial {
             bos = new ByteArrayOutputStream();
             dos = new DataOutputStream(bos);
 
-            for(int i=0; i < fields.length; i++)
+            int fieldLen = fields.length;
+            for(int i=0; i < fieldLen; i++)
             {
                 dos.writeUTF(fields[i]);
             }

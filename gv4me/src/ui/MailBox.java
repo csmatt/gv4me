@@ -30,7 +30,7 @@ public class MailBox extends List implements CommandListener {
     public Command readCmd, delItemCmd, delAllCmd, backCmd, markMultiCmd;
     public Vector list;
     public String rsName;
-    public static int itemLength = 17;
+    public final int itemLength = 17;
     public int numUnread = 0;
     public final Image msgIsRead = Image.createImage("/pics/read.png");
     public final Image msgIsUnread = Image.createImage("/pics/unread.png");
@@ -267,9 +267,13 @@ public class MailBox extends List implements CommandListener {
         if(command == backCmd)
         {
             if(displayable == this)
+            {
                 gvME.dispMan.showMenu();
+            }
             else
+            {
                 gvME.dispMan.switchToPreviousDisplayable();
+            }
         }
         else if(!list.isEmpty())
         {

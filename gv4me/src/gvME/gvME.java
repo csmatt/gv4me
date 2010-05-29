@@ -8,7 +8,6 @@
 package gvME;
 
 
-import ui.MakeCall;
 import java.io.IOException;
 
 import java.util.Timer;
@@ -29,9 +28,9 @@ public class gvME extends MIDlet implements CommandListener, interCom {
     private static final String sentBoxStore = "sentBoxStore";
     private static boolean midletPaused = false;
     private static Timer timer;
-    private static long timerDelay = 30000;
+    private static long timerDelay = 3000;
     private static String rnr, auth, contacting, recipient;
-    private static Command exitCmd, minimize, backCmd;
+    private static Command exitCmd, minimize, okCmd;//, backCmd;
     private static Inbox InboxList;
     private static CommandListener cl;
     private static int numNewMsgs;
@@ -56,14 +55,14 @@ public class gvME extends MIDlet implements CommandListener, interCom {
         } catch (Exception ignore)
         {}
         menu = getMenu();
-        InboxList = new Inbox();
+       // InboxList = new Inbox();
     }
 
     public void startMIDlet() throws IOException, Exception {
         Login login = new Login();
-        login = null;
-        SentBox = getSentBox();
-        outbox = getOutbox();
+        InboxList = getInbox();
+//        SentBox = getSentBox();
+//        outbox = getOutbox();
     }
 
     public void resumeMIDlet() {
@@ -142,7 +141,8 @@ public class gvME extends MIDlet implements CommandListener, interCom {
         if(Integer.parseInt(settings.getCheckInterval()) > 0)
         {
             timer = new Timer();
-            timer.schedule(new checkInbox(), timerDelay, Long.parseLong(settings.getCheckInterval())*1000);
+            checkInbox checker = new checkInbox();
+            timer.schedule(checker, timerDelay, Long.parseLong(settings.getCheckInterval())*1000);
         }
     }
 
@@ -176,7 +176,6 @@ public class gvME extends MIDlet implements CommandListener, interCom {
         }
         return menu;
     }
-
     /**
      * Changes the text of a main menu item
      * @param itemNum The index of the item to change
@@ -187,25 +186,20 @@ public class gvME extends MIDlet implements CommandListener, interCom {
         menu.set(itemNum, item, null);
     }
 
-    //<editor-fold defaultstate="collapsed" desc=" Generated Method: menuAction ">//GEN-BEGIN:|24-action|0|24-preAction
     /**
      * Performs an action assigned to the selected list element in the menu component.
      */
     public void menuAction() throws IOException, Exception {
-        String __selectedString = getMenu().getString(getMenu().getSelectedIndex());
-        if (__selectedString != null) {
-            if (__selectedString.equals("Write New")) {
+        switch(getMenu().getSelectedIndex())
+        {
+            case 0:
                 WriteMsg newSMS = new WriteMsg("Write New", null);
                 dispMan.switchDisplayable(null, newSMS);
-            } else if (__selectedString.startsWith("Inbox")) {
+                break;
+            case 1:
                 dispMan.switchDisplayable(null, getInbox());
-            } else if (__selectedString.equals("Outbox")) {
-                dispMan.switchDisplayable(null, getOutbox());
-            } else if (__selectedString.equals("Sent Box")) {
-                dispMan.switchDisplayable(null, getSentBox());
-            } else if (__selectedString.equals("Settings")) {            
-                dispMan.switchDisplayable(null, settings.getChangeSettingsMenu());
-            } else if (__selectedString.equals("Make Call")) {
+                break;
+            case 2:
                 try{
                 ChooseContact cc = new ChooseContact(getMenu(), new MakeCall());
                 dispMan.switchDisplayable(null, cc);
@@ -217,8 +211,17 @@ public class gvME extends MIDlet implements CommandListener, interCom {
                         dispMan.switchDisplayable(getNoCallFromAlert(), settings.getChangeSettingsMenu());
                     }
                 }
-            }
-        }        
+                break;
+            case 3:
+                 dispMan.switchDisplayable(null, getSentBox());
+                 break;
+            case 4:
+                dispMan.switchDisplayable(null, getOutbox());
+                break;
+            case 5:
+                dispMan.switchDisplayable(null, settings.getChangeSettingsMenu());
+                break;
+        }
     }
 
     /**
@@ -227,7 +230,7 @@ public class gvME extends MIDlet implements CommandListener, interCom {
      * @throws RecordStoreException
      * @throws IOException
      */
-    public MailBox getSentBox() throws RecordStoreException, IOException
+    public static MailBox getSentBox() throws RecordStoreException, IOException
     {
         if(SentBox == null)
         {
@@ -257,7 +260,7 @@ public class gvME extends MIDlet implements CommandListener, interCom {
      * @throws RecordStoreException
      * @throws IOException
      */
-    public Outbox getOutbox() throws RecordStoreException, IOException
+    public static Outbox getOutbox() throws RecordStoreException, IOException
     {
         if(outbox == null)
         {
@@ -273,19 +276,28 @@ public class gvME extends MIDlet implements CommandListener, interCom {
         return exitCmd;
     }
 
-    private static Command getBackCmd() {
-        if (backCmd == null) {
-            backCmd = new Command("Back", Command.BACK, 0);
-            
-        }
-        return backCmd;
-    }
+//    private static Command getBackCmd() {
+//        if (backCmd == null) {
+//            backCmd = new Command("Back", Command.BACK, 0);
+//
+//        }
+//        return backCmd;
+//    }
 
     public static Command getMinimize() {
         if (minimize == null) {
             minimize = new Command("Minimize", Command.BACK, 0);        
         }
         return minimize;
+    }
+
+    public static Command getOkCmd()
+    {
+        if (okCmd == null)
+        {
+            okCmd = new Command("Go", Command.ITEM, 1);
+        }
+        return okCmd;
     }
 
     public static Alert getNoCallFromAlert()
@@ -377,16 +389,15 @@ public class gvME extends MIDlet implements CommandListener, interCom {
     public void setContacting(String contacting, String recipient) {
         if(contacting.startsWith("1"))
             contacting = contacting.substring(1);
-        this.contacting = contacting;
-        this.recipient = recipient;
+        gvME.contacting = contacting;
+        gvME.recipient = recipient;
     }
 
     /**
      * checkInbox is a class that extends TimerTask in order to execute a check for new messages at the timer's interval
      */
     static class checkInbox extends TimerTask{
-        public final void run() {
-            Vector newMsgs = null;
+        public final void run() {            Vector newMsgs = null;
             try {
                 newMsgs = parseMsgs.readMsgs();
             } catch (ConnectionNotFoundException cnf) {

@@ -82,6 +82,39 @@ public class connMgr{
         return respMsg.substring(index+5, respMsg.indexOf("\n", index));
     }
 
+    public static String getPageDataChunk(String lookingFor) throws IOException
+    {
+        String dataString = "";
+        DataInputStream dis = null;
+        ByteArrayOutputStream baos = null;
+        int chunkSize = 300;
+        try{
+
+            dis = c.openDataInputStream();
+            baos = new ByteArrayOutputStream();
+            byte[] data = new byte[chunkSize];
+            int dataSizeRead = 0;//size of data read from input stream.
+            for(;(dataSizeRead = dis.read(data))!= -1;data = new byte[chunkSize*=2])
+            {
+                 baos.write(data, 0, dataSizeRead);
+                 dataString = new String (baos.toByteArray());
+                 if(dataString.indexOf(lookingFor) >= 0)
+                     break;
+//                     System.out.println("Data Size Read = "+dataSizeRead);
+            }
+            
+        }
+        catch(Exception ignore){}
+        
+        finally{
+            baos.flush();
+            dis.close();
+            baos.close();
+            return dataString;
+        }
+        
+    }
+
     public static String getPageData() throws IOException
     {
         String dataString = "";
@@ -104,7 +137,6 @@ public class connMgr{
 //                     System.out.println("Data Size Read = "+dataSizeRead);
                 }
                 dataString = new String(baos.toByteArray());
-                baos.close();
             }
             else
             {
@@ -118,7 +150,7 @@ public class connMgr{
             Logger.add("connMgr", "getPageData", ex.getMessage());
             throw ex;
         }
-            finally{
+        finally{
             baos.flush();
             dis.close();
             baos.close();
@@ -143,7 +175,7 @@ public class connMgr{
 
             number = new String(numberBuf);
             settings.setGVNumber(number);
-            System.out.println(number);
+     //       System.out.println(number);
         }
         int rnrInd = check.indexOf("_rnr_se");
 

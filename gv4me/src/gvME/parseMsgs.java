@@ -26,7 +26,8 @@ public class parseMsgs {
     private static final String idToken = "{\"id\":\"";
     private static final String separateToken = "\",\"";
     private static final String phoneNumToken = "phoneNumber\":\"+1";
-    private static final String jsonEnd = "}}";
+    private static final String jsonEnd = "</json>";
+    private static final String unreadIsZero = "\"unread\":0";
     private static final String beginMsgToken = "<div id=\"";
     private static final String msgFromToken = "<span class=\"gc-message-sms-from\">";
     private static final String endSpan = "</span>";
@@ -36,7 +37,7 @@ public class parseMsgs {
     private static final String isReadToken = "\"isRead\":";
     private static final String isSpamToken = ",\"isSpam\"";
     private static final String dateToken = "displayStartDateTime\":\"";
-    private static final String noMsgsString = "No unread items in your inbox.";
+//    private static final String noMsgsString = "No unread items in your inbox.";
     private static final String msgBottomToken = "<td class=\"gc-sline-bottom\">";
     private static String[] markReadStr = {markReadURL,"","&read=1"};
 
@@ -54,7 +55,7 @@ public class parseMsgs {
             throw cnf;
         }
         //checks to see if new messages have arrived and returns if none have
-        if(html.equals("") || html.indexOf(noMsgsString) > 0)
+        if(html.equals(""))// || html.indexOf(noMsgsString) > 0)
         {
             html = null;
             return null;
@@ -70,7 +71,7 @@ public class parseMsgs {
         textConvo messages = null;
         while(convosEnum.hasMoreElements())
         {
-           Key = (String) convosEnum.nextElement();
+            Key = (String) convosEnum.nextElement();
             try {
                 messages = getMsgs(Key, html);
             } catch (IOException ex) {
@@ -82,8 +83,8 @@ public class parseMsgs {
             }
 
            if(messages == null)
-               break;
-           
+               continue;
+
            if(Inbox.getInboxHash().containsKey(Key))
            {
                crnt = (textConvo) Inbox.getInboxHash().get(Key);
@@ -94,12 +95,12 @@ public class parseMsgs {
                crnt = (textConvo) convos.get(Key);
                crnt.setConvo(messages);
            }
-           
+
            newConvos.addElement(crnt);
            newMsgCnt++;
         }
         gvME.setNumNewMsgs(newMsgCnt);
-        System.gc();
+
         return newConvos;
     }
 
@@ -129,7 +130,7 @@ public class parseMsgs {
             if(hold_Sender.indexOf("Me:") < 0)
             {
                 sender = parseSender(hold_Sender);//hold_Sender prevents garbage from being submitted as the sender of the message
-                
+
                 //gets message text
                 kvp = regexreplace(i, html, msgTextToken, endSpan);
                 message = (String) kvp.getKey();
@@ -163,7 +164,7 @@ public class parseMsgs {
 
     private static boolean checkSender(String sender)
     {
-        if(sender.equals("") || sender.length() > 25)
+        if(sender.equals("") || sender.length() > 40)
             return false;
         else
             return true;
@@ -220,6 +221,7 @@ public class parseMsgs {
 
             newConvo = new textConvo(0, msgID, replyNum, date);
             convoHash.put(msgID, newConvo);
+            newConvo = null;
         }
 
         return convoHash;
@@ -270,13 +272,16 @@ public class parseMsgs {
     {
         String html = "";
         try{
-            String[] combined = {getMsgsURL, "?auth=", gvME.getAuth()};
-            connMgr.open(tools.combineStrings(combined), "GET", null, "");
-            html = connMgr.getPageData();
+            if(messagesToGet(getMsgsURL))
+            {
+                connMgr.open(getMsgsURL, "GET", null, "");
+                html = connMgr.getPageData();
+                connMgr.close();
+            }
         }
         catch(ConnectionNotFoundException cnf)
         {
-            Logger.add("getHTML", "connection not found");
+            //Logger.add("getHTML", "connection not found");
             throw cnf;
         }
         finally{
@@ -288,6 +293,16 @@ public class parseMsgs {
 
             return html;
         }
+    }
+
+    private static boolean messagesToGet(String reqString) throws IOException, ConnectionNotFoundException, Exception
+    {
+        connMgr.open(reqString, "GET", null, "");
+        String jsonChunk = connMgr.getPageDataChunk(jsonEnd);
+        connMgr.close();
+        if(jsonChunk.indexOf(unreadIsZero) >= 0)
+            return false;
+        return true;
     }
 
     /**

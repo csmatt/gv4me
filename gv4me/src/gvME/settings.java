@@ -42,7 +42,8 @@ public class settings {
     private static final int callWithVoice = 1;
     private static int callWith = 1;
     private static String gvNumber = "";
-    private static String pauseChar = "P";
+    private static String pauseChar = "p";
+    private static final String DEFAULT_PAUSE_CHAR = "p";
 
     public static void initialize() throws IOException
     {
@@ -107,6 +108,10 @@ public class settings {
         if(tfPauseChar != null && !tfPauseChar.equals(""))
         {
             settings.pauseChar = tfPauseChar;
+        }
+        else
+        {
+            settings.pauseChar = DEFAULT_PAUSE_CHAR;
         }
         if(!tfGVNumber.equals(gvNumber))
         {
@@ -202,7 +207,7 @@ public class settings {
 
     private static TextField getPauseCharTextField() {
         if (pauseCharTextField == null) {
-            pauseCharTextField = new TextField("Pause Symbol:", "", 3, TextField.PHONENUMBER);
+            pauseCharTextField = new TextField("Pause Symbol:", "", 3, TextField.ANY);//.PHONENUMBER);
         }
         return pauseCharTextField;
     }

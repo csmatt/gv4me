@@ -283,11 +283,14 @@ public class Login extends WaitScreen implements CommandListener {
         connMgr.close();
         if(respCode >= 400 && respCode < 500)
             throw new IOException("Invalid Username or Password");
-        System.out.println(auth);
+        //System.out.println(auth);
         gvME.setAuth(auth);
-
-        String[] combined = {rnrURL, "&auth=", auth};
-        connMgr.open(tools.combineStrings(combined), "GET", null, "");
+        if (auth != null && !auth.equals(""))
+        {
+            String[] authorization = {"Authorization", "GoogleLogin auth=" + auth};
+            connMgr.addReqProp(authorization);
+        }
+        connMgr.open(rnrURL, "GET", null, "");
         String rnr = connMgr.get_rnr_se();
         connMgr.close();
         gvME.setRNR(rnr);
