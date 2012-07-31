@@ -81,7 +81,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
 
     /**
      * Posts data to Google Voice to send a message.
-     * @param original The orignal textConvo that this is a reply to or forward of (optionally null if this is a new message)
+     * @param original The original textConvo that this is a reply to or forward of (optionally null if this is a new message)
      * @param sendingTo Recipient's phone number.
      * @param msg Message text.
      * @param rnr rnr token value.
@@ -101,14 +101,14 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
             String replyNum = original.getReplyNum();
             sendingTo = replyNum;
             url = replyURL;
-            String[] stringBuff = {"&_rnr_se=", rnr, "&number=1", sendingTo, "&id=", original.getMsgID(), "&c=1&smstext=", text};
+            String[] stringBuff = {"&_rnr_se=", rnr, "&number=", sendingTo, "&id=", original.getMsgID(), "&c=1&smstext=", text};
             strings = stringBuff;
             stringBuff = null;
         }
         else
         { //if this is a forward or new message
             url = textURL;
-            String[] stringBuff = {"&id=&phoneNumber=+1", sendingTo, "&text=", text, "&_rnr_se=", rnr};
+            String[] stringBuff = {"&id=&phoneNumber=", sendingTo, "&text=", text, "&_rnr_se=", rnr};
             strings = stringBuff;
             stringBuff = null;
         }
@@ -183,7 +183,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
     }
     
     /**
-     * Returns an initiliazed instance of image component.
+     * Returns an initialized instance of image component.
      * @return the initialized component instance
      */
     public Image getImage() {
@@ -200,6 +200,7 @@ public class SendMsg extends WaitScreen implements CommandListener, interCom {
 
     /**
      * Sets the number to contact in compliance with the interCom interface.
+     * GV doesn't support SMS to international numbers at this point, so neither does this app.
      * @param contacting number to contact
      * @param recipient name of recipient (or number if no name specified)
      */

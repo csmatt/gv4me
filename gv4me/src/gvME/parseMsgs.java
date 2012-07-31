@@ -33,7 +33,7 @@ public class parseMsgs {
     private static final String endSpan = "</span>";
     private static final String msgTextToken = "<span class=\"gc-message-sms-text\">";
     private static final String msgTimeToken = "<span class=\"gc-message-sms-time\">";
-    private static final String endMsgToken = "<table class=\"gc-message-bg-bottom\">";
+    private static final String endMsgToken = "<td class=\"gc-message-bg-r gc-message-bg-upper\">";
     private static final String isReadToken = "\"isRead\":";
     private static final String isSpamToken = ",\"isSpam\"";
     private static final String dateToken = "displayStartDateTime\":\"";

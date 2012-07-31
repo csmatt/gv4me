@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package ui;
 
 import gvME.KeyValuePair;
@@ -82,22 +77,13 @@ public class ChooseContact extends List implements CommandListener{
         return isSupported;
     }
 
-    private String removePrefix(String contacting)
-    {
-        if(contacting.startsWith("+1"))
-            return contacting.substring(2);
-        else if(contacting.startsWith("1"))
-            return contacting.substring(1);
-        else
-            return contacting;
-    }
+
 
     private void getNumFromPIMBrowser()
     {
         Contact pimContact = (Contact) pimBrowser.getSelectedItem();
         String pimName = pimContact.getString(Contact.FORMATTED_NAME, 0);
         String pimNumber = pimContact.getString(Contact.TEL, 0);
-        pimNumber = removePrefix(pimNumber);
         next.setContacting(pimNumber, pimName);
         try {
             settings.addContact(new KeyValuePair(pimNumber, pimName));
@@ -113,7 +99,6 @@ public class ChooseContact extends List implements CommandListener{
     private void getNumFromEnterNumBox()
     {
         String contact = enterNumBox.getString();
-        
         next.setContacting(contact, contact);
         try {
             settings.addContact(new KeyValuePair(contact, contact));

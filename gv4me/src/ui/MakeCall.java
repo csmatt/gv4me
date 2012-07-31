@@ -76,7 +76,7 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
      */
     private void makeDataCall(String contacting) throws ConnectionNotFoundException, IOException, Exception
     {
-        String[] strings = {"outgoingNumber=+1", contacting, "&forwardingNumber=+1", settings.getCallFrom(), "&subscriberNumber=undefined&phoneType=2&remember=0&_rnr_se=", rnr};
+        String[] strings = {"outgoingNumber=", contacting, "&forwardingNumber=+1", settings.getCallFrom(), "&subscriberNumber=undefined&phoneType=2&remember=0&_rnr_se=", rnr};
         String postData = tools.combineStrings(strings);
         System.out.println(postData);
         String[] contentLen = {"Content-Length", String.valueOf(postData.length())};
@@ -120,8 +120,6 @@ public class MakeCall extends WaitScreen implements CommandListener, interCom {
      * @param recipient name of recipient (or number if no name specified)
      */
     public void setContacting(String contacting, String recipient) {
-        if(contacting.startsWith("1"))
-            contacting = contacting.substring(1);
         this.contacting = contacting;
         this.recipient = recipient;
     }
